@@ -3,11 +3,13 @@ from unittest.mock import Mock, patch
 
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.dependencies.tutorial010_py310 import get_db
 
 
-def test_get_db():
+@test
+def get_db_endpoint():
     app = FastAPI()
 
     @app.get("/")
@@ -25,5 +27,5 @@ def test_get_db():
     ):
         response = client.get("/")
 
-    assert response.status_code == 200
-    assert response.json() == {"c": str(dbsession_mock)}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"c": str(dbsession_mock)})

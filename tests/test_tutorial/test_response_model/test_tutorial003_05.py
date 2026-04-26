@@ -1,114 +1,116 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends, expect, fixture, test
 
-from ...utils import needs_py310
-
-
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial003_05_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.response_model.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
+from docs_src.response_model.tutorial003_05_py310 import app
 
 
-def test_get_portal(client: TestClient):
+@fixture
+def client() -> TestClient:
+    return TestClient(app)
+
+
+@test
+def get_portal(client: TestClient = Depends(client)):
     response = client.get("/portal")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Here's your interdimensional portal."}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {"message": "Here's your interdimensional portal."}
+    )
 
 
-def test_get_redirect(client: TestClient):
+@test
+def get_redirect(client: TestClient = Depends(client)):
     response = client.get("/portal", params={"teleport": True}, follow_redirects=False)
-    assert response.status_code == 307, response.text
-    assert response.headers["location"] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    expect(response.status_code).to_equal(307).fatal()
+    expect(response.headers["location"]).to_equal(
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    )
 
 
-def test_openapi_schema(client: TestClient):
+@test
+def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/portal": {
-                    "get": {
-                        "summary": "Get Portal",
-                        "operationId": "get_portal_portal_get",
-                        "parameters": [
-                            {
-                                "required": False,
-                                "schema": {
-                                    "title": "Teleport",
-                                    "type": "boolean",
-                                    "default": False,
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/portal": {
+                        "get": {
+                            "summary": "Get Portal",
+                            "operationId": "get_portal_portal_get",
+                            "parameters": [
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "title": "Teleport",
+                                        "type": "boolean",
+                                        "default": False,
+                                    },
+                                    "name": "teleport",
+                                    "in": "query",
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
                                 },
-                                "name": "teleport",
-                                "in": "query",
-                            }
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
                                         }
-                                    }
+                                    },
                                 },
+                            },
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
-                        },
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

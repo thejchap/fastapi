@@ -1,32 +1,31 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial001_py310", marks=needs_py310),
-        pytest.param("tutorial001_an_py310", marks=needs_py310),
-    ],
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("additional_status_codes", name)
+    return TestClient(mod.app)
+
+
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
 )
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.additional_status_codes.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
-
-
-def test_update(client: TestClient):
+def update(name: str):
+    client = _client_for(name)
     response = client.put("/items/foo", json={"name": "Wrestlers"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"name": "Wrestlers", "size": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"name": "Wrestlers", "size": None})
 
 
-def test_create(client: TestClient):
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def create(name: str):
+    client = _client_for(name)
     response = client.put("/items/red", json={"name": "Chillies"})
-    assert response.status_code == 201, response.text
-    assert response.json() == {"name": "Chillies", "size": None}
+    expect(response.status_code).to_equal(201).fatal()
+    expect(response.json()).to_equal({"name": "Chillies", "size": None})

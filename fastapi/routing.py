@@ -28,6 +28,7 @@ from typing import (
     TypeVar,
     cast,
 )
+from warnings import deprecated
 
 import anyio
 from annotated_doc import Doc
@@ -89,7 +90,6 @@ from starlette.routing import (
 from starlette.routing import Mount as Mount  # noqa
 from starlette.types import AppType, ASGIApp, Lifespan, Receive, Scope, Send
 from starlette.websockets import WebSocket
-from typing_extensions import deprecated
 
 
 # Copy of starlette.routing.request_response modified to include the

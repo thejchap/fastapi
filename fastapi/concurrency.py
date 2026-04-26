@@ -17,7 +17,7 @@ _T = TypeVar("_T")
 @asynccontextmanager
 async def contextmanager_in_threadpool(
     cm: AbstractContextManager[_T],
-) -> AsyncGenerator[_T, None]:
+) -> AsyncGenerator[_T]:
     # blocking __exit__ from running waiting on a free thread
     # can create race conditions/deadlocks if the context manager itself
     # has its own internal pool (e.g. a database connection pool)

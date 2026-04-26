@@ -3,13 +3,15 @@
 # Ref: https://github.com/fastapi/fastapi/pull/14320
 
 from fastapi import Depends, Security
+from tryke import expect, test
 
 
 def dep():
     pass
 
 
-def test_depends_hashable():
+@test
+def depends_hashable():
     dep()  # just for coverage
     d1 = Depends(dep)
     d2 = Depends(dep)
@@ -19,7 +21,7 @@ def test_depends_hashable():
     s1 = Security(dep)
     s2 = Security(dep)
 
-    assert hash(d1) == hash(d2)
-    assert hash(s1) == hash(s2)
-    assert hash(d1) != hash(d3)
-    assert hash(d3) == hash(d4)
+    expect(hash(d1)).to_equal(hash(d2))
+    expect(hash(s1)).to_equal(hash(s2))
+    expect(hash(d1)).not_.to_equal(hash(d3))
+    expect(hash(d3)).to_equal(hash(d4))

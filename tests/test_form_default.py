@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import FastAPI, File, Form
 from starlette.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -22,13 +23,15 @@ async def post_multi_part(
 client = TestClient(app)
 
 
-def test_form_default_url_encoded():
+@test
+def form_default_url_encoded():
     response = client.post("/urlencoded", data={"age": ""})
-    assert response.status_code == 200
-    assert response.text == "null"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_equal("null")
 
 
-def test_form_default_multi_part():
+@test
+def form_default_multi_part():
     response = client.post("/multipart", data={"age": ""})
-    assert response.status_code == 200
-    assert response.json() == {"file": None, "age": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file": None, "age": None})

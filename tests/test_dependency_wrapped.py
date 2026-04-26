@@ -3,10 +3,10 @@ import sys
 from collections.abc import AsyncGenerator, Generator
 from functools import wraps
 
-import pytest
 from fastapi import Depends, FastAPI
 from fastapi.concurrency import iterate_in_threadpool, run_in_threadpool
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 if sys.version_info >= (3, 13):  # pragma: no cover
     from inspect import iscoroutinefunction
@@ -186,7 +186,7 @@ def wrapped_dependency() -> bool:
 
 
 @noop_wrap
-def wrapped_gen_dependency() -> Generator[bool, None, None]:
+def wrapped_gen_dependency() -> Generator[bool]:
     yield True
 
 
@@ -196,7 +196,7 @@ async def async_wrapped_dependency() -> bool:
 
 
 @noop_wrap
-async def async_wrapped_gen_dependency() -> AsyncGenerator[bool, None]:
+async def async_wrapped_gen_dependency() -> AsyncGenerator[bool]:
     yield True
 
 
@@ -332,7 +332,7 @@ def wrapped_dependency_async_wrapper() -> bool:
 
 
 @noop_wrap_async
-def wrapped_gen_dependency_async_wrapper() -> Generator[bool, None, None]:
+def wrapped_gen_dependency_async_wrapper() -> Generator[bool]:
     yield True
 
 
@@ -342,7 +342,7 @@ async def async_wrapped_dependency_async_wrapper() -> bool:
 
 
 @noop_wrap_async
-async def async_wrapped_gen_dependency_async_wrapper() -> AsyncGenerator[bool, None]:
+async def async_wrapped_gen_dependency_async_wrapper() -> AsyncGenerator[bool]:
     yield True
 
 
@@ -410,40 +410,96 @@ async def get_async_wrapped_endpoint_async_wrapper():
 client = TestClient(app)
 
 
-@pytest.mark.parametrize(
-    "route",
-    [
-        "/wrapped-dependency/",
-        "/wrapped-gen-dependency/",
-        "/async-wrapped-dependency/",
-        "/async-wrapped-gen-dependency/",
-        "/wrapped-class-instance-dependency/",
-        "/wrapped-class-instance-async-dependency/",
-        "/wrapped-class-instance-gen-dependency/",
-        "/wrapped-class-instance-async-gen-dependency/",
-        "/class-instance-wrapped-dependency/",
-        "/class-instance-wrapped-async-dependency/",
-        "/class-instance-async-wrapped-dependency/",
-        "/class-instance-async-wrapped-async-dependency/",
-        "/class-instance-wrapped-gen-dependency/",
-        "/class-instance-wrapped-async-gen-dependency/",
-        "/class-instance-async-wrapped-gen-dependency/",
-        "/class-instance-async-wrapped-gen-async-dependency/",
-        "/wrapped-class-dependency/",
-        "/wrapped-endpoint/",
-        "/async-wrapped-endpoint/",
-        "/wrapped-dependency-async-wrapper/",
-        "/wrapped-gen-dependency-async-wrapper/",
-        "/async-wrapped-dependency-async-wrapper/",
-        "/async-wrapped-gen-dependency-async-wrapper/",
-        "/wrapped-class-instance-dependency-async-wrapper/",
-        "/wrapped-class-instance-async-dependency-async-wrapper/",
-        "/wrapped-class-dependency-async-wrapper/",
-        "/wrapped-endpoint-async-wrapper/",
-        "/async-wrapped-endpoint-async-wrapper/",
-    ],
+@test.cases(
+    test.case("wrapped-dependency", route="/wrapped-dependency/"),
+    test.case("wrapped-gen-dependency", route="/wrapped-gen-dependency/"),
+    test.case("async-wrapped-dependency", route="/async-wrapped-dependency/"),
+    test.case("async-wrapped-gen-dependency", route="/async-wrapped-gen-dependency/"),
+    test.case(
+        "wrapped-class-instance-dependency", route="/wrapped-class-instance-dependency/"
+    ),
+    test.case(
+        "wrapped-class-instance-async-dependency",
+        route="/wrapped-class-instance-async-dependency/",
+    ),
+    test.case(
+        "wrapped-class-instance-gen-dependency",
+        route="/wrapped-class-instance-gen-dependency/",
+    ),
+    test.case(
+        "wrapped-class-instance-async-gen-dependency",
+        route="/wrapped-class-instance-async-gen-dependency/",
+    ),
+    test.case(
+        "class-instance-wrapped-dependency", route="/class-instance-wrapped-dependency/"
+    ),
+    test.case(
+        "class-instance-wrapped-async-dependency",
+        route="/class-instance-wrapped-async-dependency/",
+    ),
+    test.case(
+        "class-instance-async-wrapped-dependency",
+        route="/class-instance-async-wrapped-dependency/",
+    ),
+    test.case(
+        "class-instance-async-wrapped-async-dependency",
+        route="/class-instance-async-wrapped-async-dependency/",
+    ),
+    test.case(
+        "class-instance-wrapped-gen-dependency",
+        route="/class-instance-wrapped-gen-dependency/",
+    ),
+    test.case(
+        "class-instance-wrapped-async-gen-dependency",
+        route="/class-instance-wrapped-async-gen-dependency/",
+    ),
+    test.case(
+        "class-instance-async-wrapped-gen-dependency",
+        route="/class-instance-async-wrapped-gen-dependency/",
+    ),
+    test.case(
+        "class-instance-async-wrapped-gen-async-dependency",
+        route="/class-instance-async-wrapped-gen-async-dependency/",
+    ),
+    test.case("wrapped-class-dependency", route="/wrapped-class-dependency/"),
+    test.case("wrapped-endpoint", route="/wrapped-endpoint/"),
+    test.case("async-wrapped-endpoint", route="/async-wrapped-endpoint/"),
+    test.case(
+        "wrapped-dependency-async-wrapper", route="/wrapped-dependency-async-wrapper/"
+    ),
+    test.case(
+        "wrapped-gen-dependency-async-wrapper",
+        route="/wrapped-gen-dependency-async-wrapper/",
+    ),
+    test.case(
+        "async-wrapped-dependency-async-wrapper",
+        route="/async-wrapped-dependency-async-wrapper/",
+    ),
+    test.case(
+        "async-wrapped-gen-dependency-async-wrapper",
+        route="/async-wrapped-gen-dependency-async-wrapper/",
+    ),
+    test.case(
+        "wrapped-class-instance-dependency-async-wrapper",
+        route="/wrapped-class-instance-dependency-async-wrapper/",
+    ),
+    test.case(
+        "wrapped-class-instance-async-dependency-async-wrapper",
+        route="/wrapped-class-instance-async-dependency-async-wrapper/",
+    ),
+    test.case(
+        "wrapped-class-dependency-async-wrapper",
+        route="/wrapped-class-dependency-async-wrapper/",
+    ),
+    test.case(
+        "wrapped-endpoint-async-wrapper", route="/wrapped-endpoint-async-wrapper/"
+    ),
+    test.case(
+        "async-wrapped-endpoint-async-wrapper",
+        route="/async-wrapped-endpoint-async-wrapper/",
+    ),
 )
-def test_class_dependency(route):
+def class_dependency(route: str):
     response = client.get(route)
-    assert response.status_code == 200, response.text
-    assert response.json() is True
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_be(True)

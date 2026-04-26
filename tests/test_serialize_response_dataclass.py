@@ -3,6 +3,7 @@ from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -74,120 +75,141 @@ def get_no_response_model_objectlist():
 client = TestClient(app)
 
 
-def test_valid():
+@test
+def valid():
     response = client.get("/items/valid")
     response.raise_for_status()
-    assert response.json() == {
-        "name": "valid",
-        "date": datetime(2021, 7, 26).isoformat(),
-        "price": 1.0,
-        "owner_ids": None,
-    }
+    expect(response.json()).to_equal(
+        {
+            "name": "valid",
+            "date": datetime(2021, 7, 26).isoformat(),
+            "price": 1.0,
+            "owner_ids": None,
+        }
+    )
 
 
-def test_object():
+@test
+def object_test():
     response = client.get("/items/object")
     response.raise_for_status()
-    assert response.json() == {
-        "name": "object",
-        "date": datetime(2021, 7, 26).isoformat(),
-        "price": 1.0,
-        "owner_ids": [1, 2, 3],
-    }
+    expect(response.json()).to_equal(
+        {
+            "name": "object",
+            "date": datetime(2021, 7, 26).isoformat(),
+            "price": 1.0,
+            "owner_ids": [1, 2, 3],
+        }
+    )
 
 
-def test_coerce():
+@test
+def coerce():
     response = client.get("/items/coerce")
     response.raise_for_status()
-    assert response.json() == {
-        "name": "coerce",
-        "date": datetime(2021, 7, 26).isoformat(),
-        "price": 1.0,
-        "owner_ids": None,
-    }
+    expect(response.json()).to_equal(
+        {
+            "name": "coerce",
+            "date": datetime(2021, 7, 26).isoformat(),
+            "price": 1.0,
+            "owner_ids": None,
+        }
+    )
 
 
-def test_validlist():
+@test
+def validlist():
     response = client.get("/items/validlist")
     response.raise_for_status()
-    assert response.json() == [
-        {
-            "name": "foo",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": None,
-            "owner_ids": None,
-        },
-        {
-            "name": "bar",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": 1.0,
-            "owner_ids": None,
-        },
-        {
-            "name": "baz",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": 2.0,
-            "owner_ids": [1, 2, 3],
-        },
-    ]
+    expect(response.json()).to_equal(
+        [
+            {
+                "name": "foo",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": None,
+                "owner_ids": None,
+            },
+            {
+                "name": "bar",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": 1.0,
+                "owner_ids": None,
+            },
+            {
+                "name": "baz",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": 2.0,
+                "owner_ids": [1, 2, 3],
+            },
+        ]
+    )
 
 
-def test_objectlist():
+@test
+def objectlist():
     response = client.get("/items/objectlist")
     response.raise_for_status()
-    assert response.json() == [
-        {
-            "name": "foo",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": None,
-            "owner_ids": None,
-        },
-        {
-            "name": "bar",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": 1.0,
-            "owner_ids": None,
-        },
-        {
-            "name": "baz",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": 2.0,
-            "owner_ids": [1, 2, 3],
-        },
-    ]
+    expect(response.json()).to_equal(
+        [
+            {
+                "name": "foo",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": None,
+                "owner_ids": None,
+            },
+            {
+                "name": "bar",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": 1.0,
+                "owner_ids": None,
+            },
+            {
+                "name": "baz",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": 2.0,
+                "owner_ids": [1, 2, 3],
+            },
+        ]
+    )
 
 
-def test_no_response_model_object():
+@test
+def no_response_model_object():
     response = client.get("/items/no-response-model/object")
     response.raise_for_status()
-    assert response.json() == {
-        "name": "object",
-        "date": datetime(2021, 7, 26).isoformat(),
-        "price": 1.0,
-        "owner_ids": [1, 2, 3],
-    }
-
-
-def test_no_response_model_objectlist():
-    response = client.get("/items/no-response-model/objectlist")
-    response.raise_for_status()
-    assert response.json() == [
+    expect(response.json()).to_equal(
         {
-            "name": "foo",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": None,
-            "owner_ids": None,
-        },
-        {
-            "name": "bar",
+            "name": "object",
             "date": datetime(2021, 7, 26).isoformat(),
             "price": 1.0,
-            "owner_ids": None,
-        },
-        {
-            "name": "baz",
-            "date": datetime(2021, 7, 26).isoformat(),
-            "price": 2.0,
             "owner_ids": [1, 2, 3],
-        },
-    ]
+        }
+    )
+
+
+@test
+def no_response_model_objectlist():
+    response = client.get("/items/no-response-model/objectlist")
+    response.raise_for_status()
+    expect(response.json()).to_equal(
+        [
+            {
+                "name": "foo",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": None,
+                "owner_ids": None,
+            },
+            {
+                "name": "bar",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": 1.0,
+                "owner_ids": None,
+            },
+            {
+                "name": "baz",
+                "date": datetime(2021, 7, 26).isoformat(),
+                "price": 2.0,
+                "owner_ids": [1, 2, 3],
+            },
+        ]
+    )

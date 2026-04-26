@@ -1,10 +1,10 @@
 from collections.abc import AsyncIterable, Iterable
 
-import pytest
 from fastapi import FastAPI
 from fastapi.exceptions import ResponseValidationError
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 
 class Item(BaseModel):
@@ -30,11 +30,15 @@ def stream_items_invalid_sync() -> Iterable[Item]:
 client = TestClient(app)
 
 
-def test_stream_json_validation_error_async():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/stream-invalid")
+@test
+def stream_json_validation_error_async():
+    expect(lambda: client.get("/items/stream-invalid")).to_raise(
+        ResponseValidationError
+    )
 
 
-def test_stream_json_validation_error_sync():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/stream-invalid-sync")
+@test
+def stream_json_validation_error_sync():
+    expect(lambda: client.get("/items/stream-invalid-sync")).to_raise(
+        ResponseValidationError
+    )

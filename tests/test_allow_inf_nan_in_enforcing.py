@@ -1,8 +1,8 @@
 from typing import Annotated
 
-import pytest
 from fastapi import Body, FastAPI, Query
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -20,65 +20,53 @@ async def get(
 client = TestClient(app)
 
 
-@pytest.mark.parametrize(
-    "value,code",
-    [
-        ("-1", 200),
-        ("inf", 200),
-        ("-inf", 200),
-        ("nan", 200),
-        ("0", 200),
-        ("342", 200),
-    ],
+@test.cases(
+    test.case("-1", value="-1", code=200),
+    test.case("inf", value="inf", code=200),
+    test.case("-inf", value="-inf", code=200),
+    test.case("nan", value="nan", code=200),
+    test.case("0", value="0", code=200),
+    test.case("342", value="342", code=200),
 )
-def test_allow_inf_nan_param_true(value: str, code: int):
+def allow_inf_nan_param_true(value: str, code: int):
     response = client.post(f"/?x={value}")
-    assert response.status_code == code, response.text
+    expect(response.status_code).to_equal(code)
 
 
-@pytest.mark.parametrize(
-    "value,code",
-    [
-        ("-1", 200),
-        ("inf", 422),
-        ("-inf", 422),
-        ("nan", 422),
-        ("0", 200),
-        ("342", 200),
-    ],
+@test.cases(
+    test.case("-1", value="-1", code=200),
+    test.case("inf", value="inf", code=422),
+    test.case("-inf", value="-inf", code=422),
+    test.case("nan", value="nan", code=422),
+    test.case("0", value="0", code=200),
+    test.case("342", value="342", code=200),
 )
-def test_allow_inf_nan_param_false(value: str, code: int):
+def allow_inf_nan_param_false(value: str, code: int):
     response = client.post(f"/?y={value}")
-    assert response.status_code == code, response.text
+    expect(response.status_code).to_equal(code)
 
 
-@pytest.mark.parametrize(
-    "value,code",
-    [
-        ("-1", 200),
-        ("inf", 200),
-        ("-inf", 200),
-        ("nan", 200),
-        ("0", 200),
-        ("342", 200),
-    ],
+@test.cases(
+    test.case("-1", value="-1", code=200),
+    test.case("inf", value="inf", code=200),
+    test.case("-inf", value="-inf", code=200),
+    test.case("nan", value="nan", code=200),
+    test.case("0", value="0", code=200),
+    test.case("342", value="342", code=200),
 )
-def test_allow_inf_nan_param_default(value: str, code: int):
+def allow_inf_nan_param_default(value: str, code: int):
     response = client.post(f"/?z={value}")
-    assert response.status_code == code, response.text
+    expect(response.status_code).to_equal(code)
 
 
-@pytest.mark.parametrize(
-    "value,code",
-    [
-        ("-1", 200),
-        ("inf", 422),
-        ("-inf", 422),
-        ("nan", 422),
-        ("0", 200),
-        ("342", 200),
-    ],
+@test.cases(
+    test.case("-1", value="-1", code=200),
+    test.case("inf", value="inf", code=422),
+    test.case("-inf", value="-inf", code=422),
+    test.case("nan", value="nan", code=422),
+    test.case("0", value="0", code=200),
+    test.case("342", value="342", code=200),
 )
-def test_allow_inf_nan_body(value: str, code: int):
+def allow_inf_nan_body(value: str, code: int):
     response = client.post("/", json=value)
-    assert response.status_code == code, response.text
+    expect(response.status_code).to_equal(code)

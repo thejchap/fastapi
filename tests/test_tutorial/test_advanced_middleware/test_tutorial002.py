@@ -1,15 +1,17 @@
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.advanced_middleware.tutorial002_py310 import app
 
 
-def test_middleware():
+@test
+def middleware():
     client = TestClient(app, base_url="http://example.com")
     response = client.get("/")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
     client = TestClient(app, base_url="http://subdomain.example.com")
     response = client.get("/")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
     client = TestClient(app, base_url="http://invalidhost")
     response = client.get("/")
-    assert response.status_code == 400, response.text
+    expect(response.status_code).to_equal(400).fatal()

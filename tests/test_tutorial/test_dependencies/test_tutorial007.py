@@ -2,10 +2,14 @@ import asyncio
 from contextlib import asynccontextmanager
 from unittest.mock import Mock, patch
 
+from tryke import expect, test
+
 from docs_src.dependencies.tutorial007_py310 import get_db
 
 
-def test_get_db():  # Just for coverage
+@test
+def get_db_coverage():
+    # Just for coverage.
     async def test_async_gen():
         cm = asynccontextmanager(get_db)
         async with cm() as db_session:
@@ -20,5 +24,5 @@ def test_get_db():  # Just for coverage
     ):
         value = asyncio.run(test_async_gen())
 
-    assert value is dbsession_moock
+    expect(value).to_be(dbsession_moock)
     dbsession_moock.close.assert_called_once()

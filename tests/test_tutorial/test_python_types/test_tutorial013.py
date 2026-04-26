@@ -1,5 +1,8 @@
+from tryke import expect, test
+
 from docs_src.python_types.tutorial013_py310 import say_hello
 
 
-def test_say_hello():
-    assert say_hello("FastAPI") == "Hello FastAPI"
+@test
+def say_hello_returns_greeting():
+    expect(say_hello("FastAPI")).to_equal("Hello FastAPI")

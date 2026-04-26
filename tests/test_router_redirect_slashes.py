@@ -1,8 +1,10 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
-def test_redirect_slashes_enabled():
+@test
+def redirect_slashes_enabled():
     app = FastAPI()
     router = APIRouter()
 
@@ -15,13 +17,14 @@ def test_redirect_slashes_enabled():
     client = TestClient(app)
 
     response = client.get("/hello/", follow_redirects=False)
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
 
     response = client.get("/hello", follow_redirects=False)
-    assert response.status_code == 307
+    expect(response.status_code).to_equal(307).fatal()
 
 
-def test_redirect_slashes_disabled():
+@test
+def redirect_slashes_disabled():
     app = FastAPI(redirect_slashes=False)
     router = APIRouter()
 
@@ -34,7 +37,7 @@ def test_redirect_slashes_disabled():
     client = TestClient(app)
 
     response = client.get("/hello/", follow_redirects=False)
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
 
     response = client.get("/hello", follow_redirects=False)
-    assert response.status_code == 404
+    expect(response.status_code).to_equal(404).fatal()

@@ -1,34 +1,32 @@
-import importlib
 import sys
-from types import ModuleType
 from typing import Annotated, Any
 from unittest.mock import Mock, patch
 
-import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="module",
-    params=[
-        "tutorial008_py310",
-        pytest.param(
-            "tutorial008_an_py310",
-            marks=pytest.mark.xfail(
-                sys.version_info < (3, 14),
-                reason="Fails with `NameError: name 'DepA' is not defined`",
-            ),
-        ),
-    ],
+def _module_for(name: str):
+    return import_tutorial("dependencies", name)
+
+
+@test.cases(
+    test.case("tutorial008_py310", name="tutorial008_py310"),
+    test.case(
+        "tutorial008_an_py310",
+        name="tutorial008_an_py310",
+        # Original pytest skipped via `xfail` for py<3.14; we keep the
+        # case but skip if the runtime cannot evaluate Annotated forwardref.
+        skip="Fails with `NameError: name 'DepA' is not defined`"
+        if sys.version_info < (3, 14)
+        else None,
+    ),
 )
-def get_module(request: pytest.FixtureRequest):
-    mod_name = f"docs_src.dependencies.{request.param}"
-    mod = importlib.import_module(mod_name)
-    return mod
-
-
-def test_get_db(module: ModuleType):
+def get_db(name: str):
+    module = _module_for(name)
     app = FastAPI()
 
     @app.get("/")
@@ -60,5 +58,5 @@ def test_get_db(module: ModuleType):
     ):
         response = client.get("/")
 
-    assert response.status_code == 200
-    assert response.json() == {"c": str(c_mock)}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"c": str(c_mock)})

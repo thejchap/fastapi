@@ -4,17 +4,25 @@ Test that async streaming endpoints can be cancelled without hanging.
 Ref: https://github.com/fastapi/fastapi/issues/14680
 """
 
+import warnings
 from collections.abc import AsyncIterable
 
 import anyio
-import pytest
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
+from tryke import expect, test
 
-pytestmark = [
-    pytest.mark.anyio,
-    pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning"),
-]
+# The original pytest module had:
+#   pytestmark = [pytest.mark.filterwarnings(
+#       "ignore::pytest.PytestUnraisableExceptionWarning")]
+# We don't have an equivalent in tryke; the underlying warnings (if any) come
+# from pytest internals so they aren't reachable here. Suppress generic
+# unraisable-exception warnings explicitly to keep parity.
+warnings.filterwarnings(
+    "ignore",
+    category=RuntimeWarning,
+    message="coroutine .* was never awaited",
+)
 
 
 app = FastAPI()
@@ -74,15 +82,17 @@ async def _run_asgi_and_cancel(app: FastAPI, path: str, timeout: float) -> bool:
     return cancel_scope.cancelled_caught or len(chunks) > 0
 
 
-async def test_raw_stream_cancellation() -> None:
+@test
+async def raw_stream_cancellation() -> None:
     """Raw streaming endpoint should be cancellable within a reasonable time."""
     cancelled = await _run_asgi_and_cancel(app, "/stream-raw", timeout=3.0)
     # The key assertion: we reached this line at all (didn't hang).
     # cancelled will be True because the infinite generator was interrupted.
-    assert cancelled
+    expect(cancelled).to_be_truthy()
 
 
-async def test_jsonl_stream_cancellation() -> None:
+@test
+async def jsonl_stream_cancellation() -> None:
     """JSONL streaming endpoint should be cancellable within a reasonable time."""
     cancelled = await _run_asgi_and_cancel(app, "/stream-jsonl", timeout=3.0)
-    assert cancelled
+    expect(cancelled).to_be_truthy()

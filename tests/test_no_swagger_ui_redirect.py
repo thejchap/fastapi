@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI(swagger_ui_oauth2_redirect_url=None)
 
@@ -12,20 +13,23 @@ async def read_items():
 client = TestClient(app)
 
 
-def test_swagger_ui():
+@test
+def swagger_ui():
     response = client.get("/docs")
-    assert response.status_code == 200, response.text
-    assert response.headers["content-type"] == "text/html; charset=utf-8"
-    assert "swagger-ui-dist" in response.text
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.headers["content-type"]).to_equal("text/html; charset=utf-8")
+    expect(response.text).to_contain("swagger-ui-dist")
     print(client.base_url)
-    assert "oauth2RedirectUrl" not in response.text
+    expect(response.text).not_.to_contain("oauth2RedirectUrl")
 
 
-def test_swagger_ui_no_oauth2_redirect():
+@test
+def swagger_ui_no_oauth2_redirect():
     response = client.get("/docs/oauth2-redirect")
-    assert response.status_code == 404, response.text
+    expect(response.status_code).to_equal(404)
 
 
-def test_response():
+@test
+def response():
     response = client.get("/items/")
-    assert response.json() == {"id": "foo"}
+    expect(response.json()).to_equal({"id": "foo"})

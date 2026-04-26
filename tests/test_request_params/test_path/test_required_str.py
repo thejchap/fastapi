@@ -1,9 +1,9 @@
 from typing import Annotated
 
-import pytest
 from fastapi import FastAPI, Path
 from fastapi.testclient import TestClient
 from inline_snapshot import Is, snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -32,57 +32,55 @@ def read_required_alias_and_validation_alias(
     return {"p": p}
 
 
-@pytest.mark.parametrize(
-    ("path", "expected_name", "expected_title"),
-    [
-        pytest.param("/required-str/{p}", "p", "P", id="required-str"),
-        pytest.param(
-            "/required-alias/{p_alias}", "p_alias", "P Alias", id="required-alias"
-        ),
-        pytest.param(
-            "/required-validation-alias/{p_val_alias}",
-            "p_val_alias",
-            "P Val Alias",
-            id="required-validation-alias",
-        ),
-        pytest.param(
-            "/required-alias-and-validation-alias/{p_val_alias}",
-            "p_val_alias",
-            "P Val Alias",
-            id="required-alias-and-validation-alias",
-        ),
-    ],
+@test.cases(
+    test.case(
+        "required-str", path="/required-str/{p}", expected_name="p", expected_title="P"
+    ),
+    test.case(
+        "required-alias",
+        path="/required-alias/{p_alias}",
+        expected_name="p_alias",
+        expected_title="P Alias",
+    ),
+    test.case(
+        "required-validation-alias",
+        path="/required-validation-alias/{p_val_alias}",
+        expected_name="p_val_alias",
+        expected_title="P Val Alias",
+    ),
+    test.case(
+        "required-alias-and-validation-alias",
+        path="/required-alias-and-validation-alias/{p_val_alias}",
+        expected_name="p_val_alias",
+        expected_title="P Val Alias",
+    ),
 )
-def test_schema(path: str, expected_name: str, expected_title: str):
-    assert app.openapi()["paths"][path]["get"]["parameters"] == snapshot(
-        [
-            {
-                "required": True,
-                "schema": {"title": Is(expected_title), "type": "string"},
-                "name": Is(expected_name),
-                "in": "path",
-            }
-        ]
+def schema(path: str, expected_name: str, expected_title: str):
+    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+        snapshot(
+            [
+                {
+                    "required": True,
+                    "schema": {"title": Is(expected_title), "type": "string"},
+                    "name": Is(expected_name),
+                    "in": "path",
+                }
+            ]
+        )
     )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        pytest.param("/required-str", id="required-str"),
-        pytest.param("/required-alias", id="required-alias"),
-        pytest.param(
-            "/required-validation-alias",
-            id="required-validation-alias",
-        ),
-        pytest.param(
-            "/required-alias-and-validation-alias",
-            id="required-alias-and-validation-alias",
-        ),
-    ],
+@test.cases(
+    test.case("required-str", path="/required-str"),
+    test.case("required-alias", path="/required-alias"),
+    test.case("required-validation-alias", path="/required-validation-alias"),
+    test.case(
+        "required-alias-and-validation-alias",
+        path="/required-alias-and-validation-alias",
+    ),
 )
-def test_success(path: str):
+def success(path: str):
     client = TestClient(app)
     response = client.get(f"{path}/hello")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"p": "hello"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"p": "hello"})

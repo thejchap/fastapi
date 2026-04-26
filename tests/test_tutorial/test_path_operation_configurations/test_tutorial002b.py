@@ -1,57 +1,63 @@
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 from docs_src.path_operation_configuration.tutorial002b_py310 import app
 
 client = TestClient(app)
 
 
-def test_get_items():
+@test
+def get_items():
     response = client.get("/items/")
-    assert response.status_code == 200, response.text
-    assert response.json() == ["Portal gun", "Plumbus"]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(["Portal gun", "Plumbus"])
 
 
-def test_get_users():
+@test
+def get_users():
     response = client.get("/users/")
-    assert response.status_code == 200, response.text
-    assert response.json() == ["Rick", "Morty"]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(["Rick", "Morty"])
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "tags": ["items"],
-                        "summary": "Get Items",
-                        "operationId": "get_items_items__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "tags": ["items"],
+                            "summary": "Get Items",
+                            "operationId": "get_items_items__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                        }
+                    },
+                    "/users/": {
+                        "get": {
+                            "tags": ["users"],
+                            "summary": "Read Users",
+                            "operationId": "read_users_users__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                        }
+                    },
                 },
-                "/users/": {
-                    "get": {
-                        "tags": ["users"],
-                        "summary": "Read Users",
-                        "operationId": "read_users_users__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                    }
-                },
-            },
-        }
+            }
+        )
     )

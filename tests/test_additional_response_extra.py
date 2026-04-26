@@ -1,6 +1,7 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 router = APIRouter()
 
@@ -21,32 +22,36 @@ app.include_router(router)
 client = TestClient(app)
 
 
-def test_path_operation():
+@test
+def path_operation():
     response = client.get("/items/")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"id": "foo"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"id": "foo"})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Read Item",
-                        "operationId": "read_item_items__get",
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Read Item",
+                            "operationId": "read_item_items__get",
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

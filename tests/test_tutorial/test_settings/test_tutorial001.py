@@ -1,23 +1,24 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
-from pytest import MonkeyPatch
+from tryke import expect, test
+
+from ..._shims import import_tutorial, monkeypatch_ctx
 
 
-@pytest.fixture(name="app", params=[pytest.param("tutorial001_py310")])
-def get_app(request: pytest.FixtureRequest, monkeypatch: MonkeyPatch):
-    monkeypatch.setenv("ADMIN_EMAIL", "admin@example.com")
-    mod = importlib.import_module(f"docs_src.settings.{request.param}")
-    return mod.app
-
-
-def test_settings(app):
-    client = TestClient(app)
-    response = client.get("/info")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "app_name": "Awesome API",
-        "admin_email": "admin@example.com",
-        "items_per_user": 50,
-    }
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+)
+def settings(name: str):
+    with monkeypatch_ctx() as monkeypatch:
+        monkeypatch.setenv("ADMIN_EMAIL", "admin@example.com")
+        mod = import_tutorial("settings", name)
+        app = mod.app
+        client = TestClient(app)
+        response = client.get("/info")
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal(
+            {
+                "app_name": "Awesome API",
+                "admin_email": "admin@example.com",
+                "items_per_user": 50,
+            }
+        )

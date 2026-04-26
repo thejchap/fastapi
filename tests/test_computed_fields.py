@@ -1,12 +1,10 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 
-@pytest.fixture(name="client")
-def get_client(request):
-    separate_input_output_schemas = request.param
+def _client_for(separate_input_output_schemas: bool) -> TestClient:
     app = FastAPI(separate_input_output_schemas=separate_input_output_schemas)
 
     from pydantic import BaseModel, computed_field
@@ -28,81 +26,91 @@ def get_client(request):
     def read_responses() -> Rectangle:
         return Rectangle(width=3, length=4)
 
-    client = TestClient(app)
-    return client
+    return TestClient(app)
 
 
-@pytest.mark.parametrize("client", [True, False], indirect=True)
-@pytest.mark.parametrize("path", ["/", "/responses"])
-def test_get(client: TestClient, path: str):
+@test.cases(
+    test.case("on /", separate_input_output_schemas=True, path="/"),
+    test.case("on /responses", separate_input_output_schemas=True, path="/responses"),
+    test.case("off /", separate_input_output_schemas=False, path="/"),
+    test.case("off /responses", separate_input_output_schemas=False, path="/responses"),
+)
+def get(separate_input_output_schemas: bool, path: str):
+    client = _client_for(separate_input_output_schemas)
     response = client.get(path)
-    assert response.status_code == 200, response.text
-    assert response.json() == {"width": 3, "length": 4, "area": 12}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"width": 3, "length": 4, "area": 12})
 
 
-@pytest.mark.parametrize("client", [True, False], indirect=True)
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("on", separate_input_output_schemas=True),
+    test.case("off", separate_input_output_schemas=False),
+)
+def openapi_schema(separate_input_output_schemas: bool):
+    client = _client_for(separate_input_output_schemas)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "get": {
-                        "summary": "Read Root",
-                        "operationId": "read_root__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/Rectangle"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "get": {
+                            "summary": "Read Root",
+                            "operationId": "read_root__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Rectangle"
+                                            }
                                         }
-                                    }
-                                },
-                            }
-                        },
-                    }
-                },
-                "/responses": {
-                    "get": {
-                        "summary": "Read Responses",
-                        "operationId": "read_responses_responses_get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/Rectangle"
-                                        }
-                                    }
-                                },
-                            }
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Rectangle": {
-                        "properties": {
-                            "width": {"type": "integer", "title": "Width"},
-                            "length": {"type": "integer", "title": "Length"},
-                            "area": {
-                                "type": "integer",
-                                "title": "Area",
-                                "readOnly": True,
+                                    },
+                                }
                             },
-                        },
-                        "type": "object",
-                        "required": ["width", "length", "area"],
-                        "title": "Rectangle",
+                        }
+                    },
+                    "/responses": {
+                        "get": {
+                            "summary": "Read Responses",
+                            "operationId": "read_responses_responses_get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Rectangle"
+                                            }
+                                        }
+                                    },
+                                }
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Rectangle": {
+                            "properties": {
+                                "width": {"type": "integer", "title": "Width"},
+                                "length": {"type": "integer", "title": "Length"},
+                                "area": {
+                                    "type": "integer",
+                                    "title": "Area",
+                                    "readOnly": True,
+                                },
+                            },
+                            "type": "object",
+                            "required": ["width", "length", "area"],
+                            "title": "Rectangle",
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

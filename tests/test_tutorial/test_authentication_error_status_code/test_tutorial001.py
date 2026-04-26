@@ -1,66 +1,72 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        "tutorial001_an_py310",
-    ],
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("authentication_error_status_code", name)
+    return TestClient(mod.app)
+
+
+@test.cases(
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
 )
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(
-        f"docs_src.authentication_error_status_code.{request.param}"
+def get_me(name: str):
+    client = _client_for(name)
+    response = client.get("/me", headers={"Authorization": "Bearer secrettoken"})
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "message": "You are authenticated",
+            "token": "secrettoken",
+        }
     )
 
-    client = TestClient(mod.app)
-    return client
 
-
-def test_get_me(client: TestClient):
-    response = client.get("/me", headers={"Authorization": "Bearer secrettoken"})
-    assert response.status_code == 200
-    assert response.json() == {
-        "message": "You are authenticated",
-        "token": "secrettoken",
-    }
-
-
-def test_get_me_no_credentials(client: TestClient):
+@test.cases(
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def get_me_no_credentials(name: str):
+    client = _client_for(name)
     response = client.get("/me")
-    assert response.status_code == 403
-    assert response.json() == {"detail": "Not authenticated"}
+    expect(response.status_code).to_equal(403).fatal()
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/me": {
-                    "get": {
-                        "summary": "Read Me",
-                        "operationId": "read_me_me_get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "security": [{"HTTPBearer403": []}],
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/me": {
+                        "get": {
+                            "summary": "Read Me",
+                            "operationId": "read_me_me_get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [{"HTTPBearer403": []}],
+                        }
                     }
-                }
-            },
-            "components": {
-                "securitySchemes": {
-                    "HTTPBearer403": {"type": "http", "scheme": "bearer"}
-                }
-            },
-        }
+                },
+                "components": {
+                    "securitySchemes": {
+                        "HTTPBearer403": {"type": "http", "scheme": "bearer"}
+                    }
+                },
+            }
+        )
     )

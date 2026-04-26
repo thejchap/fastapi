@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, Response
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -20,7 +21,8 @@ async def get_main():
 client = TestClient(app)
 
 
-def test_dependency_set_status_code():
+@test
+def dependency_set_status_code():
     response = client.get("/")
-    assert response.status_code == 201, response.text
-    assert response.json() == {"msg": "Hello World"}
+    expect(response.status_code).to_equal(201).fatal()
+    expect(response.json()).to_equal({"msg": "Hello World"})

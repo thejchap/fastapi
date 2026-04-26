@@ -1,6 +1,5 @@
 import functools
 
-import pytest
 from fastapi import (
     APIRouter,
     Depends,
@@ -12,6 +11,7 @@ from fastapi import (
 )
 from fastapi.middleware import Middleware
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 router = APIRouter()
 prefix_router = APIRouter()
@@ -115,74 +115,87 @@ def make_app(app=None, **kwargs):
 app = make_app(app)
 
 
-def test_app():
+@test
+def app_root():
     client = TestClient(app)
     with client.websocket_connect("/") as websocket:
         data = websocket.receive_text()
-        assert data == "Hello, world!"
+        expect(data).to_equal("Hello, world!")
 
 
-def test_router():
+@test
+def ws_router():
     client = TestClient(app)
     with client.websocket_connect("/router") as websocket:
         data = websocket.receive_text()
-        assert data == "Hello, router!"
+        expect(data).to_equal("Hello, router!")
 
 
-def test_prefix_router():
+@test
+def ws_prefix_router():
     client = TestClient(app)
     with client.websocket_connect("/prefix/") as websocket:
         data = websocket.receive_text()
-        assert data == "Hello, router with prefix!"
+        expect(data).to_equal("Hello, router with prefix!")
 
 
-def test_native_prefix_router():
+@test
+def ws_native_prefix_router():
     client = TestClient(app)
     with client.websocket_connect("/native/") as websocket:
         data = websocket.receive_text()
-        assert data == "Hello, router with native prefix!"
+        expect(data).to_equal("Hello, router with native prefix!")
 
 
-def test_router2():
+@test
+def ws_router2():
     client = TestClient(app)
     with client.websocket_connect("/router2") as websocket:
         data = websocket.receive_text()
-        assert data == "Hello, router!"
+        expect(data).to_equal("Hello, router!")
 
 
-def test_router_ws_depends():
+@test
+def router_ws_depends():
     client = TestClient(app)
     with client.websocket_connect("/router-ws-depends/") as websocket:
-        assert websocket.receive_text() == "Socket Dependency"
+        expect(websocket.receive_text()).to_equal("Socket Dependency")
 
 
-def test_router_ws_depends_with_override():
+@test
+def router_ws_depends_with_override():
     client = TestClient(app)
     app.dependency_overrides[ws_dependency] = lambda: "Override"  # noqa: E731
     with client.websocket_connect("/router-ws-depends/") as websocket:
-        assert websocket.receive_text() == "Override"
+        expect(websocket.receive_text()).to_equal("Override")
 
 
-def test_router_with_params():
+@test
+def router_with_params():
     client = TestClient(app)
     with client.websocket_connect(
         "/router/path/to/file?queryparam=a_query_param"
     ) as websocket:
         data = websocket.receive_text()
-        assert data == "path/to/file"
+        expect(data).to_equal("path/to/file")
         data = websocket.receive_text()
-        assert data == "a_query_param"
+        expect(data).to_equal("a_query_param")
 
 
-def test_wrong_uri():
+@test
+def wrong_uri():
     """
     Verify that a websocket connection to a non-existent endpoing returns in a shutdown
     """
     client = TestClient(app)
-    with pytest.raises(WebSocketDisconnect) as e:
+    raised: WebSocketDisconnect | None = None
+    try:
         with client.websocket_connect("/no-router/"):
             pass  # pragma: no cover
-    assert e.value.code == status.WS_1000_NORMAL_CLOSURE
+    except WebSocketDisconnect as exc:
+        raised = exc
+    expect(raised).not_.to_be_none().fatal()
+    expect(raised.code).to_equal(status.WS_1000_NORMAL_CLOSURE)
 
 
 def websocket_middleware(middleware_func):
@@ -207,7 +220,8 @@ def websocket_middleware(middleware_func):
     return middleware_constructor
 
 
-def test_depend_validation():
+@test
+def depend_validation():
     """
     Verify that a validation in a dependency invokes the correct exception handler
     """
@@ -224,16 +238,21 @@ def test_depend_validation():
     myapp = make_app(middleware=[Middleware(catcher)])
 
     client = TestClient(myapp)
-    with pytest.raises(WebSocketDisconnect) as e:
+    raised: WebSocketDisconnect | None = None
+    try:
         with client.websocket_connect("/depends-validate/"):
             pass  # pragma: no cover
+    except WebSocketDisconnect as exc:
+        raised = exc
+    expect(raised).not_.to_be_none().fatal()
     # the validation error does produce a close message
-    assert e.value.code == status.WS_1008_POLICY_VIOLATION
+    expect(raised.code).to_equal(status.WS_1008_POLICY_VIOLATION)
     # and no error is leaked
-    assert caught == []
+    expect(caught).to_equal([])
 
 
-def test_depend_err_middleware():
+@test
+def depend_err_middleware():
     """
     Verify that it is possible to write custom WebSocket middleware to catch errors
     """
@@ -247,14 +266,19 @@ def test_depend_err_middleware():
 
     myapp = make_app(middleware=[Middleware(errorhandler)])
     client = TestClient(myapp)
-    with pytest.raises(WebSocketDisconnect) as e:
+    raised: WebSocketDisconnect | None = None
+    try:
         with client.websocket_connect("/depends-err/"):
             pass  # pragma: no cover
-    assert e.value.code == status.WS_1006_ABNORMAL_CLOSURE
-    assert "NotImplementedError" in e.value.reason
+    except WebSocketDisconnect as exc:
+        raised = exc
+    expect(raised).not_.to_be_none().fatal()
+    expect(raised.code).to_equal(status.WS_1006_ABNORMAL_CLOSURE)
+    expect(raised.reason).to_contain("NotImplementedError")
 
 
-def test_depend_err_handler():
+@test
+def depend_err_handler():
     """
     Verify that it is possible to write custom WebSocket middleware to catch errors
     """
@@ -264,8 +288,12 @@ def test_depend_err_handler():
 
     myapp = make_app(exception_handlers={CustomError: custom_handler})
     client = TestClient(myapp)
-    with pytest.raises(WebSocketDisconnect) as e:
+    raised: WebSocketDisconnect | None = None
+    try:
         with client.websocket_connect("/custom_error/"):
             pass  # pragma: no cover
-    assert e.value.code == 1002
-    assert "foo" in e.value.reason
+    except WebSocketDisconnect as exc:
+        raised = exc
+    expect(raised).not_.to_be_none().fatal()
+    expect(raised.code).to_equal(1002)
+    expect(raised.reason).to_contain("foo")

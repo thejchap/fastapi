@@ -1,6 +1,7 @@
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 router = APIRouter()
@@ -16,7 +17,8 @@ app.include_router(router)
 client = TestClient(app)
 
 
-def test_sub_router():
+@test
+def sub_router():
     response = client.get("/items/")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"hello": "world"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"hello": "world"})

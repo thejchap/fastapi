@@ -1,50 +1,52 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends, expect, fixture, test
 
-from tests.utils import workdir_lock
-
-
-@pytest.fixture(name="app", scope="module")
-def get_app():
-    with pytest.warns(DeprecationWarning):
-        from docs_src.events.tutorial002_py310 import app
-    yield app
+from ..._shims import expect_warning
 
 
-@workdir_lock
-def test_events(app: FastAPI):
+@fixture(per="file")
+def app() -> FastAPI:
+    with expect_warning(DeprecationWarning):
+        from docs_src.events.tutorial002_py310 import app as _app
+    return _app
+
+
+@test
+def events(app: FastAPI = Depends(app)):
     with TestClient(app) as client:
         response = client.get("/items/")
-        assert response.status_code == 200, response.text
-        assert response.json() == [{"name": "Foo"}]
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal([{"name": "Foo"}])
     with open("log.txt") as log:
-        assert "Application shutdown" in log.read()
+        expect(log.read()).to_contain("Application shutdown")
 
 
-@workdir_lock
-def test_openapi_schema(app: FastAPI):
+@test
+def openapi_schema(app: FastAPI = Depends(app)):
     with TestClient(app) as client:
         response = client.get("/openapi.json")
-        assert response.status_code == 200, response.text
-        assert response.json() == snapshot(
-            {
-                "openapi": "3.1.0",
-                "info": {"title": "FastAPI", "version": "0.1.0"},
-                "paths": {
-                    "/items/": {
-                        "get": {
-                            "responses": {
-                                "200": {
-                                    "description": "Successful Response",
-                                    "content": {"application/json": {"schema": {}}},
-                                }
-                            },
-                            "summary": "Read Items",
-                            "operationId": "read_items_items__get",
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal(
+            snapshot(
+                {
+                    "openapi": "3.1.0",
+                    "info": {"title": "FastAPI", "version": "0.1.0"},
+                    "paths": {
+                        "/items/": {
+                            "get": {
+                                "responses": {
+                                    "200": {
+                                        "description": "Successful Response",
+                                        "content": {"application/json": {"schema": {}}},
+                                    }
+                                },
+                                "summary": "Read Items",
+                                "operationId": "read_items_items__get",
+                            }
                         }
-                    }
-                },
-            }
+                    },
+                }
+            )
         )

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -58,24 +59,31 @@ async def read_pets():
 client = TestClient(app)
 
 
-def test_filter_top_level_model():
+@test
+def filter_top_level_model():
     response = client.post(
         "/users", json={"email": "johndoe@example.com", "password": "secret"}
     )
-    assert response.json() == {"email": "johndoe@example.com"}
+    expect(response.json()).to_equal({"email": "johndoe@example.com"})
 
 
-def test_filter_second_level_model():
+@test
+def filter_second_level_model():
     response = client.get("/pets/1")
-    assert response.json() == {
-        "name": "Nibbler",
-        "owner": {"email": "johndoe@example.com"},
-    }
+    expect(response.json()).to_equal(
+        {
+            "name": "Nibbler",
+            "owner": {"email": "johndoe@example.com"},
+        }
+    )
 
 
-def test_list_of_models():
+@test
+def list_of_models():
     response = client.get("/pets/")
-    assert response.json() == [
-        {"name": "Nibbler", "owner": {"email": "johndoe@example.com"}},
-        {"name": "Zoidberg", "owner": {"email": "johndoe@example.com"}},
-    ]
+    expect(response.json()).to_equal(
+        [
+            {"name": "Nibbler", "owner": {"email": "johndoe@example.com"}},
+            {"name": "Zoidberg", "owner": {"email": "johndoe@example.com"}},
+        ]
+    )

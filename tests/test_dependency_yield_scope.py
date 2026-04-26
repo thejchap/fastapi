@@ -1,11 +1,11 @@
 import json
 from typing import Annotated, Any
 
-import pytest
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from fastapi.exceptions import FastAPIError
 from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 class Session:
@@ -149,77 +149,88 @@ app.include_router(
 client = TestClient(app)
 
 
-def test_function_scope() -> None:
+@test
+def function_scope_test() -> None:
     response = client.get("/function-scope")
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
     data = response.json()
-    assert data["is_open"] is False
+    expect(data["is_open"]).to_be(False)
 
 
-def test_request_scope() -> None:
+@test
+def request_scope_test() -> None:
     response = client.get("/request-scope")
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
     data = response.json()
-    assert data["is_open"] is True
+    expect(data["is_open"]).to_be(True)
 
 
-def test_two_scopes() -> None:
+@test
+def two_scopes() -> None:
     response = client.get("/two-scopes")
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
     data = response.json()
-    assert data["func_is_open"] is False
-    assert data["req_is_open"] is True
+    expect(data["func_is_open"]).to_be(False)
+    expect(data["req_is_open"]).to_be(True)
 
 
-def test_sub() -> None:
+@test
+def sub() -> None:
     response = client.get("/sub")
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
     data = response.json()
-    assert data["named_session_open"] is True
-    assert data["session_open"] is True
+    expect(data["named_session_open"]).to_be(True)
+    expect(data["session_open"]).to_be(True)
 
 
-def test_broken_scope() -> None:
-    with pytest.raises(
-        FastAPIError,
-        match='The dependency "get_named_func_session" has a scope of "request", it cannot depend on dependencies with scope "function"',
-    ):
-
+@test
+def broken_scope() -> None:
+    def _body():
         @app.get("/broken-scope")
         def get_broken(sessions: BrokenSessionsDep) -> Any:  # pragma: no cover
             pass
 
+    expect(_body).to_raise(
+        FastAPIError,
+        match='The dependency "get_named_func_session" has a scope of "request", it cannot depend on dependencies with scope "function"',
+    )
 
-def test_named_function_scope() -> None:
+
+@test
+def named_function_scope() -> None:
     response = client.get("/named-function-scope")
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
     data = response.json()
-    assert data["named_session_open"] is False
-    assert data["session_open"] is False
+    expect(data["named_session_open"]).to_be(False)
+    expect(data["session_open"]).to_be(False)
 
 
-def test_regular_function_scope() -> None:
+@test
+def regular_function_scope() -> None:
     response = client.get("/regular-function-scope")
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200).fatal()
     data = response.json()
-    assert data["named_session_open"] is True
-    assert data["session_open"] is False
+    expect(data["named_session_open"]).to_be(True)
+    expect(data["session_open"]).to_be(False)
 
 
-def test_router_level_dep_scope_function() -> None:
+@test
+def router_level_dep_scope_function() -> None:
     response = client.get("/router-scope-function/")
-    assert response.status_code == 503
-    assert response.json() == {"detail": "Exception after yield"}
+    expect(response.status_code).to_equal(503).fatal()
+    expect(response.json()).to_equal({"detail": "Exception after yield"})
 
 
-def test_router_level_dep_scope_request() -> None:
+@test
+def router_level_dep_scope_request() -> None:
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/router-scope-request/")
-        assert response.status_code == 200
-        assert response.json() == {"status": "ok"}
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal({"status": "ok"})
 
 
-def test_app_level_dep_scope_function() -> None:
+@test
+def app_level_dep_scope_function() -> None:
     app = FastAPI(dependencies=[Depends(raise_after_yield, scope="function")])
 
     @app.get("/app-scope-function")
@@ -228,11 +239,12 @@ def test_app_level_dep_scope_function() -> None:
 
     with TestClient(app) as client:
         response = client.get("/app-scope-function")
-        assert response.status_code == 503
-        assert response.json() == {"detail": "Exception after yield"}
+        expect(response.status_code).to_equal(503).fatal()
+        expect(response.json()).to_equal({"detail": "Exception after yield"})
 
 
-def test_app_level_dep_scope_request() -> None:
+@test
+def app_level_dep_scope_request() -> None:
     app = FastAPI(dependencies=[Depends(raise_after_yield, scope="request")])
 
     @app.get("/app-scope-request")
@@ -241,5 +253,5 @@ def test_app_level_dep_scope_request() -> None:
 
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/app-scope-request")
-        assert response.status_code == 200
-        assert response.json() == {"status": "ok"}
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal({"status": "ok"})

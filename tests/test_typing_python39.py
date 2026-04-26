@@ -1,24 +1,23 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
-from .utils import needs_py310
 
-
-@needs_py310
-def test_typing():
+@test
+def typing():
     types = {
         list[int]: [1, 2, 3],
         dict[str, list[int]]: {"a": [1, 2, 3], "b": [4, 5, 6]},
         set[int]: [1, 2, 3],  # `set` is converted to `list`
         tuple[int, ...]: [1, 2, 3],  # `tuple` is converted to `list`
     }
-    for test_type, expect in types.items():
+    for test_type, expected in types.items():
         app = FastAPI()
 
         @app.post("/", response_model=test_type)
         def post_endpoint(input: test_type):
             return input
 
-        res = TestClient(app).post("/", json=expect)
-        assert res.status_code == 200, res.json()
-        assert res.json() == expect
+        res = TestClient(app).post("/", json=expected)
+        expect(res.status_code).to_equal(200).fatal()
+        expect(res.json()).to_equal(expected)

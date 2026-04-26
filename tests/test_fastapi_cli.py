@@ -4,10 +4,11 @@ import sys
 from unittest.mock import patch
 
 import fastapi.cli
-import pytest
+from tryke import expect, test
 
 
-def test_fastapi_cli():
+@test
+def fastapi_cli():
     result = subprocess.run(
         [
             sys.executable,
@@ -23,12 +24,17 @@ def test_fastapi_cli():
         encoding="utf-8",
         env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
-    assert result.returncode == 1, result.stdout
-    assert "Path does not exist non_existent_file.py" in result.stdout
+    expect(result.returncode).to_equal(1).fatal()
+    expect(result.stdout).to_contain("Path does not exist non_existent_file.py")
 
 
-def test_fastapi_cli_not_installed():
+@test
+def fastapi_cli_not_installed():
+    captured: RuntimeError | None = None
     with patch.object(fastapi.cli, "cli_main", None):
-        with pytest.raises(RuntimeError) as exc_info:
+        try:
             fastapi.cli.main()
-        assert "To use the fastapi command, please install" in str(exc_info.value)
+        except RuntimeError as exc:
+            captured = exc
+    expect(captured).not_.to_be_none().fatal()
+    expect(str(captured)).to_contain("To use the fastapi command, please install")

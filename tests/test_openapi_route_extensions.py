@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -13,33 +14,37 @@ def route_with_extras():
 client = TestClient(app)
 
 
-def test_get_route():
+@test
+def get_route():
     response = client.get("/")
-    assert response.status_code == 200, response.text
-    assert response.json() == {}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
                             },
-                        },
-                        "summary": "Route With Extras",
-                        "operationId": "route_with_extras__get",
-                        "x-custom-extension": "value",
-                    }
+                            "summary": "Route With Extras",
+                            "operationId": "route_with_extras__get",
+                            "x-custom-extension": "value",
+                        }
+                    },
                 },
-            },
-        }
+            }
+        )
     )

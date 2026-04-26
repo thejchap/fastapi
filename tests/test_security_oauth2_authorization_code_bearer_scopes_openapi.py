@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, FastAPI, Security
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl="authorize",
@@ -62,136 +63,144 @@ app.include_router(router)
 client = TestClient(app)
 
 
-def test_root():
+@test
+def root_test():
     response = client.get("/", headers={"Authorization": "Bearer testtoken"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Hello World"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Hello World"})
 
 
-def test_read_with_oauth2_scheme():
+@test
+def read_with_oauth2_scheme():
     response = client.get(
         "/with-oauth2-scheme", headers={"Authorization": "Bearer testtoken"}
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Admin Access"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Admin Access"})
 
 
-def test_read_with_get_token():
+@test
+def read_with_get_token():
     response = client.get(
         "/with-get-token", headers={"Authorization": "Bearer testtoken"}
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Admin Access"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Admin Access"})
 
 
-def test_read_token():
+@test
+def read_token():
     response = client.get("/items/", headers={"Authorization": "Bearer testtoken"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"token": "testtoken"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"token": "testtoken"})
 
 
-def test_create_token():
+@test
+def create_token():
     response = client.post("/items/", headers={"Authorization": "Bearer testtoken"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"token": "testtoken"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"token": "testtoken"})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "get": {
-                        "summary": "Root",
-                        "operationId": "root__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "security": [{"OAuth2AuthorizationCodeBearer": []}],
-                    }
-                },
-                "/with-oauth2-scheme": {
-                    "get": {
-                        "summary": "Read With Oauth2 Scheme",
-                        "operationId": "read_with_oauth2_scheme_with_oauth2_scheme_get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "security": [
-                            {"OAuth2AuthorizationCodeBearer": ["read", "write"]}
-                        ],
-                    }
-                },
-                "/with-get-token": {
-                    "get": {
-                        "summary": "Read With Get Token",
-                        "operationId": "read_with_get_token_with_get_token_get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "security": [
-                            {"OAuth2AuthorizationCodeBearer": ["read", "write"]}
-                        ],
-                    }
-                },
-                "/items/": {
-                    "get": {
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "security": [
-                            {"OAuth2AuthorizationCodeBearer": ["read"]},
-                        ],
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "get": {
+                            "summary": "Root",
+                            "operationId": "root__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [{"OAuth2AuthorizationCodeBearer": []}],
+                        }
                     },
-                    "post": {
-                        "summary": "Create Item",
-                        "operationId": "create_item_items__post",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
+                    "/with-oauth2-scheme": {
+                        "get": {
+                            "summary": "Read With Oauth2 Scheme",
+                            "operationId": "read_with_oauth2_scheme_with_oauth2_scheme_get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [
+                                {"OAuth2AuthorizationCodeBearer": ["read", "write"]}
+                            ],
+                        }
+                    },
+                    "/with-get-token": {
+                        "get": {
+                            "summary": "Read With Get Token",
+                            "operationId": "read_with_get_token_with_get_token_get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [
+                                {"OAuth2AuthorizationCodeBearer": ["read", "write"]}
+                            ],
+                        }
+                    },
+                    "/items/": {
+                        "get": {
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [
+                                {"OAuth2AuthorizationCodeBearer": ["read"]},
+                            ],
                         },
-                        "security": [
-                            {"OAuth2AuthorizationCodeBearer": ["read", "write"]},
-                        ],
+                        "post": {
+                            "summary": "Create Item",
+                            "operationId": "create_item_items__post",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [
+                                {"OAuth2AuthorizationCodeBearer": ["read", "write"]},
+                            ],
+                        },
                     },
                 },
-            },
-            "components": {
-                "securitySchemes": {
-                    "OAuth2AuthorizationCodeBearer": {
-                        "type": "oauth2",
-                        "flows": {
-                            "authorizationCode": {
-                                "scopes": {
-                                    "read": "Read access",
-                                    "write": "Write access",
-                                },
-                                "authorizationUrl": "authorize",
-                                "tokenUrl": "token",
-                            }
-                        },
+                "components": {
+                    "securitySchemes": {
+                        "OAuth2AuthorizationCodeBearer": {
+                            "type": "oauth2",
+                            "flows": {
+                                "authorizationCode": {
+                                    "scopes": {
+                                        "read": "Read access",
+                                        "write": "Write access",
+                                    },
+                                    "authorizationUrl": "authorize",
+                                    "tokenUrl": "token",
+                                }
+                            },
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

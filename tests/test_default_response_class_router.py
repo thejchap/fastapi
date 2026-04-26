@@ -1,6 +1,7 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 class OverrideResponse(JSONResponse):
@@ -108,99 +109,113 @@ html_type = "text/html; charset=utf-8"
 override_type = "application/x-override"
 
 
-def test_app():
+@test
+def app_test():
     with client:
         response = client.get("/")
-    assert response.json() == {"msg": "Hello World"}
-    assert response.headers["content-type"] == json_type
+    expect(response.json()).to_equal({"msg": "Hello World"})
+    expect(response.headers["content-type"]).to_equal(json_type)
 
 
-def test_app_override():
+@test
+def app_override():
     with client:
         response = client.get("/override")
-    assert response.content == b"Hello World"
-    assert response.headers["content-type"] == text_type
+    expect(response.content).to_equal(b"Hello World")
+    expect(response.headers["content-type"]).to_equal(text_type)
 
 
-def test_router_a():
+@test
+def router_a_test():
     with client:
         response = client.get("/a")
-    assert response.json() == {"msg": "Hello A"}
-    assert response.headers["content-type"] == json_type
+    expect(response.json()).to_equal({"msg": "Hello A"})
+    expect(response.headers["content-type"]).to_equal(json_type)
 
 
-def test_router_a_override():
+@test
+def router_a_override():
     with client:
         response = client.get("/a/override")
-    assert response.content == b"Hello A"
-    assert response.headers["content-type"] == text_type
+    expect(response.content).to_equal(b"Hello A")
+    expect(response.headers["content-type"]).to_equal(text_type)
 
 
-def test_router_a_a():
+@test
+def router_a_a_test():
     with client:
         response = client.get("/a/a")
-    assert response.json() == {"msg": "Hello A A"}
-    assert response.headers["content-type"] == json_type
+    expect(response.json()).to_equal({"msg": "Hello A A"})
+    expect(response.headers["content-type"]).to_equal(json_type)
 
 
-def test_router_a_a_override():
+@test
+def router_a_a_override():
     with client:
         response = client.get("/a/a/override")
-    assert response.content == b"Hello A A"
-    assert response.headers["content-type"] == text_type
+    expect(response.content).to_equal(b"Hello A A")
+    expect(response.headers["content-type"]).to_equal(text_type)
 
 
-def test_router_a_b():
+@test
+def router_a_b():
     with client:
         response = client.get("/a/b")
-    assert response.content == b"Hello A B"
-    assert response.headers["content-type"] == text_type
+    expect(response.content).to_equal(b"Hello A B")
+    expect(response.headers["content-type"]).to_equal(text_type)
 
 
-def test_router_a_b_override():
+@test
+def router_a_b_override():
     with client:
         response = client.get("/a/b/override")
-    assert response.content == b"Hello A B"
-    assert response.headers["content-type"] == html_type
+    expect(response.content).to_equal(b"Hello A B")
+    expect(response.headers["content-type"]).to_equal(html_type)
 
 
-def test_router_b():
+@test
+def router_b():
     with client:
         response = client.get("/b")
-    assert response.content == b"Hello B"
-    assert response.headers["content-type"] == text_type
+    expect(response.content).to_equal(b"Hello B")
+    expect(response.headers["content-type"]).to_equal(text_type)
 
 
-def test_router_b_override():
+@test
+def router_b_override():
     with client:
         response = client.get("/b/override")
-    assert response.content == b"Hello B"
-    assert response.headers["content-type"] == html_type
+    expect(response.content).to_equal(b"Hello B")
+    expect(response.headers["content-type"]).to_equal(html_type)
 
 
-def test_router_b_a():
+@test
+def router_b_a():
     with client:
         response = client.get("/b/a")
-    assert response.content == b"Hello B A"
-    assert response.headers["content-type"] == text_type
+    expect(response.content).to_equal(b"Hello B A")
+    expect(response.headers["content-type"]).to_equal(text_type)
 
 
-def test_router_b_a_override():
+@test
+def router_b_a_override():
     with client:
         response = client.get("/b/a/override")
-    assert response.content == b"Hello B A"
-    assert response.headers["content-type"] == html_type
+    expect(response.content).to_equal(b"Hello B A")
+    expect(response.headers["content-type"]).to_equal(html_type)
 
 
-def test_router_b_a_c():
+@test
+def router_b_a_c():
     with client:
         response = client.get("/b/a/c")
-    assert response.content == b"Hello B A C"
-    assert response.headers["content-type"] == html_type
+    expect(response.content).to_equal(b"Hello B A C")
+    expect(response.headers["content-type"]).to_equal(html_type)
 
 
-def test_router_b_a_c_override():
+@test
+def router_b_a_c_override():
     with client:
         response = client.get("/b/a/c/override")
-    assert response.json() == {"msg": "Hello B A C"}
-    assert response.headers["content-type"] == override_type
+    expect(response.json()).to_equal({"msg": "Hello B A C"})
+    expect(response.headers["content-type"]).to_equal(override_type)

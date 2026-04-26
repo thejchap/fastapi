@@ -6,6 +6,7 @@ from fastapi.exceptions import (
 )
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 
 class Item(BaseModel):
@@ -84,33 +85,36 @@ async def subapp_websocket_endpoint(websocket: WebSocket, item_id: int):
 client = TestClient(app)
 
 
-def test_request_validation_error_includes_endpoint_context():
+@test
+def request_validation_error_includes_endpoint_context():
     captured_exception.exception = None
     try:
         client.get("/users/invalid")
     except Exception:
         pass
 
-    assert captured_exception.exception is not None
+    expect(captured_exception.exception).not_.to_be_none().fatal()
     error_str = str(captured_exception.exception)
-    assert "get_user" in error_str
-    assert "/users/" in error_str
+    expect(error_str).to_contain("get_user")
+    expect(error_str).to_contain("/users/")
 
 
-def test_response_validation_error_includes_endpoint_context():
+@test
+def response_validation_error_includes_endpoint_context():
     captured_exception.exception = None
     try:
         client.get("/items/")
     except Exception:
         pass
 
-    assert captured_exception.exception is not None
+    expect(captured_exception.exception).not_.to_be_none().fatal()
     error_str = str(captured_exception.exception)
-    assert "get_item" in error_str
-    assert "/items/" in error_str
+    expect(error_str).to_contain("get_item")
+    expect(error_str).to_contain("/items/")
 
 
-def test_websocket_validation_error_includes_endpoint_context():
+@test
+def websocket_validation_error_includes_endpoint_context():
     captured_exception.exception = None
     try:
         with client.websocket_connect("/ws/invalid"):
@@ -118,26 +122,28 @@ def test_websocket_validation_error_includes_endpoint_context():
     except Exception:
         pass
 
-    assert captured_exception.exception is not None
+    expect(captured_exception.exception).not_.to_be_none().fatal()
     error_str = str(captured_exception.exception)
-    assert "websocket_endpoint" in error_str
-    assert "/ws/" in error_str
+    expect(error_str).to_contain("websocket_endpoint")
+    expect(error_str).to_contain("/ws/")
 
 
-def test_subapp_request_validation_error_includes_endpoint_context():
+@test
+def subapp_request_validation_error_includes_endpoint_context():
     captured_exception.exception = None
     try:
         client.get("/sub/items/")
     except Exception:
         pass
 
-    assert captured_exception.exception is not None
+    expect(captured_exception.exception).not_.to_be_none().fatal()
     error_str = str(captured_exception.exception)
-    assert "get_sub_item" in error_str
-    assert "/sub/items/" in error_str
+    expect(error_str).to_contain("get_sub_item")
+    expect(error_str).to_contain("/sub/items/")
 
 
-def test_subapp_websocket_validation_error_includes_endpoint_context():
+@test
+def subapp_websocket_validation_error_includes_endpoint_context():
     captured_exception.exception = None
     try:
         with client.websocket_connect("/sub/ws/invalid"):
@@ -145,24 +151,26 @@ def test_subapp_websocket_validation_error_includes_endpoint_context():
     except Exception:
         pass
 
-    assert captured_exception.exception is not None
+    expect(captured_exception.exception).not_.to_be_none().fatal()
     error_str = str(captured_exception.exception)
-    assert "subapp_websocket_endpoint" in error_str
-    assert "/sub/ws/" in error_str
+    expect(error_str).to_contain("subapp_websocket_endpoint")
+    expect(error_str).to_contain("/sub/ws/")
 
 
-def test_validation_error_with_only_path():
+@test
+def validation_error_with_only_path():
     errors = [{"type": "missing", "loc": ("body", "name"), "msg": "Field required"}]
     exc = RequestValidationError(errors, endpoint_ctx={"path": "GET /api/test"})
     error_str = str(exc)
-    assert "Endpoint: GET /api/test" in error_str
-    assert 'File "' not in error_str
+    expect(error_str).to_contain("Endpoint: GET /api/test")
+    expect('File "' in error_str).to_be_falsy()
 
 
-def test_validation_error_with_no_context():
+@test
+def validation_error_with_no_context():
     errors = [{"type": "missing", "loc": ("body", "name"), "msg": "Field required"}]
     exc = RequestValidationError(errors, endpoint_ctx={})
     error_str = str(exc)
-    assert "1 validation error:" in error_str
-    assert "Endpoint" not in error_str
-    assert 'File "' not in error_str
+    expect(error_str).to_contain("1 validation error:")
+    expect("Endpoint" in error_str).to_be_falsy()
+    expect('File "' in error_str).to_be_falsy()

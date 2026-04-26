@@ -1,5 +1,6 @@
 import importlib
 from typing import Any, Protocol, cast
+from warnings import deprecated
 
 from fastapi.exceptions import FastAPIDeprecationWarning
 from fastapi.sse import EventSourceResponse as EventSourceResponse  # noqa
@@ -10,7 +11,6 @@ from starlette.responses import PlainTextResponse as PlainTextResponse  # noqa
 from starlette.responses import RedirectResponse as RedirectResponse  # noqa
 from starlette.responses import Response as Response  # noqa
 from starlette.responses import StreamingResponse as StreamingResponse  # noqa
-from typing_extensions import deprecated
 
 
 class _UjsonModule(Protocol):

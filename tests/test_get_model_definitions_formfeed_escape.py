@@ -1,11 +1,11 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends, expect, fixture, test
 
 
-@pytest.fixture(name="client")
-def client_fixture() -> TestClient:
+@fixture
+def client() -> TestClient:
     from pydantic import BaseModel
 
     class Address(BaseModel):
@@ -32,129 +32,140 @@ def client_fixture() -> TestClient:
             address=Address(line_1="123 Main St", city="Anytown", state_province="CA"),
         )
 
-    client = TestClient(app)
-    return client
+    return TestClient(app)
 
 
-def test_get(client: TestClient):
+@test
+def get(client: TestClient = Depends(client)):
     response = client.get("/facilities/42")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "id": "42",
-        "address": {
-            "line_1": "123 Main St",
-            "city": "Anytown",
-            "state_province": "CA",
-        },
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "id": "42",
+            "address": {
+                "line_1": "123 Main St",
+                "city": "Anytown",
+                "state_province": "CA",
+            },
+        }
+    )
 
 
-def test_openapi_schema(client: TestClient):
+@test
+def openapi_schema(client: TestClient = Depends(client)):
     """
     Sanity check to ensure our app's openapi schema renders as we expect
     """
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "components": {
-                "schemas": {
-                    "Address": {
-                        # NOTE: the description of this model shows only the public-facing text, before the `\f` in docstring
-                        "description": "This is a public description of an Address\n",
-                        "properties": {
-                            "city": {"title": "City", "type": "string"},
-                            "line_1": {"title": "Line 1", "type": "string"},
-                            "state_province": {
-                                "title": "State Province",
-                                "type": "string",
-                            },
-                        },
-                        "required": ["line_1", "city", "state_province"],
-                        "title": "Address",
-                        "type": "object",
-                    },
-                    "Facility": {
-                        "properties": {
-                            "address": {"$ref": "#/components/schemas/Address"},
-                            "id": {"title": "Id", "type": "string"},
-                        },
-                        "required": ["id", "address"],
-                        "title": "Facility",
-                        "type": "object",
-                    },
-                    "HTTPValidationError": {
-                        "properties": {
-                            "detail": {
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "components": {
+                    "schemas": {
+                        "Address": {
+                            # NOTE: the description of this model shows only the public-facing text, before the `\f` in docstring
+                            "description": "This is a public description of an Address\n",
+                            "properties": {
+                                "city": {"title": "City", "type": "string"},
+                                "line_1": {"title": "Line 1", "type": "string"},
+                                "state_province": {
+                                    "title": "State Province",
+                                    "type": "string",
                                 },
-                                "title": "Detail",
-                                "type": "array",
-                            }
-                        },
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                    },
-                    "ValidationError": {
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                                "title": "Location",
-                                "type": "array",
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
+                            "required": ["line_1", "city", "state_province"],
+                            "title": "Address",
+                            "type": "object",
                         },
-                        "required": ["loc", "msg", "type"],
-                        "title": "ValidationError",
-                        "type": "object",
-                    },
-                }
-            },
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "openapi": "3.1.0",
-            "paths": {
-                "/facilities/{facility_id}": {
-                    "get": {
-                        "operationId": "get_facility_facilities__facility_id__get",
-                        "parameters": [
-                            {
-                                "in": "path",
-                                "name": "facility_id",
-                                "required": True,
-                                "schema": {"title": "Facility Id", "type": "string"},
-                            }
-                        ],
-                        "responses": {
-                            "200": {
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/Facility"
-                                        }
-                                    }
-                                },
-                                "description": "Successful Response",
+                        "Facility": {
+                            "properties": {
+                                "address": {"$ref": "#/components/schemas/Address"},
+                                "id": {"title": "Id", "type": "string"},
                             },
-                            "422": {
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                                "description": "Validation Error",
-                            },
+                            "required": ["id", "address"],
+                            "title": "Facility",
+                            "type": "object",
                         },
-                        "summary": "Get Facility",
+                        "HTTPValidationError": {
+                            "properties": {
+                                "detail": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                    "title": "Detail",
+                                    "type": "array",
+                                }
+                            },
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                        },
+                        "ValidationError": {
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                    "title": "Location",
+                                    "type": "array",
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                            },
+                            "required": ["loc", "msg", "type"],
+                            "title": "ValidationError",
+                            "type": "object",
+                        },
                     }
-                }
-            },
-        }
+                },
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "openapi": "3.1.0",
+                "paths": {
+                    "/facilities/{facility_id}": {
+                        "get": {
+                            "operationId": "get_facility_facilities__facility_id__get",
+                            "parameters": [
+                                {
+                                    "in": "path",
+                                    "name": "facility_id",
+                                    "required": True,
+                                    "schema": {
+                                        "title": "Facility Id",
+                                        "type": "string",
+                                    },
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Facility"
+                                            }
+                                        }
+                                    },
+                                    "description": "Successful Response",
+                                },
+                                "422": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                    "description": "Validation Error",
+                                },
+                            },
+                            "summary": "Get Facility",
+                        }
+                    }
+                },
+            }
+        )
     )

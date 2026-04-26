@@ -7,15 +7,16 @@ Fixed in PR: https://github.com/fastapi/fastapi/pull/14884
 from typing import Annotated
 
 import anyio
-import pytest
 from fastapi import FastAPI, File
 from fastapi.testclient import TestClient
 from starlette.datastructures import UploadFile as StarletteUploadFile
+from tryke import expect, test
+
+from ._shims import monkeypatch_ctx
 
 
-def test_list_bytes_file_preserves_order(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+@test
+def list_bytes_file_preserves_order() -> None:
     app = FastAPI()
 
     @app.post("/upload")
@@ -31,16 +32,17 @@ def test_list_bytes_file_preserves_order(
             await anyio.sleep(0.05)
         return await original_read(self, size)
 
-    monkeypatch.setattr(StarletteUploadFile, "read", patched_read)
+    with monkeypatch_ctx() as monkeypatch:
+        monkeypatch.setattr(StarletteUploadFile, "read", patched_read)
 
-    client = TestClient(app)
+        client = TestClient(app)
 
-    files = [
-        ("files", ("slow.txt", b"A" * 10, "text/plain")),
-        ("files", ("fast.txt", b"B" * 10, "text/plain")),
-    ]
-    r = client.post("/upload", files=files)
-    assert r.status_code == 200, r.text
+        files = [
+            ("files", ("slow.txt", b"A" * 10, "text/plain")),
+            ("files", ("fast.txt", b"B" * 10, "text/plain")),
+        ]
+        r = client.post("/upload", files=files)
+        expect(r.status_code).to_equal(200).fatal()
 
-    # Must preserve request order: slow first, fast second
-    assert r.json() == [ord("A"), ord("B")]
+        # Must preserve request order: slow first, fast second.
+        expect(r.json()).to_equal([ord("A"), ord("B")])

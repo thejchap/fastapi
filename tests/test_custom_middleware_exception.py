@@ -1,8 +1,9 @@
-from pathlib import Path
-
 from fastapi import APIRouter, FastAPI, File, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
+from tryke import expect, test
+
+from ._shims import tmp_path_ctx
 
 app = FastAPI()
 
@@ -65,30 +66,36 @@ app.add_middleware(ContentSizeLimitMiddleware, max_content_size=2**8)
 client = TestClient(app)
 
 
-def test_custom_middleware_exception(tmp_path: Path):
-    default_pydantic_max_size = 2**16
-    path = tmp_path / "test.txt"
-    path.write_bytes(b"x" * (default_pydantic_max_size + 1))
+@test
+def custom_middleware_exception():
+    with tmp_path_ctx() as tmp_path:
+        default_pydantic_max_size = 2**16
+        path = tmp_path / "test.txt"
+        path.write_bytes(b"x" * (default_pydantic_max_size + 1))
 
-    with client:
-        with open(path, "rb") as file:
-            response = client.post("/middleware", files={"file": file})
-        assert response.status_code == 422, response.text
-        assert response.json() == {
-            "detail": {
-                "name": "ContentSizeLimitExceeded",
-                "code": 999,
-                "message": "File limit exceeded",
-            }
-        }
+        with client:
+            with open(path, "rb") as file:
+                response = client.post("/middleware", files={"file": file})
+            expect(response.status_code).to_equal(422).fatal()
+            expect(response.json()).to_equal(
+                {
+                    "detail": {
+                        "name": "ContentSizeLimitExceeded",
+                        "code": 999,
+                        "message": "File limit exceeded",
+                    }
+                }
+            )
 
 
-def test_custom_middleware_exception_not_raised(tmp_path: Path):
-    path = tmp_path / "test.txt"
-    path.write_bytes(b"<file content>")
+@test
+def custom_middleware_exception_not_raised():
+    with tmp_path_ctx() as tmp_path:
+        path = tmp_path / "test.txt"
+        path.write_bytes(b"<file content>")
 
-    with client:
-        with open(path, "rb") as file:
-            response = client.post("/middleware", files={"file": file})
-        assert response.status_code == 200, response.text
-        assert response.json() == {"message": "OK"}
+        with client:
+            with open(path, "rb") as file:
+                response = client.post("/middleware", files={"file": file})
+            expect(response.status_code).to_equal(200).fatal()
+            expect(response.json()).to_equal({"message": "OK"})

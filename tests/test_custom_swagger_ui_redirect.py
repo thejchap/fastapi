@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 swagger_ui_oauth2_redirect_url = "/docs/redirect"
 
@@ -14,25 +15,27 @@ async def read_items():
 client = TestClient(app)
 
 
-def test_swagger_ui():
+@test
+def swagger_ui():
     response = client.get("/docs")
-    assert response.status_code == 200, response.text
-    assert response.headers["content-type"] == "text/html; charset=utf-8"
-    assert "swagger-ui-dist" in response.text
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.headers["content-type"]).to_equal("text/html; charset=utf-8")
+    expect(response.text).to_contain("swagger-ui-dist")
     print(client.base_url)
-    assert (
+    expect(response.text).to_contain(
         f"oauth2RedirectUrl: window.location.origin + '{swagger_ui_oauth2_redirect_url}'"
-        in response.text
     )
 
 
-def test_swagger_ui_oauth2_redirect():
+@test
+def swagger_ui_oauth2_redirect():
     response = client.get(swagger_ui_oauth2_redirect_url)
-    assert response.status_code == 200, response.text
-    assert response.headers["content-type"] == "text/html; charset=utf-8"
-    assert "window.opener.swaggerUIRedirectOauth2" in response.text
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.headers["content-type"]).to_equal("text/html; charset=utf-8")
+    expect(response.text).to_contain("window.opener.swaggerUIRedirectOauth2")
 
 
-def test_response():
+@test
+def response():
     response = client.get("/items/")
-    assert response.json() == {"id": "foo"}
+    expect(response.json()).to_equal({"id": "foo"})

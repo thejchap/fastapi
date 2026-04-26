@@ -1,104 +1,139 @@
-import importlib
-
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocketDisconnect
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="app",
-    params=[
-        pytest.param("tutorial002_py310", marks=needs_py310),
-        pytest.param("tutorial002_an_py310", marks=needs_py310),
-    ],
-)
-def get_app(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.websockets_.{request.param}")
-
+def _app_for(name: str) -> FastAPI:
+    mod = import_tutorial("websockets_", name)
     return mod.app
 
 
-def test_main(app: FastAPI):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+)
+def main(name: str):
+    app = _app_for(name)
     client = TestClient(app)
     response = client.get("/")
-    assert response.status_code == 200, response.text
-    assert b"<!DOCTYPE html>" in response.content
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.content).to_contain(b"<!DOCTYPE html>")
 
 
-def test_websocket_with_cookie(app: FastAPI):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+)
+def websocket_with_cookie(name: str):
+    app = _app_for(name)
     client = TestClient(app, cookies={"session": "fakesession"})
-    with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect("/items/foo/ws") as websocket:
+
+    def _body():
+        with client.websocket_connect("/items/foo/ws") as ws:
             message = "Message one"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == "Session cookie or query token value is: fakesession"
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}, for item ID: foo"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal("Session cookie or query token value is: fakesession")
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}, for item ID: foo")
             message = "Message two"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == "Session cookie or query token value is: fakesession"
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}, for item ID: foo"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal("Session cookie or query token value is: fakesession")
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}, for item ID: foo")
+
+    expect(_body).to_raise(WebSocketDisconnect)
 
 
-def test_websocket_with_header(app: FastAPI):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+)
+def websocket_with_header(name: str):
+    app = _app_for(name)
     client = TestClient(app)
-    with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect("/items/bar/ws?token=some-token") as websocket:
+
+    def _body():
+        with client.websocket_connect("/items/bar/ws?token=some-token") as ws:
             message = "Message one"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == "Session cookie or query token value is: some-token"
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}, for item ID: bar"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal("Session cookie or query token value is: some-token")
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}, for item ID: bar")
             message = "Message two"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == "Session cookie or query token value is: some-token"
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}, for item ID: bar"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal("Session cookie or query token value is: some-token")
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}, for item ID: bar")
+
+    expect(_body).to_raise(WebSocketDisconnect)
 
 
-def test_websocket_with_header_and_query(app: FastAPI):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+)
+def websocket_with_header_and_query(name: str):
+    app = _app_for(name)
     client = TestClient(app)
-    with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect("/items/2/ws?q=3&token=some-token") as websocket:
+
+    def _body():
+        with client.websocket_connect("/items/2/ws?q=3&token=some-token") as ws:
             message = "Message one"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == "Session cookie or query token value is: some-token"
-            data = websocket.receive_text()
-            assert data == "Query parameter q is: 3"
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}, for item ID: 2"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal("Session cookie or query token value is: some-token")
+            data = ws.receive_text()
+            expect(data).to_equal("Query parameter q is: 3")
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}, for item ID: 2")
             message = "Message two"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == "Session cookie or query token value is: some-token"
-            data = websocket.receive_text()
-            assert data == "Query parameter q is: 3"
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}, for item ID: 2"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal("Session cookie or query token value is: some-token")
+            data = ws.receive_text()
+            expect(data).to_equal("Query parameter q is: 3")
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}, for item ID: 2")
+
+    expect(_body).to_raise(WebSocketDisconnect)
 
 
-def test_websocket_no_credentials(app: FastAPI):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+)
+def websocket_no_credentials(name: str):
+    app = _app_for(name)
     client = TestClient(app)
-    with pytest.raises(WebSocketDisconnect):
+
+    def _body():
         with client.websocket_connect("/items/foo/ws"):
-            pytest.fail(
+            raise AssertionError(
                 "did not raise WebSocketDisconnect on __enter__"
             )  # pragma: no cover
 
+    expect(_body).to_raise(WebSocketDisconnect)
 
-def test_websocket_invalid_data(app: FastAPI):
+
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+)
+def websocket_invalid_data(name: str):
+    app = _app_for(name)
     client = TestClient(app)
-    with pytest.raises(WebSocketDisconnect):
+
+    def _body():
         with client.websocket_connect("/items/foo/ws?q=bar&token=some-token"):
-            pytest.fail(
+            raise AssertionError(
                 "did not raise WebSocketDisconnect on __enter__"
             )  # pragma: no cover
+
+    expect(_body).to_raise(WebSocketDisconnect)

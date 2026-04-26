@@ -1,27 +1,22 @@
-import importlib
-
-import pytest
 from dirty_equals import IsList
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial005_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.body_nested_models.{request.param}")
-
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("body_nested_models", name)
     client = TestClient(mod.app)
     return client
 
 
-def test_put_all(client: TestClient):
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+)
+def put_all(name: str):
+    client = _client_for(name)
     response = client.put(
         "/items/123",
         json={
@@ -33,88 +28,115 @@ def test_put_all(client: TestClient):
             "image": {"url": "http://example.com/image.png", "name": "example image"},
         },
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "item_id": 123,
-        "item": {
-            "name": "Foo",
-            "description": "A very nice Item",
-            "price": 35.4,
-            "tax": 3.2,
-            "tags": IsList("foo", "bar", check_order=False),
-            "image": {"url": "http://example.com/image.png", "name": "example image"},
-        },
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "item_id": 123,
+            "item": {
+                "name": "Foo",
+                "description": "A very nice Item",
+                "price": 35.4,
+                "tax": 3.2,
+                "tags": IsList("foo", "bar", check_order=False),
+                "image": {
+                    "url": "http://example.com/image.png",
+                    "name": "example image",
+                },
+            },
+        }
+    )
 
 
-def test_put_only_required(client: TestClient):
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+)
+def put_only_required(name: str):
+    client = _client_for(name)
     response = client.put(
         "/items/5",
         json={"name": "Foo", "price": 35.4},
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "item_id": 5,
-        "item": {
-            "name": "Foo",
-            "description": None,
-            "price": 35.4,
-            "tax": None,
-            "tags": [],
-            "image": None,
-        },
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "item_id": 5,
+            "item": {
+                "name": "Foo",
+                "description": None,
+                "price": 35.4,
+                "tax": None,
+                "tags": [],
+                "image": None,
+            },
+        }
+    )
 
 
-def test_put_empty_body(client: TestClient):
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+)
+def put_empty_body(name: str):
+    client = _client_for(name)
     response = client.put(
         "/items/5",
         json={},
     )
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "loc": ["body", "name"],
-                "input": {},
-                "msg": "Field required",
-                "type": "missing",
-            },
-            {
-                "loc": ["body", "price"],
-                "input": {},
-                "msg": "Field required",
-                "type": "missing",
-            },
-        ]
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "loc": ["body", "name"],
+                    "input": {},
+                    "msg": "Field required",
+                    "type": "missing",
+                },
+                {
+                    "loc": ["body", "price"],
+                    "input": {},
+                    "msg": "Field required",
+                    "type": "missing",
+                },
+            ]
+        }
+    )
 
 
-def test_put_missing_required_in_item(client: TestClient):
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+)
+def put_missing_required_in_item(name: str):
+    client = _client_for(name)
     response = client.put(
         "/items/5",
         json={"description": "A very nice Item"},
     )
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "loc": ["body", "name"],
-                "input": {"description": "A very nice Item"},
-                "msg": "Field required",
-                "type": "missing",
-            },
-            {
-                "loc": ["body", "price"],
-                "input": {"description": "A very nice Item"},
-                "msg": "Field required",
-                "type": "missing",
-            },
-        ]
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "loc": ["body", "name"],
+                    "input": {"description": "A very nice Item"},
+                    "msg": "Field required",
+                    "type": "missing",
+                },
+                {
+                    "loc": ["body", "price"],
+                    "input": {"description": "A very nice Item"},
+                    "msg": "Field required",
+                    "type": "missing",
+                },
+            ]
+        }
+    )
 
 
-def test_put_missing_required_in_image(client: TestClient):
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+)
+def put_missing_required_in_image(name: str):
+    client = _client_for(name)
     response = client.put(
         "/items/5",
         json={
@@ -123,20 +145,26 @@ def test_put_missing_required_in_image(client: TestClient):
             "image": {"url": "http://example.com/image.png"},
         },
     )
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "loc": ["body", "image", "name"],
-                "input": {"url": "http://example.com/image.png"},
-                "msg": "Field required",
-                "type": "missing",
-            },
-        ]
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "loc": ["body", "image", "name"],
+                    "input": {"url": "http://example.com/image.png"},
+                    "msg": "Field required",
+                    "type": "missing",
+                },
+            ]
+        }
+    )
 
 
-def test_put_wrong_url(client: TestClient):
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+)
+def put_wrong_url(name: str):
+    client = _client_for(name)
     response = client.put(
         "/items/5",
         json={
@@ -145,163 +173,174 @@ def test_put_wrong_url(client: TestClient):
             "image": {"url": "not a valid url", "name": "example image"},
         },
     )
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "loc": ["body", "image", "url"],
-                "input": "not a valid url",
-                "msg": "Input should be a valid URL, relative URL without a base",
-                "type": "url_parsing",
-                "ctx": {"error": "relative URL without a base"},
-            },
-        ]
-    }
-
-
-def test_openapi_schema(client: TestClient):
-    response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
         {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/{item_id}": {
-                    "put": {
-                        "parameters": [
-                            {
-                                "in": "path",
-                                "name": "item_id",
-                                "required": True,
-                                "schema": {
-                                    "title": "Item Id",
-                                    "type": "integer",
+            "detail": [
+                {
+                    "loc": ["body", "image", "url"],
+                    "input": "not a valid url",
+                    "msg": "Input should be a valid URL, relative URL without a base",
+                    "type": "url_parsing",
+                    "ctx": {"error": "relative URL without a base"},
+                },
+            ]
+        }
+    )
+
+
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
+    response = client.get("/openapi.json")
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/{item_id}": {
+                        "put": {
+                            "parameters": [
+                                {
+                                    "in": "path",
+                                    "name": "item_id",
+                                    "required": True,
+                                    "schema": {
+                                        "title": "Item Id",
+                                        "type": "integer",
+                                    },
+                                },
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
                                 },
                             },
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
+                            "summary": "Update Item",
+                            "operationId": "update_item_items__item_id__put",
+                            "requestBody": {
                                 "content": {
                                     "application/json": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "$ref": "#/components/schemas/Item",
                                         }
                                     }
                                 },
+                                "required": True,
+                            },
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "Image": {
+                            "properties": {
+                                "url": {
+                                    "title": "Url",
+                                    "type": "string",
+                                    "format": "uri",
+                                    "maxLength": 2083,
+                                    "minLength": 1,
+                                },
+                                "name": {
+                                    "title": "Name",
+                                    "type": "string",
+                                },
+                            },
+                            "required": ["url", "name"],
+                            "title": "Image",
+                            "type": "object",
+                        },
+                        "Item": {
+                            "properties": {
+                                "name": {
+                                    "title": "Name",
+                                    "type": "string",
+                                },
+                                "description": {
+                                    "title": "Description",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                                },
+                                "price": {
+                                    "title": "Price",
+                                    "type": "number",
+                                },
+                                "tax": {
+                                    "title": "Tax",
+                                    "anyOf": [{"type": "number"}, {"type": "null"}],
+                                },
+                                "tags": {
+                                    "title": "Tags",
+                                    "default": [],
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "uniqueItems": True,
+                                },
+                                "image": {
+                                    "anyOf": [
+                                        {"$ref": "#/components/schemas/Image"},
+                                        {"type": "null"},
+                                    ],
+                                },
+                            },
+                            "required": [
+                                "name",
+                                "price",
+                            ],
+                            "title": "Item",
+                            "type": "object",
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
                         },
-                        "summary": "Update Item",
-                        "operationId": "update_item_items__item_id__put",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Item",
-                                    }
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "Image": {
-                        "properties": {
-                            "url": {
-                                "title": "Url",
-                                "type": "string",
-                                "format": "uri",
-                                "maxLength": 2083,
-                                "minLength": 1,
-                            },
-                            "name": {
-                                "title": "Name",
-                                "type": "string",
-                            },
-                        },
-                        "required": ["url", "name"],
-                        "title": "Image",
-                        "type": "object",
-                    },
-                    "Item": {
-                        "properties": {
-                            "name": {
-                                "title": "Name",
-                                "type": "string",
-                            },
-                            "description": {
-                                "title": "Description",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                            },
-                            "price": {
-                                "title": "Price",
-                                "type": "number",
-                            },
-                            "tax": {
-                                "title": "Tax",
-                                "anyOf": [{"type": "number"}, {"type": "null"}],
-                            },
-                            "tags": {
-                                "title": "Tags",
-                                "default": [],
-                                "type": "array",
-                                "items": {"type": "string"},
-                                "uniqueItems": True,
-                            },
-                            "image": {
-                                "anyOf": [
-                                    {"$ref": "#/components/schemas/Image"},
-                                    {"type": "null"},
-                                ],
-                            },
-                        },
-                        "required": [
-                            "name",
-                            "price",
-                        ],
-                        "title": "Item",
-                        "type": "object",
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

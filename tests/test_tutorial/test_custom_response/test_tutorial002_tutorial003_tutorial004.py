@@ -1,25 +1,12 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import Is, snapshot
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="mod_name",
-    params=[
-        pytest.param("tutorial002_py310"),
-        pytest.param("tutorial003_py310"),
-        pytest.param("tutorial004_py310"),
-    ],
-)
-def get_mod_name(request: pytest.FixtureRequest) -> str:
-    return request.param
-
-
-@pytest.fixture(name="client")
-def get_client(mod_name: str) -> TestClient:
-    mod = importlib.import_module(f"docs_src.custom_response.{mod_name}")
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("custom_response", name)
     return TestClient(mod.app)
 
 
@@ -35,37 +22,51 @@ html_contents = """
     """
 
 
-def test_get_custom_response(client: TestClient):
+@test.cases(
+    test.case("tutorial002_py310", mod_name="tutorial002_py310"),
+    test.case("tutorial003_py310", mod_name="tutorial003_py310"),
+    test.case("tutorial004_py310", mod_name="tutorial004_py310"),
+)
+def get_custom_response(mod_name: str):
+    client = _client_for(mod_name)
     response = client.get("/items/")
-    assert response.status_code == 200, response.text
-    assert response.text == html_contents
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_equal(html_contents)
 
 
-def test_openapi_schema(client: TestClient, mod_name: str):
+@test.cases(
+    test.case("tutorial002_py310", mod_name="tutorial002_py310"),
+    test.case("tutorial003_py310", mod_name="tutorial003_py310"),
+    test.case("tutorial004_py310", mod_name="tutorial004_py310"),
+)
+def openapi_schema(mod_name: str):
+    client = _client_for(mod_name)
     if mod_name.startswith("tutorial003"):
         response_content = {"application/json": {"schema": {}}}
     else:
         response_content = {"text/html": {"schema": {"type": "string"}}}
 
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": Is(response_content),
-                            }
-                        },
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__get",
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": Is(response_content),
+                                }
+                            },
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__get",
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

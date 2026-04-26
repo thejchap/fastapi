@@ -1,14 +1,16 @@
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.advanced_middleware.tutorial001_py310 import app
 
 
-def test_middleware():
+@test
+def middleware():
     client = TestClient(app, base_url="https://testserver")
     response = client.get("/")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
 
     client = TestClient(app)
     response = client.get("/", follow_redirects=False)
-    assert response.status_code == 307, response.text
-    assert response.headers["location"] == "https://testserver/"
+    expect(response.status_code).to_equal(307).fatal()
+    expect(response.headers["location"]).to_equal("https://testserver/")

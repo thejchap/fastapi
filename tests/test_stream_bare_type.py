@@ -4,6 +4,7 @@ from typing import AsyncIterable, Iterable  # noqa: UP035 to test coverage
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 
 class Item(BaseModel):
@@ -26,17 +27,19 @@ def stream_bare_sync() -> Iterable:
 client = TestClient(app)
 
 
-def test_stream_bare_async_iterable():
+@test
+def stream_bare_async_iterable():
     response = client.get("/items/stream-bare-async")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/jsonl"
+    expect(response.status_code).to_equal(200)
+    expect(response.headers["content-type"]).to_equal("application/jsonl")
     lines = [json.loads(line) for line in response.text.strip().splitlines()]
-    assert lines == [{"name": "foo"}]
+    expect(lines).to_equal([{"name": "foo"}])
 
 
-def test_stream_bare_sync_iterable():
+@test
+def stream_bare_sync_iterable():
     response = client.get("/items/stream-bare-sync")
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/jsonl"
+    expect(response.status_code).to_equal(200)
+    expect(response.headers["content-type"]).to_equal("application/jsonl")
     lines = [json.loads(line) for line in response.text.strip().splitlines()]
-    assert lines == [{"name": "bar"}]
+    expect(lines).to_equal([{"name": "bar"}])

@@ -1,9 +1,9 @@
 import json
 
-import pytest
 from fastapi import BackgroundTasks, Depends, FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 state = {
@@ -213,187 +213,199 @@ async def middleware(request, call_next):
 client = TestClient(app)
 
 
-def test_async_state():
-    assert state["/async"] == "asyncgen not started"
+@test
+def async_state():
+    expect(state["/async"]).to_equal("asyncgen not started")
     response = client.get("/async")
-    assert response.status_code == 200, response.text
-    assert response.json() == "asyncgen started"
-    assert state["/async"] == "asyncgen completed"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("asyncgen started")
+    expect(state["/async"]).to_equal("asyncgen completed")
 
 
-def test_sync_state():
-    assert state["/sync"] == "generator not started"
+@test
+def sync_state():
+    expect(state["/sync"]).to_equal("generator not started")
     response = client.get("/sync")
-    assert response.status_code == 200, response.text
-    assert response.json() == "generator started"
-    assert state["/sync"] == "generator completed"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("generator started")
+    expect(state["/sync"]).to_equal("generator completed")
 
 
-def test_async_raise_other():
-    assert state["/async_raise"] == "asyncgen raise not started"
-    with pytest.raises(OtherDependencyError):
-        client.get("/async_raise_other")
-    assert state["/async_raise"] == "asyncgen raise finalized"
-    assert "/async_raise" not in errors
+@test
+def async_raise_other():
+    expect(state["/async_raise"]).to_equal("asyncgen raise not started")
+    expect(lambda: client.get("/async_raise_other")).to_raise(OtherDependencyError)
+    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
+    expect(errors).not_.to_contain("/async_raise")
 
 
-def test_sync_raise_other():
-    assert state["/sync_raise"] == "generator raise not started"
-    with pytest.raises(OtherDependencyError):
-        client.get("/sync_raise_other")
-    assert state["/sync_raise"] == "generator raise finalized"
-    assert "/sync_raise" not in errors
+@test
+def sync_raise_other():
+    expect(state["/sync_raise"]).to_equal("generator raise not started")
+    expect(lambda: client.get("/sync_raise_other")).to_raise(OtherDependencyError)
+    expect(state["/sync_raise"]).to_equal("generator raise finalized")
+    expect(errors).not_.to_contain("/sync_raise")
 
 
-def test_async_raise_raises():
-    with pytest.raises(AsyncDependencyError):
-        client.get("/async_raise")
-    assert state["/async_raise"] == "asyncgen raise finalized"
-    assert "/async_raise" in errors
+@test
+def async_raise_raises():
+    expect(lambda: client.get("/async_raise")).to_raise(AsyncDependencyError)
+    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
+    expect(errors).to_contain("/async_raise")
     errors.clear()
 
 
-def test_async_raise_server_error():
+@test
+def async_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/async_raise")
-    assert response.status_code == 500, response.text
-    assert state["/async_raise"] == "asyncgen raise finalized"
-    assert "/async_raise" in errors
+    expect(response.status_code).to_equal(500).fatal()
+    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
+    expect(errors).to_contain("/async_raise")
     errors.clear()
 
 
-def test_context_b():
+@test
+def context_b_test():
     response = client.get("/context_b")
     data = response.json()
-    assert data["context_b"] == "started b"
-    assert data["context_a"] == "started a"
-    assert state["context_b"] == "finished b with a: started a"
-    assert state["context_a"] == "finished a"
+    expect(data["context_b"]).to_equal("started b")
+    expect(data["context_a"]).to_equal("started a")
+    expect(state["context_b"]).to_equal("finished b with a: started a")
+    expect(state["context_a"]).to_equal("finished a")
 
 
-def test_context_b_raise():
-    with pytest.raises(OtherDependencyError):
-        client.get("/context_b_raise")
-    assert state["context_b"] == "finished b with a: started a"
-    assert state["context_a"] == "finished a"
+@test
+def context_b_raise():
+    expect(lambda: client.get("/context_b_raise")).to_raise(OtherDependencyError)
+    expect(state["context_b"]).to_equal("finished b with a: started a")
+    expect(state["context_a"]).to_equal("finished a")
 
 
-def test_background_tasks():
+@test
+def background_tasks():
     response = client.get("/context_b_bg")
     data = response.json()
-    assert data["context_b"] == "started b"
-    assert data["context_a"] == "started a"
-    assert data["bg"] == "not set"
+    expect(data["context_b"]).to_equal("started b")
+    expect(data["context_a"]).to_equal("started a")
+    expect(data["bg"]).to_equal("not set")
     middleware_state = json.loads(response.headers["x-state"])
-    assert middleware_state["context_b"] == "started b"
-    assert middleware_state["context_a"] == "started a"
-    assert middleware_state["bg"] == "not set"
-    assert state["context_b"] == "finished b with a: started a"
-    assert state["context_a"] == "finished a"
-    assert state["bg"] == "bg set - b: started b - a: started a"
+    expect(middleware_state["context_b"]).to_equal("started b")
+    expect(middleware_state["context_a"]).to_equal("started a")
+    expect(middleware_state["bg"]).to_equal("not set")
+    expect(state["context_b"]).to_equal("finished b with a: started a")
+    expect(state["context_a"]).to_equal("finished a")
+    expect(state["bg"]).to_equal("bg set - b: started b - a: started a")
 
 
-def test_sync_raise_raises():
-    with pytest.raises(SyncDependencyError):
-        client.get("/sync_raise")
-    assert state["/sync_raise"] == "generator raise finalized"
-    assert "/sync_raise" in errors
+@test
+def sync_raise_raises():
+    expect(lambda: client.get("/sync_raise")).to_raise(SyncDependencyError)
+    expect(state["/sync_raise"]).to_equal("generator raise finalized")
+    expect(errors).to_contain("/sync_raise")
     errors.clear()
 
 
-def test_sync_raise_server_error():
+@test
+def sync_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/sync_raise")
-    assert response.status_code == 500, response.text
-    assert state["/sync_raise"] == "generator raise finalized"
-    assert "/sync_raise" in errors
+    expect(response.status_code).to_equal(500).fatal()
+    expect(state["/sync_raise"]).to_equal("generator raise finalized")
+    expect(errors).to_contain("/sync_raise")
     errors.clear()
 
 
-def test_sync_async_state():
+@test
+def sync_async_state():
     response = client.get("/sync_async")
-    assert response.status_code == 200, response.text
-    assert response.json() == "asyncgen started"
-    assert state["/async"] == "asyncgen completed"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("asyncgen started")
+    expect(state["/async"]).to_equal("asyncgen completed")
 
 
-def test_sync_sync_state():
+@test
+def sync_sync_state():
     response = client.get("/sync_sync")
-    assert response.status_code == 200, response.text
-    assert response.json() == "generator started"
-    assert state["/sync"] == "generator completed"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("generator started")
+    expect(state["/sync"]).to_equal("generator completed")
 
 
-def test_sync_async_raise_other():
-    with pytest.raises(OtherDependencyError):
-        client.get("/sync_async_raise_other")
-    assert state["/async_raise"] == "asyncgen raise finalized"
-    assert "/async_raise" not in errors
+@test
+def sync_async_raise_other():
+    expect(lambda: client.get("/sync_async_raise_other")).to_raise(OtherDependencyError)
+    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
+    expect(errors).not_.to_contain("/async_raise")
 
 
-def test_sync_sync_raise_other():
-    with pytest.raises(OtherDependencyError):
-        client.get("/sync_sync_raise_other")
-    assert state["/sync_raise"] == "generator raise finalized"
-    assert "/sync_raise" not in errors
+@test
+def sync_sync_raise_other():
+    expect(lambda: client.get("/sync_sync_raise_other")).to_raise(OtherDependencyError)
+    expect(state["/sync_raise"]).to_equal("generator raise finalized")
+    expect(errors).not_.to_contain("/sync_raise")
 
 
-def test_sync_async_raise_raises():
-    with pytest.raises(AsyncDependencyError):
-        client.get("/sync_async_raise")
-    assert state["/async_raise"] == "asyncgen raise finalized"
-    assert "/async_raise" in errors
+@test
+def sync_async_raise_raises():
+    expect(lambda: client.get("/sync_async_raise")).to_raise(AsyncDependencyError)
+    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
+    expect(errors).to_contain("/async_raise")
     errors.clear()
 
 
-def test_sync_async_raise_server_error():
+@test
+def sync_async_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/sync_async_raise")
-    assert response.status_code == 500, response.text
-    assert state["/async_raise"] == "asyncgen raise finalized"
-    assert "/async_raise" in errors
+    expect(response.status_code).to_equal(500).fatal()
+    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
+    expect(errors).to_contain("/async_raise")
     errors.clear()
 
 
-def test_sync_sync_raise_raises():
-    with pytest.raises(SyncDependencyError):
-        client.get("/sync_sync_raise")
-    assert state["/sync_raise"] == "generator raise finalized"
-    assert "/sync_raise" in errors
+@test
+def sync_sync_raise_raises():
+    expect(lambda: client.get("/sync_sync_raise")).to_raise(SyncDependencyError)
+    expect(state["/sync_raise"]).to_equal("generator raise finalized")
+    expect(errors).to_contain("/sync_raise")
     errors.clear()
 
 
-def test_sync_sync_raise_server_error():
+@test
+def sync_sync_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/sync_sync_raise")
-    assert response.status_code == 500, response.text
-    assert state["/sync_raise"] == "generator raise finalized"
-    assert "/sync_raise" in errors
+    expect(response.status_code).to_equal(500).fatal()
+    expect(state["/sync_raise"]).to_equal("generator raise finalized")
+    expect(errors).to_contain("/sync_raise")
     errors.clear()
 
 
-def test_sync_context_b():
+@test
+def sync_context_b():
     response = client.get("/sync_context_b")
     data = response.json()
-    assert data["context_b"] == "started b"
-    assert data["context_a"] == "started a"
-    assert state["context_b"] == "finished b with a: started a"
-    assert state["context_a"] == "finished a"
+    expect(data["context_b"]).to_equal("started b")
+    expect(data["context_a"]).to_equal("started a")
+    expect(state["context_b"]).to_equal("finished b with a: started a")
+    expect(state["context_a"]).to_equal("finished a")
 
 
-def test_sync_context_b_raise():
-    with pytest.raises(OtherDependencyError):
-        client.get("/sync_context_b_raise")
-    assert state["context_b"] == "finished b with a: started a"
-    assert state["context_a"] == "finished a"
+@test
+def sync_context_b_raise():
+    expect(lambda: client.get("/sync_context_b_raise")).to_raise(OtherDependencyError)
+    expect(state["context_b"]).to_equal("finished b with a: started a")
+    expect(state["context_a"]).to_equal("finished a")
 
 
-def test_sync_background_tasks():
+@test
+def sync_background_tasks():
     response = client.get("/sync_context_b_bg")
     data = response.json()
-    assert data["context_b"] == "started b"
-    assert data["context_a"] == "started a"
-    assert data["sync_bg"] == "not set"
-    assert state["context_b"] == "finished b with a: started a"
-    assert state["context_a"] == "finished a"
-    assert state["sync_bg"] == "sync_bg set - b: started b - a: started a"
+    expect(data["context_b"]).to_equal("started b")
+    expect(data["context_a"]).to_equal("started a")
+    expect(data["sync_bg"]).to_equal("not set")
+    expect(state["context_b"]).to_equal("finished b with a: started a")
+    expect(state["context_a"]).to_equal("finished a")
+    expect(state["sync_bg"]).to_equal("sync_bg set - b: started b - a: started a")

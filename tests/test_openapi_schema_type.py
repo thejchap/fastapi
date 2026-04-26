@@ -1,24 +1,23 @@
-import pytest
 from fastapi.openapi.models import Schema, SchemaType
+from tryke import expect, test
 
 
-@pytest.mark.parametrize(
-    "type_value",
-    [
-        "array",
-        ["string", "null"],
-        None,
-    ],
+@test.cases(
+    test.case("array", type_value="array"),
+    test.case("string-null", type_value=["string", "null"]),
+    test.case("none", type_value=None),
 )
-def test_allowed_schema_type(
+def allowed_schema_type(
     type_value: SchemaType | list[SchemaType] | None,
 ) -> None:
     """Test that Schema accepts SchemaType, List[SchemaType] and None for type field."""
     schema = Schema(type=type_value)
-    assert schema.type == type_value
+    expect(schema.type).to_equal(type_value)
 
 
-def test_invalid_type_value() -> None:
+@test
+def invalid_type_value() -> None:
     """Test that Schema raises ValueError for invalid type values."""
-    with pytest.raises(ValueError, match="2 validation errors for Schema"):
-        Schema(type=True)  # type: ignore[arg-type]
+    expect(lambda: Schema(type=True)).to_raise(  # type: ignore[arg-type]
+        ValueError, match="2 validation errors for Schema"
+    )

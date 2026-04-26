@@ -1,25 +1,15 @@
-import importlib
 from types import ModuleType
 from unittest.mock import patch
 
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="mod",
-    params=[
-        pytest.param("tutorial004_py310", marks=needs_py310),
-        pytest.param("tutorial004_an_py310", marks=needs_py310),
-    ],
-)
-def get_mod(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.security.{request.param}")
-
-    return mod
+def _module_for(name: str) -> ModuleType:
+    return import_tutorial("security", name)
 
 
 def get_access_token(*, username="johndoe", password="secret", client: TestClient):
@@ -30,130 +20,199 @@ def get_access_token(*, username="johndoe", password="secret", client: TestClien
     return access_token
 
 
-def test_login(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def login(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.post("/token", data={"username": "johndoe", "password": "secret"})
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
     content = response.json()
-    assert "access_token" in content
-    assert content["token_type"] == "bearer"
+    expect(content).to_contain("access_token")
+    expect(content["token_type"]).to_equal("bearer")
 
 
-def test_login_incorrect_password(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def login_incorrect_password(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.post(
         "/token", data={"username": "johndoe", "password": "incorrect"}
     )
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Incorrect username or password"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
 
 
-def test_login_incorrect_username(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def login_incorrect_username(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.post("/token", data={"username": "foo", "password": "secret"})
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Incorrect username or password"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
 
 
-def test_no_token(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def no_token(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/users/me")
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Not authenticated"}
-    assert response.headers["WWW-Authenticate"] == "Bearer"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
 
 
-def test_token(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def token(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     access_token = get_access_token(client=client)
     response = client.get(
         "/users/me", headers={"Authorization": f"Bearer {access_token}"}
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "disabled": False,
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "username": "johndoe",
+            "full_name": "John Doe",
+            "email": "johndoe@example.com",
+            "disabled": False,
+        }
+    )
 
 
-def test_incorrect_token(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def incorrect_token(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/users/me", headers={"Authorization": "Bearer nonexistent"})
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Could not validate credentials"}
-    assert response.headers["WWW-Authenticate"] == "Bearer"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
 
 
-def test_incorrect_token_type(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def incorrect_token_type(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get(
         "/users/me", headers={"Authorization": "Notexistent testtoken"}
     )
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Not authenticated"}
-    assert response.headers["WWW-Authenticate"] == "Bearer"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
 
 
-def test_verify_password(mod: ModuleType):
-    assert mod.verify_password(
-        "secret", mod.fake_users_db["johndoe"]["hashed_password"]
-    )
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def verify_password(name: str):
+    mod = _module_for(name)
+    expect(
+        mod.verify_password("secret", mod.fake_users_db["johndoe"]["hashed_password"])
+    ).to_be_truthy()
 
 
-def test_get_password_hash(mod: ModuleType):
-    assert mod.get_password_hash("johndoe")
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def get_password_hash(name: str):
+    mod = _module_for(name)
+    expect(mod.get_password_hash("johndoe")).to_be_truthy()
 
 
-def test_create_access_token(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def create_access_token(name: str):
+    mod = _module_for(name)
     access_token = mod.create_access_token(data={"data": "foo"})
-    assert access_token
+    expect(access_token).to_be_truthy()
 
 
-def test_token_no_sub(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def token_no_sub(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
-
     response = client.get(
         "/users/me",
         headers={
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZm9vIn0.9ynBhuYb4e6aW3oJr_K_TBgwcMTDpRToQIE25L57rOE"
         },
     )
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Could not validate credentials"}
-    assert response.headers["WWW-Authenticate"] == "Bearer"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
 
 
-def test_token_no_username(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def token_no_username(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
-
     response = client.get(
         "/users/me",
         headers={
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmb28ifQ.NnExK_dlNAYyzACrXtXDrcWOgGY2JuPbI4eDaHdfK5Y"
         },
     )
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Could not validate credentials"}
-    assert response.headers["WWW-Authenticate"] == "Bearer"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
 
 
-def test_token_nonexistent_user(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def token_nonexistent_user(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
-
     response = client.get(
         "/users/me",
         headers={
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VybmFtZTpib2IifQ.HcfCW67Uda-0gz54ZWTqmtgJnZeNem0Q757eTa9EZuw"
         },
     )
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Could not validate credentials"}
-    assert response.headers["WWW-Authenticate"] == "Bearer"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
 
 
-def test_token_inactive_user(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def token_inactive_user(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     alice_user_data = {
         "username": "alice",
@@ -169,204 +228,226 @@ def test_token_inactive_user(mod: ModuleType):
         response = client.get(
             "/users/me", headers={"Authorization": f"Bearer {access_token}"}
         )
-    assert response.status_code == 400, response.text
-    assert response.json() == {"detail": "Inactive user"}
+    expect(response.status_code).to_equal(400).fatal()
+    expect(response.json()).to_equal({"detail": "Inactive user"})
 
 
-def test_read_items(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def read_items(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     access_token = get_access_token(client=client)
     response = client.get(
         "/users/me/items/", headers={"Authorization": f"Bearer {access_token}"}
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == [{"item_id": "Foo", "owner": "johndoe"}]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal([{"item_id": "Foo", "owner": "johndoe"}])
 
 
-def test_openapi_schema(mod: ModuleType):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def openapi_schema(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/token": {
-                    "post": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {"$ref": "#/components/schemas/Token"}
-                                    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/token": {
+                        "post": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Token"
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
                                 },
                             },
-                            "422": {
-                                "description": "Validation Error",
+                            "summary": "Login For Access Token",
+                            "operationId": "login_for_access_token_token_post",
+                            "requestBody": {
                                 "content": {
-                                    "application/json": {
+                                    "application/x-www-form-urlencoded": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "$ref": "#/components/schemas/Body_login_for_access_token_token_post"
                                         }
                                     }
                                 },
+                                "required": True,
                             },
-                        },
-                        "summary": "Login For Access Token",
-                        "operationId": "login_for_access_token_token_post",
-                        "requestBody": {
-                            "content": {
-                                "application/x-www-form-urlencoded": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_login_for_access_token_token_post"
-                                    }
+                        }
+                    },
+                    "/users/me/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/User"
+                                            }
+                                        }
+                                    },
                                 }
                             },
-                            "required": True,
-                        },
-                    }
+                            "summary": "Read Users Me",
+                            "operationId": "read_users_me_users_me__get",
+                            "security": [{"OAuth2PasswordBearer": []}],
+                        }
+                    },
+                    "/users/me/items/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Read Own Items",
+                            "operationId": "read_own_items_users_me_items__get",
+                            "security": [{"OAuth2PasswordBearer": []}],
+                        }
+                    },
                 },
-                "/users/me/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {"$ref": "#/components/schemas/User"}
-                                    }
+                "components": {
+                    "schemas": {
+                        "User": {
+                            "title": "User",
+                            "required": ["username"],
+                            "type": "object",
+                            "properties": {
+                                "username": {"title": "Username", "type": "string"},
+                                "email": {
+                                    "title": "Email",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
                                 },
-                            }
-                        },
-                        "summary": "Read Users Me",
-                        "operationId": "read_users_me_users_me__get",
-                        "security": [{"OAuth2PasswordBearer": []}],
-                    }
-                },
-                "/users/me/items/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Read Own Items",
-                        "operationId": "read_own_items_users_me_items__get",
-                        "security": [{"OAuth2PasswordBearer": []}],
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "User": {
-                        "title": "User",
-                        "required": ["username"],
-                        "type": "object",
-                        "properties": {
-                            "username": {"title": "Username", "type": "string"},
-                            "email": {
-                                "title": "Email",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                            },
-                            "full_name": {
-                                "title": "Full Name",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                            },
-                            "disabled": {
-                                "title": "Disabled",
-                                "anyOf": [{"type": "boolean"}, {"type": "null"}],
-                            },
-                        },
-                    },
-                    "Token": {
-                        "title": "Token",
-                        "required": ["access_token", "token_type"],
-                        "type": "object",
-                        "properties": {
-                            "access_token": {"title": "Access Token", "type": "string"},
-                            "token_type": {"title": "Token Type", "type": "string"},
-                        },
-                    },
-                    "Body_login_for_access_token_token_post": {
-                        "title": "Body_login_for_access_token_token_post",
-                        "required": ["username", "password"],
-                        "type": "object",
-                        "properties": {
-                            "grant_type": {
-                                "title": "Grant Type",
-                                "anyOf": [
-                                    {"pattern": "^password$", "type": "string"},
-                                    {"type": "null"},
-                                ],
-                            },
-                            "username": {"title": "Username", "type": "string"},
-                            "password": {
-                                "title": "Password",
-                                "type": "string",
-                                "format": "password",
-                            },
-                            "scope": {
-                                "title": "Scope",
-                                "type": "string",
-                                "default": "",
-                            },
-                            "client_id": {
-                                "title": "Client Id",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                            },
-                            "client_secret": {
-                                "title": "Client Secret",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                                "format": "password",
-                            },
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
+                                "full_name": {
+                                    "title": "Full Name",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                                },
+                                "disabled": {
+                                    "title": "Disabled",
+                                    "anyOf": [{"type": "boolean"}, {"type": "null"}],
                                 },
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
                         },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
+                        "Token": {
+                            "title": "Token",
+                            "required": ["access_token", "token_type"],
+                            "type": "object",
+                            "properties": {
+                                "access_token": {
+                                    "title": "Access Token",
+                                    "type": "string",
                                 },
-                            }
+                                "token_type": {"title": "Token Type", "type": "string"},
+                            },
+                        },
+                        "Body_login_for_access_token_token_post": {
+                            "title": "Body_login_for_access_token_token_post",
+                            "required": ["username", "password"],
+                            "type": "object",
+                            "properties": {
+                                "grant_type": {
+                                    "title": "Grant Type",
+                                    "anyOf": [
+                                        {"pattern": "^password$", "type": "string"},
+                                        {"type": "null"},
+                                    ],
+                                },
+                                "username": {"title": "Username", "type": "string"},
+                                "password": {
+                                    "title": "Password",
+                                    "type": "string",
+                                    "format": "password",
+                                },
+                                "scope": {
+                                    "title": "Scope",
+                                    "type": "string",
+                                    "default": "",
+                                },
+                                "client_id": {
+                                    "title": "Client Id",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                                },
+                                "client_secret": {
+                                    "title": "Client Secret",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                                    "format": "password",
+                                },
+                            },
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
                         },
                     },
+                    "securitySchemes": {
+                        "OAuth2PasswordBearer": {
+                            "type": "oauth2",
+                            "flows": {
+                                "password": {
+                                    "scopes": {},
+                                    "tokenUrl": "token",
+                                }
+                            },
+                        }
+                    },
                 },
-                "securitySchemes": {
-                    "OAuth2PasswordBearer": {
-                        "type": "oauth2",
-                        "flows": {
-                            "password": {
-                                "scopes": {},
-                                "tokenUrl": "token",
-                            }
-                        },
-                    }
-                },
-            },
-        }
+            }
+        )
     )

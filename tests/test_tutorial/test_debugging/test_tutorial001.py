@@ -3,35 +3,38 @@ import runpy
 import sys
 import unittest
 
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends, expect, fixture, test
 
 MOD_NAME = "docs_src.debugging.tutorial001_py310"
 
 
-@pytest.fixture(name="client")
-def get_client():
+@fixture
+def client() -> TestClient:
     mod = importlib.import_module(MOD_NAME)
-    client = TestClient(mod.app)
-    return client
+    return TestClient(mod.app)
 
 
-def test_uvicorn_run_is_not_called_on_import():
+@test
+def uvicorn_run_is_not_called_on_import():
     if sys.modules.get(MOD_NAME):
-        del sys.modules[MOD_NAME]  # pragma: no cover
+        del sys.modules[MOD_NAME]
     with unittest.mock.patch("uvicorn.run") as uvicorn_run_mock:
         importlib.import_module(MOD_NAME)
     uvicorn_run_mock.assert_not_called()
 
 
-def test_get_root(client: TestClient):
+@test
+def get_root(client: TestClient = Depends(client)):
     response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"hello world": "ba"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"hello world": "ba"})
 
 
-def test_uvicorn_run_called_when_run_as_main():  # Just for coverage
+@test
+def uvicorn_run_called_when_run_as_main():
+    # Just for coverage.
     if sys.modules.get(MOD_NAME):
         del sys.modules[MOD_NAME]
     with unittest.mock.patch("uvicorn.run") as uvicorn_run_mock:
@@ -42,26 +45,29 @@ def test_uvicorn_run_called_when_run_as_main():  # Just for coverage
     )
 
 
-def test_openapi_schema(client: TestClient):
+@test
+def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    assert response.status_code == 200
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "get": {
-                        "summary": "Root",
-                        "operationId": "root__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "get": {
+                            "summary": "Root",
+                            "operationId": "root__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
                             },
-                        },
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

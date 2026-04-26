@@ -1,103 +1,113 @@
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 from docs_src.handling_errors.tutorial004_py310 import app
 
 client = TestClient(app)
 
 
-def test_get_validation_error():
+@test
+def get_validation_error():
     response = client.get("/items/foo")
-    assert response.status_code == 400, response.text
-    assert "Validation errors:" in response.text
-    assert "Field: ('path', 'item_id')" in response.text
+    expect(response.status_code).to_equal(400).fatal()
+    expect(response.text).to_contain("Validation errors:")
+    expect(response.text).to_contain("Field: ('path', 'item_id')")
 
 
-def test_get_http_error():
+@test
+def get_http_error():
     response = client.get("/items/3")
-    assert response.status_code == 418, response.text
-    assert response.content == b"Nope! I don't like 3."
+    expect(response.status_code).to_equal(418).fatal()
+    expect(response.content).to_equal(b"Nope! I don't like 3.")
 
 
-def test_get():
+@test
+def get():
     response = client.get("/items/2")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"item_id": 2}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"item_id": 2})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/{item_id}": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/{item_id}": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
                                         }
-                                    }
+                                    },
                                 },
                             },
-                        },
-                        "summary": "Read Item",
-                        "operationId": "read_item_items__item_id__get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "Item Id", "type": "integer"},
-                                "name": "item_id",
-                                "in": "path",
-                            }
-                        ],
+                            "summary": "Read Item",
+                            "operationId": "read_item_items__item_id__get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "Item Id", "type": "integer"},
+                                    "name": "item_id",
+                                    "in": "path",
+                                }
+                            ],
+                        }
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
+                },
+                "components": {
+                    "schemas": {
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
                         },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
                         },
-                    },
-                }
-            },
-        }
+                    }
+                },
+            }
+        )
     )

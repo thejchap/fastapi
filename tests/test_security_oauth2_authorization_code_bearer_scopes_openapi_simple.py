@@ -6,6 +6,7 @@ from fastapi import Depends, FastAPI, Security
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl="api/oauth/authorize",
@@ -29,52 +30,56 @@ async def read_admin():
 client = TestClient(app)
 
 
-def test_read_admin():
+@test
+def read_admin():
     response = client.get("/admin", headers={"Authorization": "Bearer faketoken"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Admin Access"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Admin Access"})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/admin": {
-                    "get": {
-                        "summary": "Read Admin",
-                        "operationId": "read_admin_admin_get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "security": [
-                            {"OAuth2AuthorizationCodeBearer": ["read", "write"]}
-                        ],
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/admin": {
+                        "get": {
+                            "summary": "Read Admin",
+                            "operationId": "read_admin_admin_get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [
+                                {"OAuth2AuthorizationCodeBearer": ["read", "write"]}
+                            ],
+                        }
                     }
-                }
-            },
-            "components": {
-                "securitySchemes": {
-                    "OAuth2AuthorizationCodeBearer": {
-                        "type": "oauth2",
-                        "flows": {
-                            "authorizationCode": {
-                                "scopes": {
-                                    "read": "Read access",
-                                    "write": "Write access",
-                                },
-                                "authorizationUrl": "api/oauth/authorize",
-                                "tokenUrl": "/api/oauth/token",
-                            }
-                        },
+                },
+                "components": {
+                    "securitySchemes": {
+                        "OAuth2AuthorizationCodeBearer": {
+                            "type": "oauth2",
+                            "flows": {
+                                "authorizationCode": {
+                                    "scopes": {
+                                        "read": "Read access",
+                                        "write": "Write access",
+                                    },
+                                    "authorizationUrl": "api/oauth/authorize",
+                                    "tokenUrl": "/api/oauth/token",
+                                }
+                            },
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

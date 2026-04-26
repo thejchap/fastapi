@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Path, Query
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -27,37 +28,42 @@ def query_convertor(param: str = Query()):
 client = TestClient(app)
 
 
-def test_route_converters_int():
+@test
+def route_converters_int():
     # Test integer conversion
     response = client.get("/int/5")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"int": 5}
-    assert app.url_path_for("int_convertor", param=5) == "/int/5"  # type: ignore
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"int": 5})
+    expect(app.url_path_for("int_convertor", param=5)).to_equal("/int/5")  # type: ignore
 
 
-def test_route_converters_float():
+@test
+def route_converters_float():
     # Test float conversion
     response = client.get("/float/25.5")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"float": 25.5}
-    assert app.url_path_for("float_convertor", param=25.5) == "/float/25.5"  # type: ignore
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"float": 25.5})
+    expect(app.url_path_for("float_convertor", param=25.5)).to_equal("/float/25.5")  # type: ignore
 
 
-def test_route_converters_path():
+@test
+def route_converters_path():
     # Test path conversion
     response = client.get("/path/some/example")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"path": "some/example"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"path": "some/example"})
 
 
-def test_route_converters_query():
+@test
+def route_converters_query():
     # Test query conversion
     response = client.get("/query", params={"param": "Qué tal!"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"query": "Qué tal!"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"query": "Qué tal!"})
 
 
-def test_url_path_for_path_convertor():
-    assert (
-        app.url_path_for("path_convertor", param="some/example") == "/path/some/example"
+@test
+def url_path_for_path_convertor():
+    expect(app.url_path_for("path_convertor", param="some/example")).to_equal(
+        "/path/some/example"
     )

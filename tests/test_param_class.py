@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.params import Param
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -13,13 +14,15 @@ def read_items(q: str | None = Param(default=None)):  # type: ignore
 client = TestClient(app)
 
 
-def test_default_param_query_none():
+@test
+def default_param_query_none():
     response = client.get("/items/")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"q": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"q": None})
 
 
-def test_default_param_query():
+@test
+def default_param_query():
     response = client.get("/items/?q=foo")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"q": "foo"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"q": "foo"})

@@ -1,13 +1,18 @@
 import warnings
 
-import pytest
 from fastapi import FastAPI
 from fastapi.exceptions import FastAPIDeprecationWarning
 from fastapi.responses import ORJSONResponse, UJSONResponse
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 from tests.utils import needs_orjson, needs_ujson
+
+from ._shims import expect_warning
+
+_NEEDS_ORJSON = needs_orjson()
+_NEEDS_UJSON = needs_ujson()
 
 
 class Item(BaseModel):
@@ -30,20 +35,22 @@ def _make_orjson_app() -> FastAPI:
     return app
 
 
-@needs_orjson
-def test_orjson_response_returns_correct_data():
+@test.skip_if(_NEEDS_ORJSON is not None, reason=_NEEDS_ORJSON or "")
+def orjson_response_returns_correct_data():
     app = _make_orjson_app()
     client = TestClient(app)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FastAPIDeprecationWarning)
         response = client.get("/items")
-    assert response.status_code == 200
-    assert response.json() == {"name": "widget", "price": 9.99}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"name": "widget", "price": 9.99})
 
 
-@needs_orjson
-def test_orjson_response_emits_deprecation_warning():
-    with pytest.warns(FastAPIDeprecationWarning, match="ORJSONResponse is deprecated"):
+@test.skip_if(_NEEDS_ORJSON is not None, reason=_NEEDS_ORJSON or "")
+def orjson_response_emits_deprecation_warning():
+    with expect_warning(
+        FastAPIDeprecationWarning, match="ORJSONResponse is deprecated"
+    ):
         ORJSONResponse(content={"hello": "world"})
 
 
@@ -62,18 +69,18 @@ def _make_ujson_app() -> FastAPI:
     return app
 
 
-@needs_ujson
-def test_ujson_response_returns_correct_data():
+@test.skip_if(_NEEDS_UJSON is not None, reason=_NEEDS_UJSON or "")
+def ujson_response_returns_correct_data():
     app = _make_ujson_app()
     client = TestClient(app)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FastAPIDeprecationWarning)
         response = client.get("/items")
-    assert response.status_code == 200
-    assert response.json() == {"name": "widget", "price": 9.99}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"name": "widget", "price": 9.99})
 
 
-@needs_ujson
-def test_ujson_response_emits_deprecation_warning():
-    with pytest.warns(FastAPIDeprecationWarning, match="UJSONResponse is deprecated"):
+@test.skip_if(_NEEDS_UJSON is not None, reason=_NEEDS_UJSON or "")
+def ujson_response_emits_deprecation_warning():
+    with expect_warning(FastAPIDeprecationWarning, match="UJSONResponse is deprecated"):
         UJSONResponse(content={"hello": "world"})

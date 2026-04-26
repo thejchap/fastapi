@@ -1,9 +1,9 @@
-import pytest
 from fastapi import APIRouter, FastAPI
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from starlette.routing import Route
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -48,74 +48,77 @@ app.include_router(router=router_a, prefix="/a")
 client = TestClient(app)
 
 
-@pytest.mark.parametrize(
-    "path,expected_status,expected_response",
-    [
-        ("/a", 200, {"msg": "A"}),
-        ("/a/b", 200, {"msg": "B"}),
-        ("/a/b/c", 200, {"msg": "C"}),
-    ],
+@test.cases(
+    test.case("/a", path="/a", expected_status=200, expected_response={"msg": "A"}),
+    test.case("/a/b", path="/a/b", expected_status=200, expected_response={"msg": "B"}),
+    test.case(
+        "/a/b/c", path="/a/b/c", expected_status=200, expected_response={"msg": "C"}
+    ),
 )
-def test_get_path(path, expected_status, expected_response):
+def get_path(path: str, expected_status: int, expected_response: dict):
     response = client.get(path)
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(expected_status)
+    expect(response.json()).to_equal(expected_response)
 
 
-def test_route_classes():
+@test
+def route_classes():
     routes = {}
     for r in app.router.routes:
-        assert isinstance(r, Route)
+        expect(r).to_be_instance_of(Route).fatal()
         routes[r.path] = r
-    assert getattr(routes["/a/"], "x_type") == "A"  # noqa: B009
-    assert getattr(routes["/a/b/"], "x_type") == "B"  # noqa: B009
-    assert getattr(routes["/a/b/c/"], "x_type") == "C"  # noqa: B009
+    expect(getattr(routes["/a/"], "x_type")).to_equal("A")  # noqa: B009
+    expect(getattr(routes["/a/b/"], "x_type")).to_equal("B")  # noqa: B009
+    expect(getattr(routes["/a/b/c/"], "x_type")).to_equal("C")  # noqa: B009
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/a/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Get A",
-                        "operationId": "get_a_a__get",
-                    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/a/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Get A",
+                            "operationId": "get_a_a__get",
+                        }
+                    },
+                    "/a/b/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Get B",
+                            "operationId": "get_b_a_b__get",
+                        }
+                    },
+                    "/a/b/c/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Get C",
+                            "operationId": "get_c_a_b_c__get",
+                        }
+                    },
                 },
-                "/a/b/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Get B",
-                        "operationId": "get_b_a_b__get",
-                    }
-                },
-                "/a/b/c/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Get C",
-                        "operationId": "get_c_a_b_c__get",
-                    }
-                },
-            },
-        }
+            }
+        )
     )

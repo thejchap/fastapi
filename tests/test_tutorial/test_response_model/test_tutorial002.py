@@ -1,26 +1,17 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends, expect, fixture, test
 
-from ...utils import needs_py310
-
-
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial002_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.response_model.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
+from docs_src.response_model.tutorial002_py310 import app
 
 
-def test_post_user(client: TestClient):
+@fixture
+def client() -> TestClient:
+    return TestClient(app)
+
+
+@test
+def post_user(client: TestClient = Depends(client)):
     user_data = {
         "username": "foo",
         "password": "fighter",
@@ -31,23 +22,47 @@ def test_post_user(client: TestClient):
         "/user/",
         json=user_data,
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == user_data
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(user_data)
 
 
-def test_openapi_schema(client: TestClient):
+@test
+def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/user/": {
-                    "post": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/user/": {
+                        "post": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/UserIn"
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                            "summary": "Create User",
+                            "operationId": "create_user_user__post",
+                            "requestBody": {
                                 "content": {
                                     "application/json": {
                                         "schema": {
@@ -55,83 +70,67 @@ def test_openapi_schema(client: TestClient):
                                         }
                                     }
                                 },
+                                "required": True,
                             },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "UserIn": {
+                            "title": "UserIn",
+                            "required": ["username", "password", "email"],
+                            "type": "object",
+                            "properties": {
+                                "username": {"title": "Username", "type": "string"},
+                                "password": {"title": "Password", "type": "string"},
+                                "email": {
+                                    "title": "Email",
+                                    "type": "string",
+                                    "format": "email",
+                                },
+                                "full_name": {
+                                    "title": "Full Name",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
                                 },
                             },
                         },
-                        "summary": "Create User",
-                        "operationId": "create_user_user__post",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {"$ref": "#/components/schemas/UserIn"}
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "UserIn": {
-                        "title": "UserIn",
-                        "required": ["username", "password", "email"],
-                        "type": "object",
-                        "properties": {
-                            "username": {"title": "Username", "type": "string"},
-                            "password": {"title": "Password", "type": "string"},
-                            "email": {
-                                "title": "Email",
-                                "type": "string",
-                                "format": "email",
-                            },
-                            "full_name": {
-                                "title": "Full Name",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                            },
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

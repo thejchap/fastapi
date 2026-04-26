@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import FastAPI, Form
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -34,7 +35,8 @@ def post_form_extra_allow(params: Annotated[FormModelExtraAllow, Form()]):
 client = TestClient(app)
 
 
-def test_send_all_data():
+@test
+def send_all_data():
     response = client.post(
         "/form/",
         data={
@@ -45,29 +47,35 @@ def test_send_all_data():
             "with": "something",
         },
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "username": "Rick",
-        "lastname": "Sanchez",
-        "age": 70,
-        "tags": ["plumbus", "citadel"],
-        "with": "something",
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "username": "Rick",
+            "lastname": "Sanchez",
+            "age": 70,
+            "tags": ["plumbus", "citadel"],
+            "with": "something",
+        }
+    )
 
 
-def test_defaults():
+@test
+def defaults():
     response = client.post("/form/", data={"username": "Rick", "lastname": "Sanchez"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "username": "Rick",
-        "lastname": "Sanchez",
-        "age": None,
-        "tags": ["foo", "bar"],
-        "with": "nothing",
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "username": "Rick",
+            "lastname": "Sanchez",
+            "age": None,
+            "tags": ["foo", "bar"],
+            "with": "nothing",
+        }
+    )
 
 
-def test_invalid_data():
+@test
+def invalid_data():
     response = client.post(
         "/form/",
         data={
@@ -77,41 +85,47 @@ def test_invalid_data():
             "tags": ["plumbus", "citadel"],
         },
     )
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "int_parsing",
-                "loc": ["body", "age"],
-                "msg": "Input should be a valid integer, unable to parse string as an integer",
-                "input": "seventy",
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "int_parsing",
+                    "loc": ["body", "age"],
+                    "msg": "Input should be a valid integer, unable to parse string as an integer",
+                    "input": "seventy",
+                }
+            ]
+        }
+    )
 
 
-def test_no_data():
+@test
+def no_data():
     response = client.post("/form/")
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "username"],
-                "msg": "Field required",
-                "input": {"tags": ["foo", "bar"], "with": "nothing"},
-            },
-            {
-                "type": "missing",
-                "loc": ["body", "lastname"],
-                "msg": "Field required",
-                "input": {"tags": ["foo", "bar"], "with": "nothing"},
-            },
-        ]
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "username"],
+                    "msg": "Field required",
+                    "input": {"tags": ["foo", "bar"], "with": "nothing"},
+                },
+                {
+                    "type": "missing",
+                    "loc": ["body", "lastname"],
+                    "msg": "Field required",
+                    "input": {"tags": ["foo", "bar"], "with": "nothing"},
+                },
+            ]
+        }
+    )
 
 
-def test_extra_param_single():
+@test
+def extra_param_single():
     response = client.post(
         "/form-extra-allow/",
         data={
@@ -119,14 +133,17 @@ def test_extra_param_single():
             "extra_param": "456",
         },
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "param": "123",
-        "extra_param": "456",
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "param": "123",
+            "extra_param": "456",
+        }
+    )
 
 
-def test_extra_param_list():
+@test
+def extra_param_list():
     response = client.post(
         "/form-extra-allow/",
         data={
@@ -134,8 +151,10 @@ def test_extra_param_list():
             "extra_params": ["456", "789"],
         },
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "param": "123",
-        "extra_params": ["456", "789"],
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "param": "123",
+            "extra_params": ["456", "789"],
+        }
+    )

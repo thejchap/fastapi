@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -21,11 +22,12 @@ def foo(v: MyModel):  # pragma: no cover
 client = TestClient(app)
 
 
-def test_openapi():
+@test
+def openapi():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
     openapi_schema = response.json()
 
-    assert openapi_schema["components"]["schemas"]["MyModel"]["description"] == (
+    expect(openapi_schema["components"]["schemas"]["MyModel"]["description"]).to_equal(
         "A model with a form feed character in the title.\n"
     )

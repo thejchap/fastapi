@@ -3,9 +3,11 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, ConfigDict
+from tryke import expect, test
 
 
-def test_read_with_orm_mode() -> None:
+@test
+def read_with_orm_mode() -> None:
     class PersonBase(BaseModel):
         name: str
         lastname: str
@@ -37,7 +39,9 @@ def test_read_with_orm_mode() -> None:
     person_data = {"name": "Dive", "lastname": "Wilson"}
     response = client.post("/people/", json=person_data)
     data = response.json()
-    assert response.status_code == 200, response.text
-    assert data["name"] == person_data["name"]
-    assert data["lastname"] == person_data["lastname"]
-    assert data["full_name"] == person_data["name"] + " " + person_data["lastname"]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(data["name"]).to_equal(person_data["name"])
+    expect(data["lastname"]).to_equal(person_data["lastname"])
+    expect(data["full_name"]).to_equal(
+        person_data["name"] + " " + person_data["lastname"]
+    )

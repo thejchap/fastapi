@@ -1,44 +1,29 @@
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.configure_swagger_ui.tutorial002_py310 import app
 
 client = TestClient(app)
 
 
-def test_swagger_ui():
+@test
+def swagger_ui():
     response = client.get("/docs")
-    assert response.status_code == 200, response.text
-    assert '"syntaxHighlight": false' not in response.text, (
-        "not used parameters should not be included"
-    )
-    assert '"syntaxHighlight": {"theme": "obsidian"}' in response.text, (
-        "parameters with middle dots should be included in a JSON compatible way"
-    )
-    assert '"dom_id": "#swagger-ui"' in response.text, (
-        "default configs should be preserved"
-    )
-    assert "presets: [" in response.text, "default configs should be preserved"
-    assert "SwaggerUIBundle.presets.apis," in response.text, (
-        "default configs should be preserved"
-    )
-    assert "SwaggerUIBundle.SwaggerUIStandalonePreset" in response.text, (
-        "default configs should be preserved"
-    )
-    assert '"layout": "BaseLayout",' in response.text, (
-        "default configs should be preserved"
-    )
-    assert '"deepLinking": true,' in response.text, (
-        "default configs should be preserved"
-    )
-    assert '"showExtensions": true,' in response.text, (
-        "default configs should be preserved"
-    )
-    assert '"showCommonExtensions": true,' in response.text, (
-        "default configs should be preserved"
-    )
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).not_.to_contain('"syntaxHighlight": false')
+    expect(response.text).to_contain('"syntaxHighlight": {"theme": "obsidian"}')
+    expect(response.text).to_contain('"dom_id": "#swagger-ui"')
+    expect(response.text).to_contain("presets: [")
+    expect(response.text).to_contain("SwaggerUIBundle.presets.apis,")
+    expect(response.text).to_contain("SwaggerUIBundle.SwaggerUIStandalonePreset")
+    expect(response.text).to_contain('"layout": "BaseLayout",')
+    expect(response.text).to_contain('"deepLinking": true,')
+    expect(response.text).to_contain('"showExtensions": true,')
+    expect(response.text).to_contain('"showCommonExtensions": true,')
 
 
-def test_get_users():
+@test
+def get_users():
     response = client.get("/users/foo")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Hello foo"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Hello foo"})

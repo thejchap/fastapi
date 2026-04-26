@@ -1,17 +1,18 @@
 from typing import Annotated
 
-import pytest
 from fastapi import Depends, FastAPI, Security
 from fastapi.testclient import TestClient
+from tryke import Depends as TrykeDepends
+from tryke import expect, fixture, test
 
 
-@pytest.fixture(name="call_counter")
-def call_counter_fixture():
+@fixture
+def call_counter() -> dict[str, int]:
     return {"count": 0}
 
 
-@pytest.fixture(name="app")
-def app_fixture(call_counter: dict[str, int]):
+@fixture
+def app(call_counter: dict[str, int] = TrykeDepends(call_counter)) -> FastAPI:
     def get_db():
         call_counter["count"] += 1
         return f"db_{call_counter['count']}"
@@ -31,15 +32,17 @@ def app_fixture(call_counter: dict[str, int]):
     return app
 
 
-@pytest.fixture(name="client")
-def client_fixture(app: FastAPI):
+@fixture
+def client(app: FastAPI = TrykeDepends(app)) -> TestClient:
     return TestClient(app)
 
 
-def test_security_scopes_dependency_called_once(
-    client: TestClient, call_counter: dict[str, int]
+@test
+def security_scopes_dependency_called_once(
+    client: TestClient = TrykeDepends(client),
+    call_counter: dict[str, int] = TrykeDepends(call_counter),
 ):
     response = client.get("/")
 
-    assert response.status_code == 200
-    assert call_counter["count"] == 1
+    expect(response.status_code).to_equal(200)
+    expect(call_counter["count"]).to_equal(1)

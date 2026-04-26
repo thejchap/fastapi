@@ -1,8 +1,8 @@
-import pytest
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 from starlette.responses import JSONResponse
+from tryke import expect, test
 
 
 def http_exception_handler(request, exception):
@@ -55,34 +55,48 @@ def route_with_server_error():
     raise RuntimeError("Oops!")
 
 
-def test_override_http_exception():
+@test
+def override_http_exception():
     response = client.get("/http-exception")
-    assert response.status_code == 200
-    assert response.json() == {"exception": "http-exception"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"exception": "http-exception"})
 
 
-def test_override_request_validation_exception():
+@test
+def override_request_validation_exception():
     response = client.get("/request-validation/invalid")
-    assert response.status_code == 200
-    assert response.json() == {"exception": "request-validation"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"exception": "request-validation"})
 
 
-def test_override_server_error_exception_raises():
-    with pytest.raises(RuntimeError):
-        client.get("/server-error")
+@test
+def override_server_error_exception_raises():
+    expect(lambda: client.get("/server-error")).to_raise(RuntimeError)
 
 
-def test_override_server_error_exception_response():
-    client = TestClient(app, raise_server_exceptions=False)
-    response = client.get("/server-error")
-    assert response.status_code == 500
-    assert response.json() == {"exception": "server-error"}
+@test
+def override_server_error_exception_response():
+    local_client = TestClient(app, raise_server_exceptions=False)
+    response = local_client.get("/server-error")
+    expect(response.status_code).to_equal(500).fatal()
+    expect(response.json()).to_equal({"exception": "server-error"})
 
 
-def test_traceback_for_dependency_with_yield():
-    client = TestClient(app, raise_server_exceptions=True)
-    with pytest.raises(ValueError) as exc_info:
-        client.get("/dependency-with-yield")
-    last_frame = exc_info.traceback[-1]
-    assert str(last_frame.path) == __file__
-    assert last_frame.lineno == raise_value_error.__code__.co_firstlineno
+@test
+def traceback_for_dependency_with_yield():
+    local_client = TestClient(app, raise_server_exceptions=True)
+    captured: ValueError | None = None
+    tb = None
+    try:
+        local_client.get("/dependency-with-yield")
+    except ValueError as exc:
+        captured = exc
+        tb = exc.__traceback__
+    expect(captured).not_.to_be_none().fatal()
+    # Walk to the deepest frame.
+    last = tb
+    while last is not None and last.tb_next is not None:
+        last = last.tb_next
+    expect(last).not_.to_be_none().fatal()
+    expect(last.tb_frame.f_code.co_filename).to_equal(__file__)
+    expect(last.tb_lineno).to_equal(raise_value_error.__code__.co_firstlineno + 1)

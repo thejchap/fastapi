@@ -5,6 +5,7 @@ from fastapi import Depends, FastAPI
 from fastapi.security import HTTPBearer
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -19,42 +20,49 @@ async def get_root():
 client = TestClient(app)
 
 
-def test_get_root():
+@test
+def get_root_ok():
     response = client.get("/", headers={"Authorization": "Bearer token"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Hello, World!"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Hello, World!"})
 
 
-def test_get_root_no_token():
+@test
+def get_root_no_token():
     response = client.get("/")
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Not authenticated"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "get": {
-                        "summary": "Get Root",
-                        "operationId": "get_root__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "security": [{"HTTPBearer": []}],
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "get": {
+                            "summary": "Get Root",
+                            "operationId": "get_root__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "security": [{"HTTPBearer": []}],
+                        }
                     }
-                }
-            },
-            "components": {
-                "securitySchemes": {"HTTPBearer": {"type": "http", "scheme": "bearer"}}
-            },
-        }
+                },
+                "components": {
+                    "securitySchemes": {
+                        "HTTPBearer": {"type": "http", "scheme": "bearer"}
+                    }
+                },
+            }
+        )
     )

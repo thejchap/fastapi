@@ -2,9 +2,11 @@ import http
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
-def test_no_content():
+@test
+def no_content():
     app = FastAPI()
 
     @app.get("/no-content", status_code=http.HTTPStatus.NO_CONTENT)
@@ -13,5 +15,5 @@ def test_no_content():
 
     client = TestClient(app)
     response = client.get("/no-content")
-    assert response.status_code == http.HTTPStatus.NO_CONTENT, response.text
-    assert not response.content
+    expect(response.status_code).to_equal(http.HTTPStatus.NO_CONTENT).fatal()
+    expect(response.content).to_be_falsy()

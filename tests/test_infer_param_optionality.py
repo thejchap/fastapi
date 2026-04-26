@@ -1,6 +1,7 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -44,294 +45,310 @@ app.include_router(item_router, prefix="/users/{user_id}/items")
 client = TestClient(app)
 
 
-def test_get_users():
+@test
+def get_users():
     """Check that /users returns expected data"""
     response = client.get("/users")
-    assert response.status_code == 200, response.text
-    assert response.json() == [{"user_id": "u1"}, {"user_id": "u2"}]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal([{"user_id": "u1"}, {"user_id": "u2"}])
 
 
-def test_get_user():
+@test
+def get_user():
     """Check that /users/{user_id} returns expected data"""
     response = client.get("/users/abc123")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"user_id": "abc123"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"user_id": "abc123"})
 
 
-def test_get_items_1():
+@test
+def get_items_1():
     """Check that /items returns expected data"""
     response = client.get("/items")
-    assert response.status_code == 200, response.text
-    assert response.json() == [
-        {"item_id": "i1", "user_id": "u1"},
-        {"item_id": "i2", "user_id": "u2"},
-    ]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        [
+            {"item_id": "i1", "user_id": "u1"},
+            {"item_id": "i2", "user_id": "u2"},
+        ]
+    )
 
 
-def test_get_items_2():
+@test
+def get_items_2():
     """Check that /items returns expected data with user_id specified"""
     response = client.get("/items?user_id=abc123")
-    assert response.status_code == 200, response.text
-    assert response.json() == [{"item_id": "i2", "user_id": "abc123"}]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal([{"item_id": "i2", "user_id": "abc123"}])
 
 
-def test_get_item_1():
+@test
+def get_item_1():
     """Check that /items/{item_id} returns expected data"""
     response = client.get("/items/item01")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"item_id": "item01"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"item_id": "item01"})
 
 
-def test_get_item_2():
+@test
+def get_item_2():
     """Check that /items/{item_id} returns expected data with user_id specified"""
     response = client.get("/items/item01?user_id=abc123")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"item_id": "item01", "user_id": "abc123"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"item_id": "item01", "user_id": "abc123"})
 
 
-def test_get_users_items():
+@test
+def get_users_items():
     """Check that /users/{user_id}/items returns expected data"""
     response = client.get("/users/abc123/items")
-    assert response.status_code == 200, response.text
-    assert response.json() == [{"item_id": "i2", "user_id": "abc123"}]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal([{"item_id": "i2", "user_id": "abc123"}])
 
 
-def test_get_users_item():
+@test
+def get_users_item():
     """Check that /users/{user_id}/items returns expected data"""
     response = client.get("/users/abc123/items/item01")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"item_id": "item01", "user_id": "abc123"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"item_id": "item01", "user_id": "abc123"})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/users/": {
-                    "get": {
-                        "summary": "Get Users",
-                        "operationId": "get_users_users__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                    }
-                },
-                "/users/{user_id}": {
-                    "get": {
-                        "summary": "Get User",
-                        "operationId": "get_user_users__user_id__get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "User Id", "type": "string"},
-                                "name": "user_id",
-                                "in": "path",
-                            }
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/users/": {
+                        "get": {
+                            "summary": "Get Users",
+                            "operationId": "get_users_users__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
                             },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-                "/items/": {
-                    "get": {
-                        "summary": "Get Items",
-                        "operationId": "get_items_items__get",
-                        "parameters": [
-                            {
-                                "required": False,
-                                "name": "user_id",
-                                "in": "query",
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "User Id",
-                                },
-                            }
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-                "/items/{item_id}": {
-                    "get": {
-                        "summary": "Get Item",
-                        "operationId": "get_item_items__item_id__get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "Item Id", "type": "string"},
-                                "name": "item_id",
-                                "in": "path",
-                            },
-                            {
-                                "required": False,
-                                "name": "user_id",
-                                "in": "query",
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "User Id",
-                                },
-                            },
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-                "/users/{user_id}/items/": {
-                    "get": {
-                        "summary": "Get Items",
-                        "operationId": "get_items_users__user_id__items__get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "name": "user_id",
-                                "in": "path",
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "User Id",
-                                },
-                            }
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-                "/users/{user_id}/items/{item_id}": {
-                    "get": {
-                        "summary": "Get Item",
-                        "operationId": "get_item_users__user_id__items__item_id__get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "Item Id", "type": "string"},
-                                "name": "item_id",
-                                "in": "path",
-                            },
-                            {
-                                "required": True,
-                                "name": "user_id",
-                                "in": "path",
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "User Id",
-                                },
-                            },
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
+                        }
                     },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
+                    "/users/{user_id}": {
+                        "get": {
+                            "summary": "Get User",
+                            "operationId": "get_user_users__user_id__get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "User Id", "type": "string"},
+                                    "name": "user_id",
+                                    "in": "path",
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
                                 },
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
-                        },
+                        }
                     },
-                }
-            },
-        }
+                    "/items/": {
+                        "get": {
+                            "summary": "Get Items",
+                            "operationId": "get_items_items__get",
+                            "parameters": [
+                                {
+                                    "required": False,
+                                    "name": "user_id",
+                                    "in": "query",
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "User Id",
+                                    },
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/items/{item_id}": {
+                        "get": {
+                            "summary": "Get Item",
+                            "operationId": "get_item_items__item_id__get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "Item Id", "type": "string"},
+                                    "name": "item_id",
+                                    "in": "path",
+                                },
+                                {
+                                    "required": False,
+                                    "name": "user_id",
+                                    "in": "query",
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "User Id",
+                                    },
+                                },
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/users/{user_id}/items/": {
+                        "get": {
+                            "summary": "Get Items",
+                            "operationId": "get_items_users__user_id__items__get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "name": "user_id",
+                                    "in": "path",
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "User Id",
+                                    },
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/users/{user_id}/items/{item_id}": {
+                        "get": {
+                            "summary": "Get Item",
+                            "operationId": "get_item_users__user_id__items__item_id__get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "Item Id", "type": "string"},
+                                    "name": "item_id",
+                                    "in": "path",
+                                },
+                                {
+                                    "required": True,
+                                    "name": "user_id",
+                                    "in": "path",
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "User Id",
+                                    },
+                                },
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
+                            },
+                        },
+                    }
+                },
+            }
+        )
     )

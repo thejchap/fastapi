@@ -1,92 +1,126 @@
-import importlib
 from base64 import b64encode
 
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial007_py310"),
-        pytest.param("tutorial007_an_py310"),
-    ],
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("security", name)
+    client = TestClient(mod.app)
+    return client
+
+
+@test.cases(
+    test.case("tutorial007_py310", name="tutorial007_py310"),
+    test.case("tutorial007_an_py310", name="tutorial007_an_py310"),
 )
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.security.{request.param}")
-    return TestClient(mod.app)
-
-
-def test_security_http_basic(client: TestClient):
+def security_http_basic(name: str):
+    client = _client_for(name)
     response = client.get("/users/me", auth=("stanleyjobson", "swordfish"))
-    assert response.status_code == 200, response.text
-    assert response.json() == {"username": "stanleyjobson"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"username": "stanleyjobson"})
 
 
-def test_security_http_basic_no_credentials(client: TestClient):
+@test.cases(
+    test.case("tutorial007_py310", name="tutorial007_py310"),
+    test.case("tutorial007_an_py310", name="tutorial007_an_py310"),
+)
+def security_http_basic_no_credentials(name: str):
+    client = _client_for(name)
     response = client.get("/users/me")
-    assert response.json() == {"detail": "Not authenticated"}
-    assert response.status_code == 401, response.text
-    assert response.headers["WWW-Authenticate"] == "Basic"
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
 
 
-def test_security_http_basic_invalid_credentials(client: TestClient):
+@test.cases(
+    test.case("tutorial007_py310", name="tutorial007_py310"),
+    test.case("tutorial007_an_py310", name="tutorial007_an_py310"),
+)
+def security_http_basic_invalid_credentials(name: str):
+    client = _client_for(name)
     response = client.get(
         "/users/me", headers={"Authorization": "Basic notabase64token"}
     )
-    assert response.status_code == 401, response.text
-    assert response.headers["WWW-Authenticate"] == "Basic"
-    assert response.json() == {"detail": "Not authenticated"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
 
 
-def test_security_http_basic_non_basic_credentials(client: TestClient):
+@test.cases(
+    test.case("tutorial007_py310", name="tutorial007_py310"),
+    test.case("tutorial007_an_py310", name="tutorial007_an_py310"),
+)
+def security_http_basic_non_basic_credentials(name: str):
+    client = _client_for(name)
     payload = b64encode(b"johnsecret").decode("ascii")
     auth_header = f"Basic {payload}"
     response = client.get("/users/me", headers={"Authorization": auth_header})
-    assert response.status_code == 401, response.text
-    assert response.headers["WWW-Authenticate"] == "Basic"
-    assert response.json() == {"detail": "Not authenticated"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
 
 
-def test_security_http_basic_invalid_username(client: TestClient):
+@test.cases(
+    test.case("tutorial007_py310", name="tutorial007_py310"),
+    test.case("tutorial007_an_py310", name="tutorial007_an_py310"),
+)
+def security_http_basic_invalid_username(name: str):
+    client = _client_for(name)
     response = client.get("/users/me", auth=("alice", "swordfish"))
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Incorrect username or password"}
-    assert response.headers["WWW-Authenticate"] == "Basic"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
 
 
-def test_security_http_basic_invalid_password(client: TestClient):
+@test.cases(
+    test.case("tutorial007_py310", name="tutorial007_py310"),
+    test.case("tutorial007_an_py310", name="tutorial007_an_py310"),
+)
+def security_http_basic_invalid_password(name: str):
+    client = _client_for(name)
     response = client.get("/users/me", auth=("stanleyjobson", "wrongpassword"))
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Incorrect username or password"}
-    assert response.headers["WWW-Authenticate"] == "Basic"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial007_py310", name="tutorial007_py310"),
+    test.case("tutorial007_an_py310", name="tutorial007_an_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/users/me": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Read Current User",
-                        "operationId": "read_current_user_users_me_get",
-                        "security": [{"HTTPBasic": []}],
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/users/me": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Read Current User",
+                            "operationId": "read_current_user_users_me_get",
+                            "security": [{"HTTPBasic": []}],
+                        }
                     }
-                }
-            },
-            "components": {
-                "securitySchemes": {"HTTPBasic": {"type": "http", "scheme": "basic"}}
-            },
-        }
+                },
+                "components": {
+                    "securitySchemes": {
+                        "HTTPBasic": {"type": "http", "scheme": "basic"}
+                    }
+                },
+            }
+        )
     )

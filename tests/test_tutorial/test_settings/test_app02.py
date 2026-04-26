@@ -1,40 +1,40 @@
 import importlib
 from types import ModuleType
 
-import pytest
-from pytest import MonkeyPatch
+from tryke import expect, test
+
+from ..._shims import monkeypatch_ctx
 
 
-@pytest.fixture(
-    name="mod_path",
-    params=[
-        pytest.param("app02_py310"),
-        pytest.param("app02_an_py310"),
-    ],
+def _mod_path(name: str) -> str:
+    return f"docs_src.settings.{name}"
+
+
+def _main_mod(name: str) -> ModuleType:
+    return importlib.import_module(f"{_mod_path(name)}.main")
+
+
+def _test_main_mod(name: str) -> ModuleType:
+    return importlib.import_module(f"{_mod_path(name)}.test_main")
+
+
+@test.cases(
+    test.case("app02_py310", name="app02_py310"),
+    test.case("app02_an_py310", name="app02_an_py310"),
 )
-def get_mod_path(request: pytest.FixtureRequest):
-    mod_path = f"docs_src.settings.{request.param}"
-    return mod_path
+def settings(name: str):
+    main_mod = _main_mod(name)
+    with monkeypatch_ctx() as monkeypatch:
+        monkeypatch.setenv("ADMIN_EMAIL", "admin@example.com")
+        settings = main_mod.get_settings()
+        expect(settings.app_name).to_equal("Awesome API")
+        expect(settings.items_per_user).to_equal(50)
 
 
-@pytest.fixture(name="main_mod")
-def get_main_mod(mod_path: str) -> ModuleType:
-    main_mod = importlib.import_module(f"{mod_path}.main")
-    return main_mod
-
-
-@pytest.fixture(name="test_main_mod")
-def get_test_main_mod(mod_path: str) -> ModuleType:
-    test_main_mod = importlib.import_module(f"{mod_path}.test_main")
-    return test_main_mod
-
-
-def test_settings(main_mod: ModuleType, monkeypatch: MonkeyPatch):
-    monkeypatch.setenv("ADMIN_EMAIL", "admin@example.com")
-    settings = main_mod.get_settings()
-    assert settings.app_name == "Awesome API"
-    assert settings.items_per_user == 50
-
-
-def test_override_settings(test_main_mod: ModuleType):
+@test.cases(
+    test.case("app02_py310", name="app02_py310"),
+    test.case("app02_an_py310", name="app02_an_py310"),
+)
+def override_settings(name: str):
+    test_main_mod = _test_main_mod(name)
     test_main_mod.test_app()

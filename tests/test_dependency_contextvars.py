@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 legacy_request_state_context_var: ContextVar[dict[str, Any] | None] = ContextVar(
     "legacy_request_state_context_var", default=None
@@ -38,7 +39,8 @@ def get_user():
 client = TestClient(app)
 
 
-def test_dependency_contextvars():
+@test
+def dependency_contextvars():
     """
     Check that custom middlewares don't affect the contextvar context for dependencies.
 
@@ -48,5 +50,5 @@ def test_dependency_contextvars():
     If they are run in a different context, that raises an error.
     """
     response = client.get("/user")
-    assert response.json() == "deadpond"
-    assert response.headers["custom"] == "foo"
+    expect(response.json()).to_equal("deadpond")
+    expect(response.headers["custom"]).to_equal("foo")

@@ -1,166 +1,174 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends, expect, fixture, test
 
-from ...utils import needs_py310
-
-
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial006_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.response_model.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
+from docs_src.response_model.tutorial006_py310 import app
 
 
-def test_read_item_name(client: TestClient):
+@fixture
+def client() -> TestClient:
+    return TestClient(app)
+
+
+@test
+def read_item_name(client: TestClient = Depends(client)):
     response = client.get("/items/bar/name")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"name": "Bar", "description": "The Bar fighters"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"name": "Bar", "description": "The Bar fighters"})
 
 
-def test_read_item_public_data(client: TestClient):
+@test
+def read_item_public_data(client: TestClient = Depends(client)):
     response = client.get("/items/bar/public")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "name": "Bar",
-        "description": "The Bar fighters",
-        "price": 62,
-    }
-
-
-def test_openapi_schema(client: TestClient):
-    response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
         {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/{item_id}/name": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {"$ref": "#/components/schemas/Item"}
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                        "summary": "Read Item Name",
-                        "operationId": "read_item_name_items__item_id__name_get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "Item Id", "type": "string"},
-                                "name": "item_id",
-                                "in": "path",
-                            }
-                        ],
-                    }
-                },
-                "/items/{item_id}/public": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {"$ref": "#/components/schemas/Item"}
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                        "summary": "Read Item Public Data",
-                        "operationId": "read_item_public_data_items__item_id__public_get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "Item Id", "type": "string"},
-                                "name": "item_id",
-                                "in": "path",
-                            }
-                        ],
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                            "description": {
-                                "title": "Description",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                            },
-                            "tax": {"title": "Tax", "type": "number", "default": 10.5},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                }
-            },
+            "name": "Bar",
+            "description": "The Bar fighters",
+            "price": 62,
         }
+    )
+
+
+@test
+def openapi_schema(client: TestClient = Depends(client)):
+    response = client.get("/openapi.json")
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/{item_id}/name": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Item"
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                            "summary": "Read Item Name",
+                            "operationId": "read_item_name_items__item_id__name_get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "Item Id", "type": "string"},
+                                    "name": "item_id",
+                                    "in": "path",
+                                }
+                            ],
+                        }
+                    },
+                    "/items/{item_id}/public": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Item"
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                            "summary": "Read Item Public Data",
+                            "operationId": "read_item_public_data_items__item_id__public_get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "Item Id", "type": "string"},
+                                    "name": "item_id",
+                                    "in": "path",
+                                }
+                            ],
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                                "description": {
+                                    "title": "Description",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                                },
+                                "tax": {
+                                    "title": "Tax",
+                                    "type": "number",
+                                    "default": 10.5,
+                                },
+                            },
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
+                        },
+                    }
+                },
+            }
+        )
     )

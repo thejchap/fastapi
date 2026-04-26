@@ -1,32 +1,25 @@
-import importlib
-from types import ModuleType
 from unittest.mock import patch
 
-import pytest
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="module",
-    params=[
-        pytest.param("tutorial009_py310"),
-        pytest.param("tutorial009_py310", marks=needs_py310),
-    ],
+@test.cases(
+    test.case("tutorial009_py310", name="tutorial009_py310"),
+    test.case("tutorial009_py310 (alt)", name="tutorial009_py310"),
 )
-def get_module(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.python_types.{request.param}")
-    return mod
-
-
-def test_say_hi(module: ModuleType):
+def say_hi(name: str):
+    module = import_tutorial("python_types", name)
     with patch("builtins.print") as mock_print:
         module.say_hi("FastAPI")
         module.say_hi()
 
-    assert mock_print.call_count == 2
+    expect(mock_print.call_count).to_equal(2)
     call_args = [arg.args for arg in mock_print.call_args_list]
-    assert call_args == [
-        ("Hey FastAPI!",),
-        ("Hello World",),
-    ]
+    expect(call_args).to_equal(
+        [
+            ("Hey FastAPI!",),
+            ("Hello World",),
+        ]
+    )

@@ -1,7 +1,7 @@
-import pytest
 from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import FastAPIError
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -19,18 +19,19 @@ app.include_router(router, prefix="/prefix")
 client = TestClient(app)
 
 
-def test_use_empty():
+@test
+def use_empty():
     with client:
         response = client.get("/prefix")
-        assert response.status_code == 200, response.text
-        assert response.json() == ["OK"]
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal(["OK"])
 
         response = client.get("/prefix/")
-        assert response.status_code == 200, response.text
-        assert response.json() == ["OK"]
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal(["OK"])
 
 
-def test_include_empty():
-    # if both include and router.path are empty - it should raise exception
-    with pytest.raises(FastAPIError):
-        app.include_router(router)
+@test
+def include_empty():
+    # If both include and router.path are empty - it should raise exception
+    expect(lambda: app.include_router(router)).to_raise(FastAPIError)

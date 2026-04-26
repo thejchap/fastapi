@@ -7,6 +7,7 @@ from dirty_equals import IsUUID
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 
 @dataclass
@@ -36,16 +37,19 @@ async def read_item():
 client = TestClient(app)
 
 
-def test_annotations():
+@test
+def annotations():
     response = client.get("/item")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "id": IsUUID(),
-            "name": "Island In The Moon",
-            "price": 12.99,
-            "tags": ["breater"],
-            "description": "A place to be playin' and havin' fun",
-            "tax": None,
-        }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "id": IsUUID(),
+                "name": "Island In The Moon",
+                "price": 12.99,
+                "tags": ["breater"],
+                "description": "A place to be playin' and havin' fun",
+                "tax": None,
+            }
+        )
     )

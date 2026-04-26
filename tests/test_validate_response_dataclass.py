@@ -1,8 +1,8 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.exceptions import ResponseValidationError
 from fastapi.testclient import TestClient
 from pydantic.dataclasses import dataclass
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -36,16 +36,16 @@ def get_invalidlist():
 client = TestClient(app)
 
 
-def test_invalid():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/invalid")
+@test
+def invalid():
+    expect(lambda: client.get("/items/invalid")).to_raise(ResponseValidationError)
 
 
-def test_double_invalid():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/innerinvalid")
+@test
+def double_invalid():
+    expect(lambda: client.get("/items/innerinvalid")).to_raise(ResponseValidationError)
 
 
-def test_invalid_list():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/invalidlist")
+@test
+def invalid_list():
+    expect(lambda: client.get("/items/invalidlist")).to_raise(ResponseValidationError)

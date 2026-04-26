@@ -1,8 +1,8 @@
 from typing import Annotated, Any
 
-import pytest
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 class CustomError(Exception):
@@ -37,18 +37,22 @@ def broken(d: Annotated[str, Depends(broken_dep)]) -> Any:
 client = TestClient(app)
 
 
-def test_catching():
+@test
+def catching_test():
     response = client.get("/catching")
-    assert response.status_code == 418
-    assert response.json() == {"detail": "Session error"}
+    expect(response.status_code).to_equal(418)
+    expect(response.json()).to_equal({"detail": "Session error"})
 
 
-def test_broken_raise():
-    with pytest.raises(ValueError, match="Broken after yield"):
-        client.get("/broken")
+@test
+def broken_raise():
+    expect(lambda: client.get("/broken")).to_raise(
+        ValueError, match="Broken after yield"
+    )
 
 
-def test_broken_no_raise():
+@test
+def broken_no_raise():
     """
     When a dependency with yield raises after the yield (not in an except), the
     response is already "successfully" sent back to the client, but there's still
@@ -57,12 +61,13 @@ def test_broken_no_raise():
     """
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/broken")
-        assert response.status_code == 200
-        assert response.json() == {"message": "all good?"}
+        expect(response.status_code).to_equal(200)
+        expect(response.json()).to_equal({"message": "all good?"})
 
 
-def test_broken_return_finishes():
+@test
+def broken_return_finishes():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/broken")
-    assert response.status_code == 200
-    assert response.json() == {"message": "all good?"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"message": "all good?"})

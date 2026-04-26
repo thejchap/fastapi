@@ -1,6 +1,7 @@
 from fastapi import Cookie, FastAPI, Header, Query
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -26,7 +27,8 @@ async def cookies_model_with_extra(data: Model = Cookie()):
     return data
 
 
-def test_query_pass_extra_list():
+@test
+def query_pass_extra_list():
     client = TestClient(app)
     resp = client.get(
         "/query",
@@ -35,14 +37,17 @@ def test_query_pass_extra_list():
             "param2": ["456", "789"],  # Pass a list of values as extra parameter
         },
     )
-    assert resp.status_code == 200
-    assert resp.json() == {
-        "param": "123",
-        "param2": ["456", "789"],
-    }
+    expect(resp.status_code).to_equal(200)
+    expect(resp.json()).to_equal(
+        {
+            "param": "123",
+            "param2": ["456", "789"],
+        }
+    )
 
 
-def test_query_pass_extra_single():
+@test
+def query_pass_extra_single():
     client = TestClient(app)
     resp = client.get(
         "/query",
@@ -51,14 +56,17 @@ def test_query_pass_extra_single():
             "param2": "456",
         },
     )
-    assert resp.status_code == 200
-    assert resp.json() == {
-        "param": "123",
-        "param2": "456",
-    }
+    expect(resp.status_code).to_equal(200)
+    expect(resp.json()).to_equal(
+        {
+            "param": "123",
+            "param2": "456",
+        }
+    )
 
 
-def test_header_pass_extra_list():
+@test
+def header_pass_extra_list():
     client = TestClient(app)
 
     resp = client.get(
@@ -69,13 +77,14 @@ def test_header_pass_extra_list():
             ("param2", "789"),
         ],
     )
-    assert resp.status_code == 200
+    expect(resp.status_code).to_equal(200)
     resp_json = resp.json()
-    assert "param2" in resp_json
-    assert resp_json["param2"] == ["456", "789"]
+    expect(resp_json).to_contain("param2")
+    expect(resp_json["param2"]).to_equal(["456", "789"])
 
 
-def test_header_pass_extra_single():
+@test
+def header_pass_extra_single():
     client = TestClient(app)
 
     resp = client.get(
@@ -85,13 +94,14 @@ def test_header_pass_extra_single():
             ("param2", "456"),
         ],
     )
-    assert resp.status_code == 200
+    expect(resp.status_code).to_equal(200)
     resp_json = resp.json()
-    assert "param2" in resp_json
-    assert resp_json["param2"] == "456"
+    expect(resp_json).to_contain("param2")
+    expect(resp_json["param2"]).to_equal("456")
 
 
-def test_cookie_pass_extra_list():
+@test
+def cookie_pass_extra_list():
     client = TestClient(app)
     client.cookies = [
         ("param", "123"),
@@ -99,7 +109,7 @@ def test_cookie_pass_extra_list():
         ("param2", "789"),
     ]
     resp = client.get("/cookie")
-    assert resp.status_code == 200
+    expect(resp.status_code).to_equal(200)
     resp_json = resp.json()
-    assert "param2" in resp_json
-    assert resp_json["param2"] == "789"  # Cookies only keep the last value
+    expect(resp_json).to_contain("param2")
+    expect(resp_json["param2"]).to_equal("789")

@@ -1,7 +1,7 @@
-import pytest
 from fastapi import Cookie, FastAPI, Header, Path, Query
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -32,88 +32,53 @@ async def hidden_query(
     return {"hidden_query": hidden_query}
 
 
-@pytest.mark.parametrize(
-    "path,cookies,expected_status,expected_response",
-    [
-        (
-            "/hidden_cookie",
-            {},
-            200,
-            {"hidden_cookie": None},
-        ),
-        (
-            "/hidden_cookie",
-            {"hidden_cookie": "somevalue"},
-            200,
-            {"hidden_cookie": "somevalue"},
-        ),
-    ],
+@test.cases(
+    test.case("none", path="/hidden_cookie", cookies={}, expected_status=200, expected_response={"hidden_cookie": None}),
+    test.case("set", path="/hidden_cookie", cookies={"hidden_cookie": "somevalue"}, expected_status=200, expected_response={"hidden_cookie": "somevalue"}),
 )
-def test_hidden_cookie(path, cookies, expected_status, expected_response):
+def hidden_cookie(path: str, cookies: dict, expected_status: int, expected_response: dict):
     client = TestClient(app, cookies=cookies)
     response = client.get(path)
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(expected_status).fatal()
+    expect(response.json()).to_equal(expected_response)
 
 
-@pytest.mark.parametrize(
-    "path,headers,expected_status,expected_response",
-    [
-        (
-            "/hidden_header",
-            {},
-            200,
-            {"hidden_header": None},
-        ),
-        (
-            "/hidden_header",
-            {"Hidden-Header": "somevalue"},
-            200,
-            {"hidden_header": "somevalue"},
-        ),
-    ],
+@test.cases(
+    test.case("none", path="/hidden_header", headers={}, expected_status=200, expected_response={"hidden_header": None}),
+    test.case("set", path="/hidden_header", headers={"Hidden-Header": "somevalue"}, expected_status=200, expected_response={"hidden_header": "somevalue"}),
 )
-def test_hidden_header(path, headers, expected_status, expected_response):
+def hidden_header(path: str, headers: dict, expected_status: int, expected_response: dict):
     client = TestClient(app)
     response = client.get(path, headers=headers)
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(expected_status).fatal()
+    expect(response.json()).to_equal(expected_response)
 
 
-def test_hidden_path():
+@test
+def hidden_path():
     client = TestClient(app)
     response = client.get("/hidden_path/hidden_path")
-    assert response.status_code == 200
-    assert response.json() == {"hidden_path": "hidden_path"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"hidden_path": "hidden_path"})
 
 
-@pytest.mark.parametrize(
-    "path,expected_status,expected_response",
-    [
-        (
-            "/hidden_query",
-            200,
-            {"hidden_query": None},
-        ),
-        (
-            "/hidden_query?hidden_query=somevalue",
-            200,
-            {"hidden_query": "somevalue"},
-        ),
-    ],
+@test.cases(
+    test.case("none", path="/hidden_query", expected_status=200, expected_response={"hidden_query": None}),
+    test.case("set", path="/hidden_query?hidden_query=somevalue", expected_status=200, expected_response={"hidden_query": "somevalue"}),
 )
-def test_hidden_query(path, expected_status, expected_response):
+def hidden_query(path: str, expected_status: int, expected_response: dict):
     client = TestClient(app)
     response = client.get(path)
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(expected_status).fatal()
+    expect(response.json()).to_equal(expected_response)
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.status_code == 200
-    assert response.json() == snapshot(
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},
@@ -243,4 +208,4 @@ def test_openapi_schema():
                 }
             },
         }
-    )
+    ))

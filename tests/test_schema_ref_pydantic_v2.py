@@ -1,14 +1,14 @@
 from typing import Any
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from pydantic import BaseModel, ConfigDict, Field
+from tryke import Depends, expect, fixture, test
 
 
-@pytest.fixture(name="client")
-def get_client():
+@fixture
+def client() -> TestClient:
     app = FastAPI()
 
     class ModelWithRef(BaseModel):
@@ -19,50 +19,53 @@ def get_client():
     async def read_root() -> Any:
         return {"$ref": "some-ref"}
 
-    client = TestClient(app)
-    return client
+    return TestClient(app)
 
 
-def test_get(client: TestClient):
+@test
+def get(client: TestClient = Depends(client)):
     response = client.get("/")
-    assert response.json() == {"$ref": "some-ref"}
+    expect(response.json()).to_equal({"$ref": "some-ref"})
 
 
-def test_openapi_schema(client: TestClient):
+@test
+def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "get": {
-                        "summary": "Read Root",
-                        "operationId": "read_root__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/ModelWithRef"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "get": {
+                            "summary": "Read Root",
+                            "operationId": "read_root__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/ModelWithRef"
+                                            }
                                         }
-                                    }
-                                },
-                            }
-                        },
+                                    },
+                                }
+                            },
+                        }
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "ModelWithRef": {
-                        "properties": {"$ref": {"type": "string", "title": "$Ref"}},
-                        "type": "object",
-                        "required": ["$ref"],
-                        "title": "ModelWithRef",
+                },
+                "components": {
+                    "schemas": {
+                        "ModelWithRef": {
+                            "properties": {"$ref": {"type": "string", "title": "$Ref"}},
+                            "type": "object",
+                            "required": ["$ref"],
+                            "title": "ModelWithRef",
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

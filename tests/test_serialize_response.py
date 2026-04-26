@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -33,23 +34,30 @@ def get_validlist():
 client = TestClient(app)
 
 
-def test_valid():
+@test
+def valid():
     response = client.get("/items/valid")
     response.raise_for_status()
-    assert response.json() == {"name": "valid", "price": 1.0, "owner_ids": None}
+    expect(response.json()).to_equal({"name": "valid", "price": 1.0, "owner_ids": None})
 
 
-def test_coerce():
+@test
+def coerce():
     response = client.get("/items/coerce")
     response.raise_for_status()
-    assert response.json() == {"name": "coerce", "price": 1.0, "owner_ids": None}
+    expect(response.json()).to_equal(
+        {"name": "coerce", "price": 1.0, "owner_ids": None}
+    )
 
 
-def test_validlist():
+@test
+def validlist():
     response = client.get("/items/validlist")
     response.raise_for_status()
-    assert response.json() == [
-        {"name": "foo", "price": None, "owner_ids": None},
-        {"name": "bar", "price": 1.0, "owner_ids": None},
-        {"name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
-    ]
+    expect(response.json()).to_equal(
+        [
+            {"name": "foo", "price": None, "owner_ids": None},
+            {"name": "bar", "price": 1.0, "owner_ids": None},
+            {"name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
+        ]
+    )

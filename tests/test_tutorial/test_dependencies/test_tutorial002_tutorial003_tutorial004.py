@@ -1,180 +1,416 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial002_py310", marks=needs_py310),
-        pytest.param("tutorial002_an_py310", marks=needs_py310),
-        pytest.param("tutorial003_py310", marks=needs_py310),
-        pytest.param("tutorial003_an_py310", marks=needs_py310),
-        pytest.param("tutorial004_py310", marks=needs_py310),
-        pytest.param("tutorial004_an_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.dependencies.{request.param}")
-
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("dependencies", name)
     client = TestClient(mod.app)
     return client
 
 
-@pytest.mark.parametrize(
-    "path,expected_status,expected_response",
-    [
-        (
-            "/items",
-            200,
-            {
-                "items": [
-                    {"item_name": "Foo"},
-                    {"item_name": "Bar"},
-                    {"item_name": "Baz"},
-                ]
-            },
-        ),
-        (
-            "/items?q=foo",
-            200,
-            {
-                "items": [
-                    {"item_name": "Foo"},
-                    {"item_name": "Bar"},
-                    {"item_name": "Baz"},
-                ],
-                "q": "foo",
-            },
-        ),
-        (
-            "/items?q=foo&skip=1",
-            200,
-            {"items": [{"item_name": "Bar"}, {"item_name": "Baz"}], "q": "foo"},
-        ),
-        (
-            "/items?q=bar&limit=2",
-            200,
-            {"items": [{"item_name": "Foo"}, {"item_name": "Bar"}], "q": "bar"},
-        ),
-        (
-            "/items?q=bar&skip=1&limit=1",
-            200,
-            {"items": [{"item_name": "Bar"}], "q": "bar"},
-        ),
-        (
-            "/items?limit=1&q=bar&skip=1",
-            200,
-            {"items": [{"item_name": "Bar"}], "q": "bar"},
-        ),
-    ],
+_ITEMS_FULL = {
+    "items": [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
+}
+_GET_PATH_CASES: list[tuple[str, int, dict]] = [
+    ("/items", 200, _ITEMS_FULL),
+    ("/items?q=foo", 200, {**_ITEMS_FULL, "q": "foo"}),
+    (
+        "/items?q=foo&skip=1",
+        200,
+        {"items": [{"item_name": "Bar"}, {"item_name": "Baz"}], "q": "foo"},
+    ),
+    (
+        "/items?q=bar&limit=2",
+        200,
+        {"items": [{"item_name": "Foo"}, {"item_name": "Bar"}], "q": "bar"},
+    ),
+    ("/items?q=bar&skip=1&limit=1", 200, {"items": [{"item_name": "Bar"}], "q": "bar"}),
+    ("/items?limit=1&q=bar&skip=1", 200, {"items": [{"item_name": "Bar"}], "q": "bar"}),
+]
+_GET_NAMES = [
+    "tutorial002_py310",
+    "tutorial002_an_py310",
+    "tutorial003_py310",
+    "tutorial003_an_py310",
+    "tutorial004_py310",
+    "tutorial004_an_py310",
+]
+
+
+@test.cases(
+    test.case(
+        "tutorial002_py310 /items",
+        name="tutorial002_py310",
+        path="/items",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[0][2],
+    ),
+    test.case(
+        "tutorial002_py310 /items?q=foo",
+        name="tutorial002_py310",
+        path="/items?q=foo",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[1][2],
+    ),
+    test.case(
+        "tutorial002_py310 /items?q=foo&skip=1",
+        name="tutorial002_py310",
+        path="/items?q=foo&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[2][2],
+    ),
+    test.case(
+        "tutorial002_py310 /items?q=bar&limit=2",
+        name="tutorial002_py310",
+        path="/items?q=bar&limit=2",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[3][2],
+    ),
+    test.case(
+        "tutorial002_py310 /items?q=bar&skip=1&limit=1",
+        name="tutorial002_py310",
+        path="/items?q=bar&skip=1&limit=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[4][2],
+    ),
+    test.case(
+        "tutorial002_py310 /items?limit=1&q=bar&skip=1",
+        name="tutorial002_py310",
+        path="/items?limit=1&q=bar&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[5][2],
+    ),
+    test.case(
+        "tutorial002_an_py310 /items",
+        name="tutorial002_an_py310",
+        path="/items",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[0][2],
+    ),
+    test.case(
+        "tutorial002_an_py310 /items?q=foo",
+        name="tutorial002_an_py310",
+        path="/items?q=foo",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[1][2],
+    ),
+    test.case(
+        "tutorial002_an_py310 /items?q=foo&skip=1",
+        name="tutorial002_an_py310",
+        path="/items?q=foo&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[2][2],
+    ),
+    test.case(
+        "tutorial002_an_py310 /items?q=bar&limit=2",
+        name="tutorial002_an_py310",
+        path="/items?q=bar&limit=2",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[3][2],
+    ),
+    test.case(
+        "tutorial002_an_py310 /items?q=bar&skip=1&limit=1",
+        name="tutorial002_an_py310",
+        path="/items?q=bar&skip=1&limit=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[4][2],
+    ),
+    test.case(
+        "tutorial002_an_py310 /items?limit=1&q=bar&skip=1",
+        name="tutorial002_an_py310",
+        path="/items?limit=1&q=bar&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[5][2],
+    ),
+    test.case(
+        "tutorial003_py310 /items",
+        name="tutorial003_py310",
+        path="/items",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[0][2],
+    ),
+    test.case(
+        "tutorial003_py310 /items?q=foo",
+        name="tutorial003_py310",
+        path="/items?q=foo",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[1][2],
+    ),
+    test.case(
+        "tutorial003_py310 /items?q=foo&skip=1",
+        name="tutorial003_py310",
+        path="/items?q=foo&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[2][2],
+    ),
+    test.case(
+        "tutorial003_py310 /items?q=bar&limit=2",
+        name="tutorial003_py310",
+        path="/items?q=bar&limit=2",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[3][2],
+    ),
+    test.case(
+        "tutorial003_py310 /items?q=bar&skip=1&limit=1",
+        name="tutorial003_py310",
+        path="/items?q=bar&skip=1&limit=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[4][2],
+    ),
+    test.case(
+        "tutorial003_py310 /items?limit=1&q=bar&skip=1",
+        name="tutorial003_py310",
+        path="/items?limit=1&q=bar&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[5][2],
+    ),
+    test.case(
+        "tutorial003_an_py310 /items",
+        name="tutorial003_an_py310",
+        path="/items",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[0][2],
+    ),
+    test.case(
+        "tutorial003_an_py310 /items?q=foo",
+        name="tutorial003_an_py310",
+        path="/items?q=foo",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[1][2],
+    ),
+    test.case(
+        "tutorial003_an_py310 /items?q=foo&skip=1",
+        name="tutorial003_an_py310",
+        path="/items?q=foo&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[2][2],
+    ),
+    test.case(
+        "tutorial003_an_py310 /items?q=bar&limit=2",
+        name="tutorial003_an_py310",
+        path="/items?q=bar&limit=2",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[3][2],
+    ),
+    test.case(
+        "tutorial003_an_py310 /items?q=bar&skip=1&limit=1",
+        name="tutorial003_an_py310",
+        path="/items?q=bar&skip=1&limit=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[4][2],
+    ),
+    test.case(
+        "tutorial003_an_py310 /items?limit=1&q=bar&skip=1",
+        name="tutorial003_an_py310",
+        path="/items?limit=1&q=bar&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[5][2],
+    ),
+    test.case(
+        "tutorial004_py310 /items",
+        name="tutorial004_py310",
+        path="/items",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[0][2],
+    ),
+    test.case(
+        "tutorial004_py310 /items?q=foo",
+        name="tutorial004_py310",
+        path="/items?q=foo",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[1][2],
+    ),
+    test.case(
+        "tutorial004_py310 /items?q=foo&skip=1",
+        name="tutorial004_py310",
+        path="/items?q=foo&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[2][2],
+    ),
+    test.case(
+        "tutorial004_py310 /items?q=bar&limit=2",
+        name="tutorial004_py310",
+        path="/items?q=bar&limit=2",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[3][2],
+    ),
+    test.case(
+        "tutorial004_py310 /items?q=bar&skip=1&limit=1",
+        name="tutorial004_py310",
+        path="/items?q=bar&skip=1&limit=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[4][2],
+    ),
+    test.case(
+        "tutorial004_py310 /items?limit=1&q=bar&skip=1",
+        name="tutorial004_py310",
+        path="/items?limit=1&q=bar&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[5][2],
+    ),
+    test.case(
+        "tutorial004_an_py310 /items",
+        name="tutorial004_an_py310",
+        path="/items",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[0][2],
+    ),
+    test.case(
+        "tutorial004_an_py310 /items?q=foo",
+        name="tutorial004_an_py310",
+        path="/items?q=foo",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[1][2],
+    ),
+    test.case(
+        "tutorial004_an_py310 /items?q=foo&skip=1",
+        name="tutorial004_an_py310",
+        path="/items?q=foo&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[2][2],
+    ),
+    test.case(
+        "tutorial004_an_py310 /items?q=bar&limit=2",
+        name="tutorial004_an_py310",
+        path="/items?q=bar&limit=2",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[3][2],
+    ),
+    test.case(
+        "tutorial004_an_py310 /items?q=bar&skip=1&limit=1",
+        name="tutorial004_an_py310",
+        path="/items?q=bar&skip=1&limit=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[4][2],
+    ),
+    test.case(
+        "tutorial004_an_py310 /items?limit=1&q=bar&skip=1",
+        name="tutorial004_an_py310",
+        path="/items?limit=1&q=bar&skip=1",
+        expected_status=200,
+        expected_response=_GET_PATH_CASES[5][2],
+    ),
 )
-def test_get(path, expected_status, expected_response, client: TestClient):
+def get(name: str, path: str, expected_status: int, expected_response: dict):
+    client = _client_for(name)
     response = client.get(path)
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(expected_status)
+    expect(response.json()).to_equal(expected_response)
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+    test.case("tutorial003_py310", name="tutorial003_py310"),
+    test.case("tutorial003_an_py310", name="tutorial003_an_py310"),
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+    test.case("tutorial004_an_py310", name="tutorial004_an_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
                                         }
-                                    }
+                                    },
                                 },
                             },
-                        },
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__get",
-                        "parameters": [
-                            {
-                                "required": False,
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "Q",
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__get",
+                            "parameters": [
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "Q",
+                                    },
+                                    "name": "q",
+                                    "in": "query",
                                 },
-                                "name": "q",
-                                "in": "query",
-                            },
-                            {
-                                "required": False,
-                                "schema": {
-                                    "title": "Skip",
-                                    "type": "integer",
-                                    "default": 0,
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "title": "Skip",
+                                        "type": "integer",
+                                        "default": 0,
+                                    },
+                                    "name": "skip",
+                                    "in": "query",
                                 },
-                                "name": "skip",
-                                "in": "query",
-                            },
-                            {
-                                "required": False,
-                                "schema": {
-                                    "title": "Limit",
-                                    "type": "integer",
-                                    "default": 100,
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "title": "Limit",
+                                        "type": "integer",
+                                        "default": 100,
+                                    },
+                                    "name": "limit",
+                                    "in": "query",
                                 },
-                                "name": "limit",
-                                "in": "query",
-                            },
-                        ],
+                            ],
+                        }
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
+                },
+                "components": {
+                    "schemas": {
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
                         },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
                         },
-                    },
-                }
-            },
-        }
+                    }
+                },
+            }
+        )
     )

@@ -5,6 +5,7 @@ from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from pydantic import BaseModel
+from tryke import expect, test
 
 
 def custom_generate_unique_id(route: APIRoute):
@@ -29,7 +30,8 @@ class Message(BaseModel):
     description: str
 
 
-def test_top_level_generate_unique_id():
+@test
+def top_level_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter()
 
@@ -46,200 +48,209 @@ def test_top_level_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "post": {
-                        "summary": "Post Root",
-                        "operationId": "foo_post_root",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_foo_post_root"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "post": {
+                            "summary": "Post Root",
+                            "operationId": "foo_post_root",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_foo_post_root"
+                                        }
                                     }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/router": {
+                        "post": {
+                            "summary": "Post Router",
+                            "operationId": "foo_post_router",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_foo_post_router"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Foo Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Foo Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_foo_post_root": {
+                            "title": "Body_foo_post_root",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "Body_foo_post_router": {
+                            "title": "Body_foo_post_router",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                            },
+                        },
+                        "Message": {
+                            "title": "Message",
+                            "required": ["title", "description"],
+                            "type": "object",
+                            "properties": {
+                                "title": {"title": "Title", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "type": "string",
                                 },
                             },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
                             },
                         },
                     }
                 },
-                "/router": {
-                    "post": {
-                        "summary": "Post Router",
-                        "operationId": "foo_post_router",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_foo_post_router"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Foo Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Foo Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_foo_post_root": {
-                        "title": "Body_foo_post_root",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_foo_post_router": {
-                        "title": "Body_foo_post_router",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                        },
-                    },
-                    "Message": {
-                        "title": "Message",
-                        "required": ["title", "description"],
-                        "type": "object",
-                        "properties": {
-                            "title": {"title": "Title", "type": "string"},
-                            "description": {"title": "Description", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )
 
 
-def test_router_overrides_generate_unique_id():
+@test
+def router_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
 
@@ -256,200 +267,209 @@ def test_router_overrides_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "post": {
-                        "summary": "Post Root",
-                        "operationId": "foo_post_root",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_foo_post_root"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "post": {
+                            "summary": "Post Root",
+                            "operationId": "foo_post_root",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_foo_post_root"
+                                        }
                                     }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/router": {
+                        "post": {
+                            "summary": "Post Router",
+                            "operationId": "bar_post_router",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_bar_post_router"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Bar Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Bar Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_bar_post_router": {
+                            "title": "Body_bar_post_router",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "Body_foo_post_root": {
+                            "title": "Body_foo_post_root",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                            },
+                        },
+                        "Message": {
+                            "title": "Message",
+                            "required": ["title", "description"],
+                            "type": "object",
+                            "properties": {
+                                "title": {"title": "Title", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "type": "string",
                                 },
                             },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
                             },
                         },
                     }
                 },
-                "/router": {
-                    "post": {
-                        "summary": "Post Router",
-                        "operationId": "bar_post_router",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_bar_post_router"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Bar Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Bar Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_bar_post_router": {
-                        "title": "Body_bar_post_router",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_foo_post_root": {
-                        "title": "Body_foo_post_root",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                        },
-                    },
-                    "Message": {
-                        "title": "Message",
-                        "required": ["title", "description"],
-                        "type": "object",
-                        "properties": {
-                            "title": {"title": "Title", "type": "string"},
-                            "description": {"title": "Description", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )
 
 
-def test_router_include_overrides_generate_unique_id():
+@test
+def router_include_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
 
@@ -466,200 +486,209 @@ def test_router_include_overrides_generate_unique_id():
     app.include_router(router, generate_unique_id_function=custom_generate_unique_id3)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "post": {
-                        "summary": "Post Root",
-                        "operationId": "foo_post_root",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_foo_post_root"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "post": {
+                            "summary": "Post Root",
+                            "operationId": "foo_post_root",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_foo_post_root"
+                                        }
                                     }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/router": {
+                        "post": {
+                            "summary": "Post Router",
+                            "operationId": "bar_post_router",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_bar_post_router"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Bar Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Bar Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_bar_post_router": {
+                            "title": "Body_bar_post_router",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "Body_foo_post_root": {
+                            "title": "Body_foo_post_root",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                            },
+                        },
+                        "Message": {
+                            "title": "Message",
+                            "required": ["title", "description"],
+                            "type": "object",
+                            "properties": {
+                                "title": {"title": "Title", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "type": "string",
                                 },
                             },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
                             },
                         },
                     }
                 },
-                "/router": {
-                    "post": {
-                        "summary": "Post Router",
-                        "operationId": "bar_post_router",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_bar_post_router"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Bar Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Bar Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_bar_post_router": {
-                        "title": "Body_bar_post_router",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_foo_post_root": {
-                        "title": "Body_foo_post_root",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                        },
-                    },
-                    "Message": {
-                        "title": "Message",
-                        "required": ["title", "description"],
-                        "type": "object",
-                        "properties": {
-                            "title": {"title": "Title", "type": "string"},
-                            "description": {"title": "Description", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )
 
 
-def test_subrouter_top_level_include_overrides_generate_unique_id():
+@test
+def subrouter_top_level_include_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter()
     sub_router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
@@ -686,265 +715,274 @@ def test_subrouter_top_level_include_overrides_generate_unique_id():
     app.include_router(router, generate_unique_id_function=custom_generate_unique_id3)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "post": {
-                        "summary": "Post Root",
-                        "operationId": "foo_post_root",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_foo_post_root"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "post": {
+                            "summary": "Post Root",
+                            "operationId": "foo_post_root",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_foo_post_root"
+                                        }
                                     }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/router": {
+                        "post": {
+                            "summary": "Post Router",
+                            "operationId": "baz_post_router",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_baz_post_router"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Baz Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Baz Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/subrouter": {
+                        "post": {
+                            "summary": "Post Subrouter",
+                            "operationId": "bar_post_subrouter",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_bar_post_subrouter"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Bar Post Subrouter",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Bar Post Subrouter",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_bar_post_subrouter": {
+                            "title": "Body_bar_post_subrouter",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "Body_baz_post_router": {
+                            "title": "Body_baz_post_router",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "Body_foo_post_root": {
+                            "title": "Body_foo_post_root",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                            },
+                        },
+                        "Message": {
+                            "title": "Message",
+                            "required": ["title", "description"],
+                            "type": "object",
+                            "properties": {
+                                "title": {"title": "Title", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "type": "string",
                                 },
                             },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
                             },
                         },
                     }
                 },
-                "/router": {
-                    "post": {
-                        "summary": "Post Router",
-                        "operationId": "baz_post_router",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_baz_post_router"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Baz Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Baz Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-                "/subrouter": {
-                    "post": {
-                        "summary": "Post Subrouter",
-                        "operationId": "bar_post_subrouter",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_bar_post_subrouter"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Bar Post Subrouter",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Bar Post Subrouter",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_bar_post_subrouter": {
-                        "title": "Body_bar_post_subrouter",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_baz_post_router": {
-                        "title": "Body_baz_post_router",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_foo_post_root": {
-                        "title": "Body_foo_post_root",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                        },
-                    },
-                    "Message": {
-                        "title": "Message",
-                        "required": ["title", "description"],
-                        "type": "object",
-                        "properties": {
-                            "title": {"title": "Title", "type": "string"},
-                            "description": {"title": "Description", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )
 
 
-def test_router_path_operation_overrides_generate_unique_id():
+@test
+def router_path_operation_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
 
@@ -964,200 +1002,209 @@ def test_router_path_operation_overrides_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "post": {
-                        "summary": "Post Root",
-                        "operationId": "foo_post_root",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_foo_post_root"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "post": {
+                            "summary": "Post Root",
+                            "operationId": "foo_post_root",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_foo_post_root"
+                                        }
                                     }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Foo Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/router": {
+                        "post": {
+                            "summary": "Post Router",
+                            "operationId": "baz_post_router",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_baz_post_router"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Baz Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Baz Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_baz_post_router": {
+                            "title": "Body_baz_post_router",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "Body_foo_post_root": {
+                            "title": "Body_foo_post_root",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                            },
+                        },
+                        "Message": {
+                            "title": "Message",
+                            "required": ["title", "description"],
+                            "type": "object",
+                            "properties": {
+                                "title": {"title": "Title", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "type": "string",
                                 },
                             },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Foo Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
                             },
                         },
                     }
                 },
-                "/router": {
-                    "post": {
-                        "summary": "Post Router",
-                        "operationId": "baz_post_router",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_baz_post_router"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Baz Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Baz Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_baz_post_router": {
-                        "title": "Body_baz_post_router",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_foo_post_root": {
-                        "title": "Body_foo_post_root",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                        },
-                    },
-                    "Message": {
-                        "title": "Message",
-                        "required": ["title", "description"],
-                        "type": "object",
-                        "properties": {
-                            "title": {"title": "Title", "type": "string"},
-                            "description": {"title": "Description", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )
 
 
-def test_app_path_operation_overrides_generate_unique_id():
+@test
+def app_path_operation_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
 
@@ -1181,200 +1228,209 @@ def test_app_path_operation_overrides_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "post": {
-                        "summary": "Post Root",
-                        "operationId": "baz_post_root",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_baz_post_root"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "post": {
+                            "summary": "Post Root",
+                            "operationId": "baz_post_root",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_baz_post_root"
+                                        }
                                     }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Baz Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Baz Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/router": {
+                        "post": {
+                            "summary": "Post Router",
+                            "operationId": "bar_post_router",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_bar_post_router"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Bar Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Bar Post Router",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_bar_post_router": {
+                            "title": "Body_bar_post_router",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "Body_baz_post_root": {
+                            "title": "Body_baz_post_root",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Baz Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                            },
+                        },
+                        "Message": {
+                            "title": "Message",
+                            "required": ["title", "description"],
+                            "type": "object",
+                            "properties": {
+                                "title": {"title": "Title", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "type": "string",
                                 },
                             },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Baz Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
                             },
                         },
                     }
                 },
-                "/router": {
-                    "post": {
-                        "summary": "Post Router",
-                        "operationId": "bar_post_router",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_bar_post_router"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Bar Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Bar Post Router",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_bar_post_router": {
-                        "title": "Body_bar_post_router",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_baz_post_root": {
-                        "title": "Body_baz_post_root",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                        },
-                    },
-                    "Message": {
-                        "title": "Message",
-                        "required": ["title", "description"],
-                        "type": "object",
-                        "properties": {
-                            "title": {"title": "Title", "type": "string"},
-                            "description": {"title": "Description", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )
 
 
-def test_callback_override_generate_unique_id():
+@test
+def callback_override_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     callback_router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
 
@@ -1407,269 +1463,278 @@ def test_callback_override_generate_unique_id():
 
     client = TestClient(app)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "post": {
-                        "summary": "Post Root",
-                        "operationId": "baz_post_root",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_baz_post_root"
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "post": {
+                            "summary": "Post Root",
+                            "operationId": "baz_post_root",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_baz_post_root"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Baz Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Baz Post Root",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                            "callbacks": {
+                                "post_callback": {
+                                    "/post-callback": {
+                                        "post": {
+                                            "summary": "Post Callback",
+                                            "operationId": "baz_post_callback",
+                                            "requestBody": {
+                                                "content": {
+                                                    "application/json": {
+                                                        "schema": {
+                                                            "$ref": "#/components/schemas/Body_baz_post_callback"
+                                                        }
+                                                    }
+                                                },
+                                                "required": True,
+                                            },
+                                            "responses": {
+                                                "200": {
+                                                    "description": "Successful Response",
+                                                    "content": {
+                                                        "application/json": {
+                                                            "schema": {
+                                                                "title": "Response Baz Post Callback",
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "$ref": "#/components/schemas/Item"
+                                                                },
+                                                            }
+                                                        }
+                                                    },
+                                                },
+                                                "404": {
+                                                    "description": "Not Found",
+                                                    "content": {
+                                                        "application/json": {
+                                                            "schema": {
+                                                                "title": "Response 404 Baz Post Callback",
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "$ref": "#/components/schemas/Message"
+                                                                },
+                                                            }
+                                                        }
+                                                    },
+                                                },
+                                                "422": {
+                                                    "description": "Validation Error",
+                                                    "content": {
+                                                        "application/json": {
+                                                            "schema": {
+                                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                                            }
+                                                        }
+                                                    },
+                                                },
+                                            },
+                                        }
                                     }
                                 }
                             },
-                            "required": True,
+                        }
+                    },
+                    "/tocallback": {
+                        "post": {
+                            "summary": "Post With Callback",
+                            "operationId": "foo_post_with_callback",
+                            "requestBody": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "$ref": "#/components/schemas/Body_foo_post_with_callback"
+                                        }
+                                    }
+                                },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response Foo Post With Callback",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Item"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "404": {
+                                    "description": "Not Found",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "title": "Response 404 Foo Post With Callback",
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Message"
+                                                },
+                                            }
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_baz_post_callback": {
+                            "title": "Body_baz_post_callback",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Baz Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Baz Post Root",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
+                        "Body_baz_post_root": {
+                            "title": "Body_baz_post_root",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
                             },
                         },
-                        "callbacks": {
-                            "post_callback": {
-                                "/post-callback": {
-                                    "post": {
-                                        "summary": "Post Callback",
-                                        "operationId": "baz_post_callback",
-                                        "requestBody": {
-                                            "content": {
-                                                "application/json": {
-                                                    "schema": {
-                                                        "$ref": "#/components/schemas/Body_baz_post_callback"
-                                                    }
-                                                }
-                                            },
-                                            "required": True,
-                                        },
-                                        "responses": {
-                                            "200": {
-                                                "description": "Successful Response",
-                                                "content": {
-                                                    "application/json": {
-                                                        "schema": {
-                                                            "title": "Response Baz Post Callback",
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/Item"
-                                                            },
-                                                        }
-                                                    }
-                                                },
-                                            },
-                                            "404": {
-                                                "description": "Not Found",
-                                                "content": {
-                                                    "application/json": {
-                                                        "schema": {
-                                                            "title": "Response 404 Baz Post Callback",
-                                                            "type": "array",
-                                                            "items": {
-                                                                "$ref": "#/components/schemas/Message"
-                                                            },
-                                                        }
-                                                    }
-                                                },
-                                            },
-                                            "422": {
-                                                "description": "Validation Error",
-                                                "content": {
-                                                    "application/json": {
-                                                        "schema": {
-                                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                                        }
-                                                    }
-                                                },
-                                            },
-                                        },
-                                    }
+                        "Body_foo_post_with_callback": {
+                            "title": "Body_foo_post_with_callback",
+                            "required": ["item1", "item2"],
+                            "type": "object",
+                            "properties": {
+                                "item1": {"$ref": "#/components/schemas/Item"},
+                                "item2": {"$ref": "#/components/schemas/Item"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
-                            }
+                            },
+                        },
+                        "Item": {
+                            "title": "Item",
+                            "required": ["name", "price"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "price": {"title": "Price", "type": "number"},
+                            },
+                        },
+                        "Message": {
+                            "title": "Message",
+                            "required": ["title", "description"],
+                            "type": "object",
+                            "properties": {
+                                "title": {"title": "Title", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "type": "string",
+                                },
+                            },
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                            },
                         },
                     }
                 },
-                "/tocallback": {
-                    "post": {
-                        "summary": "Post With Callback",
-                        "operationId": "foo_post_with_callback",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_foo_post_with_callback"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response Foo Post With Callback",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Item"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "404": {
-                                "description": "Not Found",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "title": "Response 404 Foo Post With Callback",
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/Message"
-                                            },
-                                        }
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_baz_post_callback": {
-                        "title": "Body_baz_post_callback",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_baz_post_root": {
-                        "title": "Body_baz_post_root",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "Body_foo_post_with_callback": {
-                        "title": "Body_foo_post_with_callback",
-                        "required": ["item1", "item2"],
-                        "type": "object",
-                        "properties": {
-                            "item1": {"$ref": "#/components/schemas/Item"},
-                            "item2": {"$ref": "#/components/schemas/Item"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "Item": {
-                        "title": "Item",
-                        "required": ["name", "price"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "price": {"title": "Price", "type": "number"},
-                        },
-                    },
-                    "Message": {
-                        "title": "Message",
-                        "required": ["title", "description"],
-                        "type": "object",
-                        "properties": {
-                            "title": {"title": "Title", "type": "string"},
-                            "description": {"title": "Description", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )
 
 
-def test_warn_duplicate_operation_id():
+@test
+def warn_duplicate_operation_id():
     def broken_operation_id(route: APIRoute):
         return "foo"
 
@@ -1691,9 +1756,9 @@ def test_warn_duplicate_operation_id():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         client.get("/openapi.json")
-        assert len(w) >= 2
+        expect(len(w)).to_be_greater_than(1)
         duplicate_warnings = [
             warning for warning in w if issubclass(warning.category, UserWarning)
         ]
-        assert len(duplicate_warnings) > 0
-        assert "Duplicate Operation ID" in str(duplicate_warnings[0].message)
+        expect(len(duplicate_warnings)).to_be_greater_than(0).fatal()
+        expect(str(duplicate_warnings[0].message)).to_contain("Duplicate Operation ID")

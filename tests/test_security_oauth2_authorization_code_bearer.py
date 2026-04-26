@@ -2,6 +2,7 @@ from fastapi import FastAPI, Security
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -18,65 +19,72 @@ async def read_items(token: str | None = Security(oauth2_scheme)):
 client = TestClient(app)
 
 
-def test_no_token():
+@test
+def no_token():
     response = client.get("/items")
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Not authenticated"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
 
 
-def test_incorrect_token():
+@test
+def incorrect_token():
     response = client.get("/items", headers={"Authorization": "Non-existent testtoken"})
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Not authenticated"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
 
 
-def test_token():
+@test
+def token():
     response = client.get("/items", headers={"Authorization": "Bearer testtoken"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"token": "testtoken"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"token": "testtoken"})
 
 
-def test_token_with_whitespaces():
+@test
+def token_with_whitespaces():
     response = client.get("/items", headers={"Authorization": "Bearer  testtoken "})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"token": "testtoken"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"token": "testtoken"})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__get",
-                        "security": [{"OAuth2AuthorizationCodeBearer": []}],
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__get",
+                            "security": [{"OAuth2AuthorizationCodeBearer": []}],
+                        }
                     }
-                }
-            },
-            "components": {
-                "securitySchemes": {
-                    "OAuth2AuthorizationCodeBearer": {
-                        "type": "oauth2",
-                        "flows": {
-                            "authorizationCode": {
-                                "authorizationUrl": "authorize",
-                                "tokenUrl": "token",
-                                "scopes": {},
-                            }
-                        },
+                },
+                "components": {
+                    "securitySchemes": {
+                        "OAuth2AuthorizationCodeBearer": {
+                            "type": "oauth2",
+                            "flows": {
+                                "authorizationCode": {
+                                    "authorizationUrl": "authorize",
+                                    "tokenUrl": "token",
+                                    "scopes": {},
+                                }
+                            },
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

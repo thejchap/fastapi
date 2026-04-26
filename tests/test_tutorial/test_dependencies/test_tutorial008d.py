@@ -1,48 +1,59 @@
-import importlib
-from types import ModuleType
-
-import pytest
 from fastapi.testclient import TestClient
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="mod",
-    params=[
-        pytest.param("tutorial008d_py310"),
-        pytest.param("tutorial008d_an_py310"),
-    ],
+def _module_for(name: str):
+    return import_tutorial("dependencies", name)
+
+
+@test.cases(
+    test.case("tutorial008d_py310", name="tutorial008d_py310"),
+    test.case("tutorial008d_an_py310", name="tutorial008d_an_py310"),
 )
-def get_mod(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.dependencies.{request.param}")
-
-    return mod
-
-
-def test_get_no_item(mod: ModuleType):
+def get_no_item(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/items/foo")
-    assert response.status_code == 404, response.text
-    assert response.json() == {"detail": "Item not found, there's only a plumbus here"}
-
-
-def test_get(mod: ModuleType):
-    client = TestClient(mod.app)
-    response = client.get("/items/plumbus")
-    assert response.status_code == 200, response.text
-    assert response.json() == "plumbus"
-
-
-def test_internal_error(mod: ModuleType):
-    client = TestClient(mod.app)
-    with pytest.raises(mod.InternalError) as exc_info:
-        client.get("/items/portal-gun")
-    assert (
-        exc_info.value.args[0] == "The portal gun is too dangerous to be owned by Rick"
+    expect(response.status_code).to_equal(404).fatal()
+    expect(response.json()).to_equal(
+        {"detail": "Item not found, there's only a plumbus here"}
     )
 
 
-def test_internal_server_error(mod: ModuleType):
+@test.cases(
+    test.case("tutorial008d_py310", name="tutorial008d_py310"),
+    test.case("tutorial008d_an_py310", name="tutorial008d_an_py310"),
+)
+def get(name: str):
+    mod = _module_for(name)
+    client = TestClient(mod.app)
+    response = client.get("/items/plumbus")
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("plumbus")
+
+
+@test.cases(
+    test.case("tutorial008d_py310", name="tutorial008d_py310"),
+    test.case("tutorial008d_an_py310", name="tutorial008d_an_py310"),
+)
+def internal_error(name: str):
+    mod = _module_for(name)
+    client = TestClient(mod.app)
+    expect(lambda: client.get("/items/portal-gun")).to_raise(
+        mod.InternalError,
+        match="The portal gun is too dangerous to be owned by Rick",
+    )
+
+
+@test.cases(
+    test.case("tutorial008d_py310", name="tutorial008d_py310"),
+    test.case("tutorial008d_an_py310", name="tutorial008d_an_py310"),
+)
+def internal_server_error(name: str):
+    mod = _module_for(name)
     client = TestClient(mod.app, raise_server_exceptions=False)
     response = client.get("/items/portal-gun")
-    assert response.status_code == 500, response.text
-    assert response.text == "Internal Server Error"
+    expect(response.status_code).to_equal(500).fatal()
+    expect(response.text).to_equal("Internal Server Error")

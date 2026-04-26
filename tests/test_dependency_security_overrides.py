@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI, Security
 from fastapi.security import SecurityScopes
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -32,32 +33,41 @@ def read_user(
 client = TestClient(app)
 
 
-def test_normal():
+@test
+def normal():
     response = client.get("/user")
-    assert response.json() == {
-        "user": "john",
-        "scopes": ["foo", "bar"],
-        "data": [1, 2, 3],
-    }
+    expect(response.json()).to_equal(
+        {
+            "user": "john",
+            "scopes": ["foo", "bar"],
+            "data": [1, 2, 3],
+        }
+    )
 
 
-def test_override_data():
+@test
+def override_data():
     app.dependency_overrides[get_data] = get_data_override
     response = client.get("/user")
-    assert response.json() == {
-        "user": "john",
-        "scopes": ["foo", "bar"],
-        "data": [3, 4, 5],
-    }
+    expect(response.json()).to_equal(
+        {
+            "user": "john",
+            "scopes": ["foo", "bar"],
+            "data": [3, 4, 5],
+        }
+    )
     app.dependency_overrides = {}
 
 
-def test_override_security():
+@test
+def override_security():
     app.dependency_overrides[get_user] = get_user_override
     response = client.get("/user")
-    assert response.json() == {
-        "user": "alice",
-        "scopes": ["foo", "bar"],
-        "data": [1, 2, 3],
-    }
+    expect(response.json()).to_equal(
+        {
+            "user": "alice",
+            "scopes": ["foo", "bar"],
+            "data": [1, 2, 3],
+        }
+    )
     app.dependency_overrides = {}

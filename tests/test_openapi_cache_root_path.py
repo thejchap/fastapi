@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
-def test_root_path_does_not_persist_across_requests():
+@test
+def root_path_does_not_persist_across_requests():
     app = FastAPI()
 
     @app.get("/")
@@ -13,17 +15,20 @@ def test_root_path_does_not_persist_across_requests():
     attacker_client = TestClient(app, root_path="/evil-api")
     response1 = attacker_client.get("/openapi.json")
     data1 = response1.json()
-    assert any(s.get("url") == "/evil-api" for s in data1.get("servers", []))
+    expect(
+        any(s.get("url") == "/evil-api" for s in data1.get("servers", []))
+    ).to_be_truthy()
 
     # Subsequent legitimate request with no root_path
     clean_client = TestClient(app)
     response2 = clean_client.get("/openapi.json")
     data2 = response2.json()
     servers = [s.get("url") for s in data2.get("servers", [])]
-    assert "/evil-api" not in servers
+    expect(servers).not_.to_contain("/evil-api")
 
 
-def test_multiple_different_root_paths_do_not_accumulate():
+@test
+def multiple_different_root_paths_do_not_accumulate():
     app = FastAPI()
 
     @app.get("/")
@@ -40,12 +45,11 @@ def test_multiple_different_root_paths_do_not_accumulate():
     data = response.json()
     servers = [s.get("url") for s in data.get("servers", [])]
     for prefix in ["/path-a", "/path-b", "/path-c"]:
-        assert prefix not in servers, (
-            f"root_path '{prefix}' leaked into clean request: {servers}"
-        )
+        expect(servers).not_.to_contain(prefix)
 
 
-def test_legitimate_root_path_still_appears():
+@test
+def legitimate_root_path_still_appears():
     app = FastAPI()
 
     @app.get("/")
@@ -56,10 +60,11 @@ def test_legitimate_root_path_still_appears():
     response = client.get("/openapi.json")
     data = response.json()
     servers = [s.get("url") for s in data.get("servers", [])]
-    assert "/api/v1" in servers
+    expect(servers).to_contain("/api/v1")
 
 
-def test_configured_servers_not_mutated():
+@test
+def configured_servers_not_mutated():
     configured_servers = [{"url": "https://prod.example.com"}]
     app = FastAPI(servers=configured_servers)
 
@@ -72,4 +77,4 @@ def test_configured_servers_not_mutated():
     attacker_client.get("/openapi.json")
 
     # The original servers list must be untouched
-    assert configured_servers == [{"url": "https://prod.example.com"}]
+    expect(configured_servers).to_equal([{"url": "https://prod.example.com"}])

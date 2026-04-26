@@ -1,6 +1,7 @@
 from collections.abc import Callable, Iterable, Mapping
 from enum import Enum
 from typing import Annotated, Any, Literal, Optional, Union
+from warnings import deprecated as typing_deprecated
 
 from fastapi._compat import with_info_plain_validator_function
 from fastapi.logger import logger
@@ -11,7 +12,6 @@ from pydantic import (
     GetJsonSchemaHandler,
 )
 from typing_extensions import TypedDict
-from typing_extensions import deprecated as typing_deprecated
 
 try:
     import email_validator

@@ -1,9 +1,13 @@
+from tryke import test
+
 from docs_src.app_testing.tutorial002_py310 import test_read_main, test_websocket
 
 
-def test_main():
+@test
+def main():
     test_read_main()
 
 
-def test_ws():
+@test
+def ws():
     test_websocket()

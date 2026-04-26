@@ -1,27 +1,18 @@
-import importlib
-
-import pytest
 from dirty_equals import IsList
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends, expect, fixture, test
 
-from ...utils import needs_py310
-
-
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial002_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest) -> TestClient:
-    mod = importlib.import_module(
-        f"docs_src.path_operation_configuration.{request.param}"
-    )
-    return TestClient(mod.app)
+from docs_src.path_operation_configuration.tutorial002_py310 import app
 
 
-def test_post_items(client: TestClient):
+@fixture
+def client() -> TestClient:
+    return TestClient(app)
+
+
+@test
+def post_items(client: TestClient = Depends(client)):
     response = client.post(
         "/items/",
         json={
@@ -32,196 +23,205 @@ def test_post_items(client: TestClient):
             "tags": ["bar", "baz"],
         },
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "name": "Foo",
-        "description": "Item description",
-        "price": 42.0,
-        "tax": 3.2,
-        "tags": IsList("bar", "baz", check_order=False),
-    }
-
-
-def test_get_items(client: TestClient):
-    response = client.get("/items/")
-    assert response.status_code == 200, response.text
-    assert response.json() == [{"name": "Foo", "price": 42}]
-
-
-def test_get_users(client: TestClient):
-    response = client.get("/users/")
-    assert response.status_code == 200, response.text
-    assert response.json() == [{"username": "johndoe"}]
-
-
-def test_openapi_schema(client: TestClient):
-    response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
         {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "tags": ["items"],
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                    },
-                    "post": {
-                        "tags": ["items"],
-                        "summary": "Create Item",
-                        "operationId": "create_item_items__post",
-                        "requestBody": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {"$ref": "#/components/schemas/Item"}
+            "name": "Foo",
+            "description": "Item description",
+            "price": 42.0,
+            "tax": 3.2,
+            "tags": IsList("bar", "baz", check_order=False),
+        }
+    )
+
+
+@test
+def get_items(client: TestClient = Depends(client)):
+    response = client.get("/items/")
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal([{"name": "Foo", "price": 42}])
+
+
+@test
+def get_users(client: TestClient = Depends(client)):
+    response = client.get("/users/")
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal([{"username": "johndoe"}])
+
+
+@test
+def openapi_schema(client: TestClient = Depends(client)):
+    response = client.get("/openapi.json")
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "tags": ["items"],
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
                                 }
                             },
-                            "required": True,
                         },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
+                        "post": {
+                            "tags": ["items"],
+                            "summary": "Create Item",
+                            "operationId": "create_item_items__post",
+                            "requestBody": {
                                 "content": {
                                     "application/json": {
                                         "schema": {"$ref": "#/components/schemas/Item"}
                                     }
                                 },
+                                "required": True,
                             },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Item"
+                                            }
                                         }
-                                    }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
                                 },
                             },
                         },
+                    },
+                    "/users/": {
+                        "get": {
+                            "tags": ["users"],
+                            "summary": "Read Users",
+                            "operationId": "read_users_users__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                        }
                     },
                 },
-                "/users/": {
-                    "get": {
-                        "tags": ["users"],
-                        "summary": "Read Users",
-                        "operationId": "read_users_users__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "HTTPValidationError": {
-                        "properties": {
-                            "detail": {
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError",
+                "components": {
+                    "schemas": {
+                        "HTTPValidationError": {
+                            "properties": {
+                                "detail": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError",
+                                    },
+                                    "title": "Detail",
+                                    "type": "array",
                                 },
-                                "title": "Detail",
-                                "type": "array",
                             },
+                            "title": "HTTPValidationError",
+                            "type": "object",
                         },
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                    },
-                    "Item": {
-                        "properties": {
-                            "description": {
-                                "anyOf": [
-                                    {
-                                        "type": "string",
-                                    },
-                                    {
-                                        "type": "null",
-                                    },
-                                ],
-                                "title": "Description",
-                            },
-                            "name": {
-                                "title": "Name",
-                                "type": "string",
-                            },
-                            "price": {
-                                "title": "Price",
-                                "type": "number",
-                            },
-                            "tags": {
-                                "default": [],
-                                "items": {
-                                    "type": "string",
-                                },
-                                "title": "Tags",
-                                "type": "array",
-                                "uniqueItems": True,
-                            },
-                            "tax": {
-                                "anyOf": [
-                                    {
-                                        "type": "number",
-                                    },
-                                    {
-                                        "type": "null",
-                                    },
-                                ],
-                                "title": "Tax",
-                            },
-                        },
-                        "required": [
-                            "name",
-                            "price",
-                        ],
-                        "title": "Item",
-                        "type": "object",
-                    },
-                    "ValidationError": {
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "items": {
+                        "Item": {
+                            "properties": {
+                                "description": {
                                     "anyOf": [
                                         {
                                             "type": "string",
                                         },
                                         {
-                                            "type": "integer",
+                                            "type": "null",
                                         },
                                     ],
+                                    "title": "Description",
                                 },
-                                "title": "Location",
-                                "type": "array",
+                                "name": {
+                                    "title": "Name",
+                                    "type": "string",
+                                },
+                                "price": {
+                                    "title": "Price",
+                                    "type": "number",
+                                },
+                                "tags": {
+                                    "default": [],
+                                    "items": {
+                                        "type": "string",
+                                    },
+                                    "title": "Tags",
+                                    "type": "array",
+                                    "uniqueItems": True,
+                                },
+                                "tax": {
+                                    "anyOf": [
+                                        {
+                                            "type": "number",
+                                        },
+                                        {
+                                            "type": "null",
+                                        },
+                                    ],
+                                    "title": "Tax",
+                                },
                             },
-                            "msg": {
-                                "title": "Message",
-                                "type": "string",
-                            },
-                            "type": {
-                                "title": "Error Type",
-                                "type": "string",
-                            },
+                            "required": [
+                                "name",
+                                "price",
+                            ],
+                            "title": "Item",
+                            "type": "object",
                         },
-                        "required": [
-                            "loc",
-                            "msg",
-                            "type",
-                        ],
-                        "title": "ValidationError",
-                        "type": "object",
+                        "ValidationError": {
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "items": {
+                                        "anyOf": [
+                                            {
+                                                "type": "string",
+                                            },
+                                            {
+                                                "type": "integer",
+                                            },
+                                        ],
+                                    },
+                                    "title": "Location",
+                                    "type": "array",
+                                },
+                                "msg": {
+                                    "title": "Message",
+                                    "type": "string",
+                                },
+                                "type": {
+                                    "title": "Error Type",
+                                    "type": "string",
+                                },
+                            },
+                            "required": [
+                                "loc",
+                                "msg",
+                                "type",
+                            ],
+                            "title": "ValidationError",
+                            "type": "object",
+                        },
                     },
                 },
-            },
-        }
+            }
+        )
     )

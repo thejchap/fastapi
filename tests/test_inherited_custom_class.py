@@ -1,9 +1,9 @@
 import uuid
 
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 
 class MyUuid:
@@ -24,7 +24,8 @@ class MyUuid:
         raise TypeError("vars() argument must have __dict__ attribute")
 
 
-def test_pydanticv2():
+@test
+def pydanticv2():
     from pydantic import field_serializer
 
     app = FastAPI()
@@ -34,8 +35,12 @@ def test_pydanticv2():
         asyncpg_uuid = MyUuid("a10ff360-3b1e-4984-a26f-d3ab460bdb51")
         assert isinstance(asyncpg_uuid, uuid.UUID)
         assert type(asyncpg_uuid) is not uuid.UUID
-        with pytest.raises(TypeError):
+        try:
             vars(asyncpg_uuid)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("expected TypeError")
         return {"fast_uuid": asyncpg_uuid}
 
     class SomeCustomClass(BaseModel):
@@ -58,10 +63,10 @@ def test_pydanticv2():
         response_simple = client.get("/fast_uuid")
         response_pydantic = client.get("/get_custom_class")
 
-    assert response_simple.json() == {
-        "fast_uuid": "a10ff360-3b1e-4984-a26f-d3ab460bdb51"
-    }
+    expect(response_simple.json()).to_equal(
+        {"fast_uuid": "a10ff360-3b1e-4984-a26f-d3ab460bdb51"}
+    )
 
-    assert response_pydantic.json() == {
-        "a_uuid": "b8799909-f914-42de-91bc-95c819218d01"
-    }
+    expect(response_pydantic.json()).to_equal(
+        {"a_uuid": "b8799909-f914-42de-91bc-95c819218d01"}
+    )

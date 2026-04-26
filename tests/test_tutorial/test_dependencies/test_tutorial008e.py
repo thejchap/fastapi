@@ -1,24 +1,21 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial008e_py310"),
-        pytest.param("tutorial008e_an_py310"),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.dependencies.{request.param}")
-
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("dependencies", name)
     client = TestClient(mod.app)
     return client
 
 
-def test_get_users_me(client: TestClient):
+@test.cases(
+    test.case("tutorial008e_py310", name="tutorial008e_py310"),
+    test.case("tutorial008e_an_py310", name="tutorial008e_an_py310"),
+)
+def get_users_me(name: str):
+    client = _client_for(name)
     response = client.get("/users/me")
-    assert response.status_code == 200, response.text
-    assert response.json() == "Rick"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("Rick")

@@ -1,6 +1,6 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -35,6 +35,6 @@ openapi_schema = {
 client = TestClient(app)
 
 
-def test_openapi_schema():
-    with pytest.raises(ValueError):
-        client.get("/openapi.json")
+@test
+def openapi_schema_raises():
+    expect(lambda: client.get("/openapi.json")).to_raise(ValueError)

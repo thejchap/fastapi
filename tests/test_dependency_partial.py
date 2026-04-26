@@ -2,9 +2,9 @@ from collections.abc import AsyncGenerator, Generator
 from functools import partial
 from typing import Annotated
 
-import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -17,11 +17,11 @@ async def async_function_dependency(value: str) -> str:
     return value
 
 
-def gen_dependency(value: str) -> Generator[str, None, None]:
+def gen_dependency(value: str) -> Generator[str]:
     yield value
 
 
-async def async_gen_dependency(value: str) -> AsyncGenerator[str, None]:
+async def async_gen_dependency(value: str) -> AsyncGenerator[str]:
     yield value
 
 
@@ -31,7 +31,7 @@ class CallableDependency:
 
 
 class CallableGenDependency:
-    def __call__(self, value: str) -> Generator[str, None, None]:
+    def __call__(self, value: str) -> Generator[str]:
         yield value
 
 
@@ -41,7 +41,7 @@ class AsyncCallableDependency:
 
 
 class AsyncCallableGenDependency:
-    async def __call__(self, value: str) -> AsyncGenerator[str, None]:
+    async def __call__(self, value: str) -> AsyncGenerator[str]:
         yield value
 
 
@@ -52,10 +52,10 @@ class MethodsDependency:
     async def asynchronous(self, value: str) -> str:
         return value
 
-    def synchronous_gen(self, value: str) -> Generator[str, None, None]:
+    def synchronous_gen(self, value: str) -> Generator[str]:
         yield value
 
-    async def asynchronous_gen(self, value: str) -> AsyncGenerator[str, None]:
+    async def asynchronous_gen(self, value: str) -> AsyncGenerator[str]:
         yield value
 
 
@@ -210,42 +210,69 @@ async def get_partial_asynchronous_method_gen_dependency(
 client = TestClient(app)
 
 
-@pytest.mark.parametrize(
-    "route,value",
-    [
-        ("/partial-function-dependency", "partial-function-dependency"),
-        (
-            "/partial-async-function-dependency",
-            "partial-async-function-dependency",
-        ),
-        ("/partial-gen-dependency", "partial-gen-dependency"),
-        ("/partial-async-gen-dependency", "partial-async-gen-dependency"),
-        ("/partial-callable-dependency", "partial-callable-dependency"),
-        ("/partial-callable-gen-dependency", "partial-callable-gen-dependency"),
-        ("/partial-async-callable-dependency", "partial-async-callable-dependency"),
-        (
-            "/partial-async-callable-gen-dependency",
-            "partial-async-callable-gen-dependency",
-        ),
-        (
-            "/partial-synchronous-method-dependency",
-            "partial-synchronous-method-dependency",
-        ),
-        (
-            "/partial-synchronous-method-gen-dependency",
-            "partial-synchronous-method-gen-dependency",
-        ),
-        (
-            "/partial-asynchronous-method-dependency",
-            "partial-asynchronous-method-dependency",
-        ),
-        (
-            "/partial-asynchronous-method-gen-dependency",
-            "partial-asynchronous-method-gen-dependency",
-        ),
-    ],
+@test.cases(
+    test.case(
+        "partial-function-dependency",
+        route="/partial-function-dependency",
+        value="partial-function-dependency",
+    ),
+    test.case(
+        "partial-async-function-dependency",
+        route="/partial-async-function-dependency",
+        value="partial-async-function-dependency",
+    ),
+    test.case(
+        "partial-gen-dependency",
+        route="/partial-gen-dependency",
+        value="partial-gen-dependency",
+    ),
+    test.case(
+        "partial-async-gen-dependency",
+        route="/partial-async-gen-dependency",
+        value="partial-async-gen-dependency",
+    ),
+    test.case(
+        "partial-callable-dependency",
+        route="/partial-callable-dependency",
+        value="partial-callable-dependency",
+    ),
+    test.case(
+        "partial-callable-gen-dependency",
+        route="/partial-callable-gen-dependency",
+        value="partial-callable-gen-dependency",
+    ),
+    test.case(
+        "partial-async-callable-dependency",
+        route="/partial-async-callable-dependency",
+        value="partial-async-callable-dependency",
+    ),
+    test.case(
+        "partial-async-callable-gen-dependency",
+        route="/partial-async-callable-gen-dependency",
+        value="partial-async-callable-gen-dependency",
+    ),
+    test.case(
+        "partial-synchronous-method-dependency",
+        route="/partial-synchronous-method-dependency",
+        value="partial-synchronous-method-dependency",
+    ),
+    test.case(
+        "partial-synchronous-method-gen-dependency",
+        route="/partial-synchronous-method-gen-dependency",
+        value="partial-synchronous-method-gen-dependency",
+    ),
+    test.case(
+        "partial-asynchronous-method-dependency",
+        route="/partial-asynchronous-method-dependency",
+        value="partial-asynchronous-method-dependency",
+    ),
+    test.case(
+        "partial-asynchronous-method-gen-dependency",
+        route="/partial-asynchronous-method-gen-dependency",
+        value="partial-asynchronous-method-gen-dependency",
+    ),
 )
-def test_dependency_types_with_partial(route: str, value: str) -> None:
+def dependency_types_with_partial(route: str, value: str) -> None:
     response = client.get(route)
-    assert response.status_code == 200, response.text
-    assert response.json() == value
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(value)

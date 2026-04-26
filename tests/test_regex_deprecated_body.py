@@ -1,17 +1,17 @@
 from typing import Annotated
 
-import pytest
 from fastapi import FastAPI, Form
 from fastapi.exceptions import FastAPIDeprecationWarning
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from .utils import needs_py310
+from ._shims import expect_warning
 
 
 def get_client():
     app = FastAPI()
-    with pytest.warns(FastAPIDeprecationWarning):
+    with expect_warning(FastAPIDeprecationWarning):
 
         @app.post("/items/")
         async def read_items(
@@ -26,129 +26,136 @@ def get_client():
     return client
 
 
-@needs_py310
-def test_no_query():
+@test
+def no_query():
     client = get_client()
     response = client.post("/items/")
-    assert response.status_code == 200
-    assert response.json() == "Hello World"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("Hello World")
 
 
-@needs_py310
-def test_q_fixedquery():
+@test
+def q_fixedquery():
     client = get_client()
     response = client.post("/items/", data={"q": "fixedquery"})
-    assert response.status_code == 200
-    assert response.json() == "Hello fixedquery"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("Hello fixedquery")
 
 
-@needs_py310
-def test_query_nonregexquery():
+@test
+def query_nonregexquery():
     client = get_client()
     response = client.post("/items/", data={"q": "nonregexquery"})
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "string_pattern_mismatch",
-                "loc": ["body", "q"],
-                "msg": "String should match pattern '^fixedquery$'",
-                "input": "nonregexquery",
-                "ctx": {"pattern": "^fixedquery$"},
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "string_pattern_mismatch",
+                    "loc": ["body", "q"],
+                    "msg": "String should match pattern '^fixedquery$'",
+                    "input": "nonregexquery",
+                    "ctx": {"pattern": "^fixedquery$"},
+                }
+            ]
+        }
+    )
 
 
-@needs_py310
-def test_openapi_schema():
+@test
+def openapi_schema():
     client = get_client()
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "post": {
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__post",
-                        "requestBody": {
-                            "content": {
-                                "application/x-www-form-urlencoded": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_read_items_items__post"
-                                    }
-                                }
-                            }
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "post": {
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__post",
+                            "requestBody": {
                                 "content": {
-                                    "application/json": {
+                                    "application/x-www-form-urlencoded": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "$ref": "#/components/schemas/Body_read_items_items__post"
                                         }
                                     }
+                                }
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
                                 },
                             },
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "Body_read_items_items__post": {
+                            "properties": {
+                                "q": {
+                                    "anyOf": [
+                                        {"type": "string", "pattern": "^fixedquery$"},
+                                        {"type": "null"},
+                                    ],
+                                    "title": "Q",
+                                }
+                            },
+                            "type": "object",
+                            "title": "Body_read_items_items__post",
+                        },
+                        "HTTPValidationError": {
+                            "properties": {
+                                "detail": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                    "type": "array",
+                                    "title": "Detail",
+                                }
+                            },
+                            "type": "object",
+                            "title": "HTTPValidationError",
+                        },
+                        "ValidationError": {
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                    "type": "array",
+                                    "title": "Location",
+                                },
+                                "msg": {"type": "string", "title": "Message"},
+                                "type": {"type": "string", "title": "Error Type"},
+                            },
+                            "type": "object",
+                            "required": ["loc", "msg", "type"],
+                            "title": "ValidationError",
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "Body_read_items_items__post": {
-                        "properties": {
-                            "q": {
-                                "anyOf": [
-                                    {"type": "string", "pattern": "^fixedquery$"},
-                                    {"type": "null"},
-                                ],
-                                "title": "Q",
-                            }
-                        },
-                        "type": "object",
-                        "title": "Body_read_items_items__post",
-                    },
-                    "HTTPValidationError": {
-                        "properties": {
-                            "detail": {
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                                "type": "array",
-                                "title": "Detail",
-                            }
-                        },
-                        "type": "object",
-                        "title": "HTTPValidationError",
-                    },
-                    "ValidationError": {
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                                "type": "array",
-                                "title": "Location",
-                            },
-                            "msg": {"type": "string", "title": "Message"},
-                            "type": {"type": "string", "title": "Error Type"},
-                        },
-                        "type": "object",
-                        "required": ["loc", "msg", "type"],
-                        "title": "ValidationError",
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

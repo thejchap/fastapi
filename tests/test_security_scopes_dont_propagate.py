@@ -5,6 +5,7 @@ from typing import Annotated, Any
 from fastapi import FastAPI, Security
 from fastapi.security import SecurityScopes
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 async def security1(scopes: SecurityScopes):
@@ -35,10 +36,13 @@ def get_scopes(
 client = TestClient(app)
 
 
-def test_security_scopes_dont_propagate():
+@test
+def security_scopes_dont_propagate():
     response = client.get("/scopes")
-    assert response.status_code == 200
-    assert response.json() == {
-        "dep1": ["scope3", "scope1"],
-        "dep2": ["scope3", "scope2"],
-    }
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal(
+        {
+            "dep1": ["scope3", "scope1"],
+            "dep2": ["scope3", "scope2"],
+        }
+    )

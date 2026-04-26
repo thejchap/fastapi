@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -11,18 +12,20 @@ async def upload_files(files: list[bytes] | None = File(None)):
     return {"files_count": len(files), "sizes": [len(f) for f in files]}
 
 
-def test_optional_bytes_list():
+@test
+def optional_bytes_list():
     client = TestClient(app)
     response = client.post(
         "/files",
         files=[("files", b"content1"), ("files", b"content2")],
     )
-    assert response.status_code == 200
-    assert response.json() == {"files_count": 2, "sizes": [8, 8]}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"files_count": 2, "sizes": [8, 8]})
 
 
-def test_optional_bytes_list_no_files():
+@test
+def optional_bytes_list_no_files():
     client = TestClient(app)
     response = client.post("/files")
-    assert response.status_code == 200
-    assert response.json() == {"files_count": 0}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"files_count": 0})

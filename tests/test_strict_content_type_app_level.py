@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app_default = FastAPI()
 
@@ -21,24 +22,28 @@ client_default = TestClient(app_default)
 client_lax = TestClient(app_lax)
 
 
-def test_default_strict_rejects_no_content_type():
+@test
+def default_strict_rejects_no_content_type():
     response = client_default.post("/items/", content='{"key": "value"}')
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422)
 
 
-def test_default_strict_accepts_json_content_type():
+@test
+def default_strict_accepts_json_content_type():
     response = client_default.post("/items/", json={"key": "value"})
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"key": "value"})
 
 
-def test_lax_accepts_no_content_type():
+@test
+def lax_accepts_no_content_type():
     response = client_lax.post("/items/", content='{"key": "value"}')
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"key": "value"})
 
 
-def test_lax_accepts_json_content_type():
+@test
+def lax_accepts_json_content_type():
     response = client_lax.post("/items/", json={"key": "value"})
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"key": "value"})

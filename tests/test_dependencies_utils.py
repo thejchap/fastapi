@@ -1,8 +1,10 @@
 from fastapi.dependencies.utils import get_typed_annotation
+from tryke import expect, test
 
 
-def test_get_typed_annotation():
+@test
+def get_typed_annotation_test():
     # For coverage
     annotation = "None"
     typed_annotation = get_typed_annotation(annotation, globals())
-    assert typed_annotation is None
+    expect(typed_annotation).to_be_none()

@@ -1,17 +1,13 @@
-import importlib
-
-import pytest
 from fastapi.exceptions import FastAPIError
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.mark.parametrize(
-    "module_name",
-    [
-        pytest.param("tutorial003_04_py310", marks=needs_py310),
-    ],
+@test.cases(
+    test.case("tutorial003_04_py310", module_name="tutorial003_04_py310"),
 )
-def test_invalid_response_model(module_name: str) -> None:
-    with pytest.raises(FastAPIError):
-        importlib.import_module(f"docs_src.response_model.{module_name}")
+def invalid_response_model(module_name: str) -> None:
+    expect(lambda: import_tutorial("response_model", module_name)).to_raise(
+        FastAPIError
+    )

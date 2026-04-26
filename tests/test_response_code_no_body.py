@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -38,78 +39,82 @@ async def b():
 client = TestClient(app)
 
 
-def test_get_response():
+@test
+def get_response():
     response = client.get("/a")
-    assert response.status_code == 204, response.text
-    assert "content-length" not in response.headers
-    assert response.content == b""
+    expect(response.status_code).to_equal(204).fatal()
+    expect(response.headers).not_.to_contain("content-length")
+    expect(response.content).to_equal(b"")
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/a": {
-                    "get": {
-                        "responses": {
-                            "500": {
-                                "description": "Error",
-                                "content": {
-                                    "application/vnd.api+json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/JsonApiError"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/a": {
+                        "get": {
+                            "responses": {
+                                "500": {
+                                    "description": "Error",
+                                    "content": {
+                                        "application/vnd.api+json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/JsonApiError"
+                                            }
                                         }
-                                    }
+                                    },
+                                },
+                                "204": {"description": "Successful Response"},
+                            },
+                            "summary": "A",
+                            "operationId": "a_a_get",
+                        }
+                    },
+                    "/b": {
+                        "get": {
+                            "responses": {
+                                "204": {"description": "No Content"},
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
                                 },
                             },
-                            "204": {"description": "Successful Response"},
-                        },
-                        "summary": "A",
-                        "operationId": "a_a_get",
-                    }
+                            "summary": "B",
+                            "operationId": "b_b_get",
+                        }
+                    },
                 },
-                "/b": {
-                    "get": {
-                        "responses": {
-                            "204": {"description": "No Content"},
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
+                "components": {
+                    "schemas": {
+                        "Error": {
+                            "title": "Error",
+                            "required": ["status", "title"],
+                            "type": "object",
+                            "properties": {
+                                "status": {"title": "Status", "type": "string"},
+                                "title": {"title": "Title", "type": "string"},
                             },
                         },
-                        "summary": "B",
-                        "operationId": "b_b_get",
+                        "JsonApiError": {
+                            "title": "JsonApiError",
+                            "required": ["errors"],
+                            "type": "object",
+                            "properties": {
+                                "errors": {
+                                    "title": "Errors",
+                                    "type": "array",
+                                    "items": {"$ref": "#/components/schemas/Error"},
+                                }
+                            },
+                        },
                     }
                 },
-            },
-            "components": {
-                "schemas": {
-                    "Error": {
-                        "title": "Error",
-                        "required": ["status", "title"],
-                        "type": "object",
-                        "properties": {
-                            "status": {"title": "Status", "type": "string"},
-                            "title": {"title": "Title", "type": "string"},
-                        },
-                    },
-                    "JsonApiError": {
-                        "title": "JsonApiError",
-                        "required": ["errors"],
-                        "type": "object",
-                        "properties": {
-                            "errors": {
-                                "title": "Errors",
-                                "type": "array",
-                                "items": {"$ref": "#/components/schemas/Error"},
-                            }
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )

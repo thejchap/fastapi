@@ -1,8 +1,11 @@
+from tryke import expect, test
+
 from docs_src.python_types.tutorial007_py310 import process_items
 
 
-def test_process_items():
+@test
+def process_items_returns_pair():
     items_t = (1, 2, "foo")
     items_s = {b"a", b"b", b"c"}
 
-    assert process_items(items_t, items_s) == (items_t, items_s)
+    expect(process_items(items_t, items_s)).to_equal((items_t, items_s))

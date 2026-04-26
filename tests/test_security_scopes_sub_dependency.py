@@ -3,14 +3,15 @@
 
 from typing import Annotated
 
-import pytest
 from fastapi import Depends, FastAPI, Security
 from fastapi.security import SecurityScopes
 from fastapi.testclient import TestClient
+from tryke import Depends as TrykeDepends
+from tryke import expect, fixture, test
 
 
-@pytest.fixture(name="call_counts")
-def call_counts_fixture():
+@fixture
+def call_counts() -> dict[str, int]:
     return {
         "get_db_session": 0,
         "get_current_user": 0,
@@ -19,8 +20,8 @@ def call_counts_fixture():
     }
 
 
-@pytest.fixture(name="app")
-def app_fixture(call_counts: dict[str, int]):
+@fixture
+def app(call_counts: dict[str, int] = TrykeDepends(call_counts)) -> FastAPI:
     def get_db_session():
         call_counts["get_db_session"] += 1
         return f"db_session_{call_counts['get_db_session']}"
@@ -69,39 +70,43 @@ def app_fixture(call_counts: dict[str, int]):
     return app
 
 
-@pytest.fixture(name="client")
-def client_fixture(app: FastAPI):
+@fixture
+def client(app: FastAPI = TrykeDepends(app)) -> TestClient:
     return TestClient(app)
 
 
-def test_security_scopes_sub_dependency_caching(
-    client: TestClient, call_counts: dict[str, int]
+@test
+def security_scopes_sub_dependency_caching(
+    client: TestClient = TrykeDepends(client),
+    call_counts: dict[str, int] = TrykeDepends(call_counts),
 ):
     response = client.get("/")
 
-    assert response.status_code == 200
-    assert call_counts["get_db_session"] == 1
-    assert call_counts["get_current_user"] == 2
-    assert call_counts["get_user_me"] == 2
-    assert call_counts["get_user_items"] == 1
-    assert response.json() == {
-        "user_me": {
-            "user_me": "user_me_1",
-            "current_user": {
-                "user": "user_1",
-                "scopes": ["me"],
-                "db_session": "db_session_1",
-            },
-        },
-        "user_items": {
-            "user_items": "user_items_1",
+    expect(response.status_code).to_equal(200)
+    expect(call_counts["get_db_session"]).to_equal(1)
+    expect(call_counts["get_current_user"]).to_equal(2)
+    expect(call_counts["get_user_me"]).to_equal(2)
+    expect(call_counts["get_user_items"]).to_equal(1)
+    expect(response.json()).to_equal(
+        {
             "user_me": {
-                "user_me": "user_me_2",
+                "user_me": "user_me_1",
                 "current_user": {
-                    "user": "user_2",
-                    "scopes": ["items", "me"],
+                    "user": "user_1",
+                    "scopes": ["me"],
                     "db_session": "db_session_1",
                 },
             },
-        },
-    }
+            "user_items": {
+                "user_items": "user_items_1",
+                "user_me": {
+                    "user_me": "user_me_2",
+                    "current_user": {
+                        "user": "user_2",
+                        "scopes": ["items", "me"],
+                        "db_session": "db_session_1",
+                    },
+                },
+            },
+        }
+    )

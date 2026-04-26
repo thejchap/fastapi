@@ -1,5 +1,6 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 # Lax app with nested routers, inner overrides to strict
 
@@ -26,25 +27,29 @@ app_nested.include_router(outer_router)
 client_nested = TestClient(app_nested)
 
 
-def test_strict_inner_on_lax_app_rejects_no_content_type():
+@test
+def strict_inner_on_lax_app_rejects_no_content_type():
     response = client_nested.post("/outer/strict/items/", content='{"key": "value"}')
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422)
 
 
-def test_default_inner_inherits_lax_from_app():
+@test
+def default_inner_inherits_lax_from_app():
     response = client_nested.post("/outer/default/items/", content='{"key": "value"}')
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"key": "value"})
 
 
-def test_strict_inner_accepts_json_content_type():
+@test
+def strict_inner_accepts_json_content_type():
     response = client_nested.post("/outer/strict/items/", json={"key": "value"})
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)
 
 
-def test_default_inner_accepts_json_content_type():
+@test
+def default_inner_accepts_json_content_type():
     response = client_nested.post("/outer/default/items/", json={"key": "value"})
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)
 
 
 # Strict app -> lax outer router -> strict inner router
@@ -70,22 +75,26 @@ app_mixed.include_router(mixed_outer)
 client_mixed = TestClient(app_mixed)
 
 
-def test_lax_outer_on_strict_app_accepts_no_content_type():
+@test
+def lax_outer_on_strict_app_accepts_no_content_type():
     response = client_mixed.post("/outer/items/", content='{"key": "value"}')
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"key": "value"})
 
 
-def test_strict_inner_on_lax_outer_rejects_no_content_type():
+@test
+def strict_inner_on_lax_outer_rejects_no_content_type():
     response = client_mixed.post("/outer/inner/items/", content='{"key": "value"}')
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422)
 
 
-def test_lax_outer_accepts_json_content_type():
+@test
+def lax_outer_accepts_json_content_type():
     response = client_mixed.post("/outer/items/", json={"key": "value"})
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)
 
 
-def test_strict_inner_on_lax_outer_accepts_json_content_type():
+@test
+def strict_inner_on_lax_outer_accepts_json_content_type():
     response = client_mixed.post("/outer/inner/items/", json={"key": "value"})
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)

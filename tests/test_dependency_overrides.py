@@ -1,6 +1,6 @@
-import pytest
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -48,342 +48,420 @@ async def overrider_dependency_with_sub(msg: dict = Depends(overrider_sub_depend
     return msg
 
 
-def test_main_depends():
+@test
+def main_depends_test():
     response = client.get("/main-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "q"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "q"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-def test_main_depends_q_foo():
+@test
+def main_depends_q_foo():
     response = client.get("/main-depends/?q=foo")
-    assert response.status_code == 200
-    assert response.json() == {
-        "in": "main-depends",
-        "params": {"q": "foo", "skip": 0, "limit": 100},
-    }
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal(
+        {
+            "in": "main-depends",
+            "params": {"q": "foo", "skip": 0, "limit": 100},
+        }
+    )
 
 
-def test_main_depends_q_foo_skip_100_limit_200():
+@test
+def main_depends_q_foo_skip_100_limit_200():
     response = client.get("/main-depends/?q=foo&skip=100&limit=200")
-    assert response.status_code == 200
-    assert response.json() == {
-        "in": "main-depends",
-        "params": {"q": "foo", "skip": 100, "limit": 200},
-    }
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal(
+        {
+            "in": "main-depends",
+            "params": {"q": "foo", "skip": 100, "limit": 200},
+        }
+    )
 
 
-def test_decorator_depends():
+@test
+def decorator_depends_test():
     response = client.get("/decorator-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "q"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "q"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-def test_decorator_depends_q_foo():
+@test
+def decorator_depends_q_foo():
     response = client.get("/decorator-depends/?q=foo")
-    assert response.status_code == 200
-    assert response.json() == {"in": "decorator-depends"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "decorator-depends"})
 
 
-def test_decorator_depends_q_foo_skip_100_limit_200():
+@test
+def decorator_depends_q_foo_skip_100_limit_200():
     response = client.get("/decorator-depends/?q=foo&skip=100&limit=200")
-    assert response.status_code == 200
-    assert response.json() == {"in": "decorator-depends"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "decorator-depends"})
 
 
-def test_router_depends():
+@test
+def router_depends_test():
     response = client.get("/router-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "q"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "q"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-def test_router_depends_q_foo():
+@test
+def router_depends_q_foo():
     response = client.get("/router-depends/?q=foo")
-    assert response.status_code == 200
-    assert response.json() == {
-        "in": "router-depends",
-        "params": {"q": "foo", "skip": 0, "limit": 100},
-    }
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal(
+        {
+            "in": "router-depends",
+            "params": {"q": "foo", "skip": 0, "limit": 100},
+        }
+    )
 
 
-def test_router_depends_q_foo_skip_100_limit_200():
+@test
+def router_depends_q_foo_skip_100_limit_200():
     response = client.get("/router-depends/?q=foo&skip=100&limit=200")
-    assert response.status_code == 200
-    assert response.json() == {
-        "in": "router-depends",
-        "params": {"q": "foo", "skip": 100, "limit": 200},
-    }
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal(
+        {
+            "in": "router-depends",
+            "params": {"q": "foo", "skip": 100, "limit": 200},
+        }
+    )
 
 
-def test_router_decorator_depends():
+@test
+def router_decorator_depends_test():
     response = client.get("/router-decorator-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "q"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "q"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-def test_router_decorator_depends_q_foo():
+@test
+def router_decorator_depends_q_foo():
     response = client.get("/router-decorator-depends/?q=foo")
-    assert response.status_code == 200
-    assert response.json() == {"in": "router-decorator-depends"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "router-decorator-depends"})
 
 
-def test_router_decorator_depends_q_foo_skip_100_limit_200():
+@test
+def router_decorator_depends_q_foo_skip_100_limit_200():
     response = client.get("/router-decorator-depends/?q=foo&skip=100&limit=200")
-    assert response.status_code == 200
-    assert response.json() == {"in": "router-decorator-depends"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "router-decorator-depends"})
 
 
-@pytest.mark.parametrize(
-    "url,status_code,expected",
-    [
-        (
-            "/main-depends/",
-            200,
-            {"in": "main-depends", "params": {"q": None, "skip": 5, "limit": 10}},
-        ),
-        (
-            "/main-depends/?q=foo",
-            200,
-            {"in": "main-depends", "params": {"q": "foo", "skip": 5, "limit": 10}},
-        ),
-        (
-            "/main-depends/?q=foo&skip=100&limit=200",
-            200,
-            {"in": "main-depends", "params": {"q": "foo", "skip": 5, "limit": 10}},
-        ),
-        ("/decorator-depends/", 200, {"in": "decorator-depends"}),
-        (
-            "/router-depends/",
-            200,
-            {"in": "router-depends", "params": {"q": None, "skip": 5, "limit": 10}},
-        ),
-        (
-            "/router-depends/?q=foo",
-            200,
-            {"in": "router-depends", "params": {"q": "foo", "skip": 5, "limit": 10}},
-        ),
-        (
-            "/router-depends/?q=foo&skip=100&limit=200",
-            200,
-            {"in": "router-depends", "params": {"q": "foo", "skip": 5, "limit": 10}},
-        ),
-        ("/router-decorator-depends/", 200, {"in": "router-decorator-depends"}),
-    ],
+@test.cases(
+    test.case(
+        "main-depends",
+        url="/main-depends/",
+        status_code=200,
+        expected={"in": "main-depends", "params": {"q": None, "skip": 5, "limit": 10}},
+    ),
+    test.case(
+        "main-depends q=foo",
+        url="/main-depends/?q=foo",
+        status_code=200,
+        expected={"in": "main-depends", "params": {"q": "foo", "skip": 5, "limit": 10}},
+    ),
+    test.case(
+        "main-depends q=foo&skip=100&limit=200",
+        url="/main-depends/?q=foo&skip=100&limit=200",
+        status_code=200,
+        expected={"in": "main-depends", "params": {"q": "foo", "skip": 5, "limit": 10}},
+    ),
+    test.case(
+        "decorator-depends",
+        url="/decorator-depends/",
+        status_code=200,
+        expected={"in": "decorator-depends"},
+    ),
+    test.case(
+        "router-depends",
+        url="/router-depends/",
+        status_code=200,
+        expected={
+            "in": "router-depends",
+            "params": {"q": None, "skip": 5, "limit": 10},
+        },
+    ),
+    test.case(
+        "router-depends q=foo",
+        url="/router-depends/?q=foo",
+        status_code=200,
+        expected={
+            "in": "router-depends",
+            "params": {"q": "foo", "skip": 5, "limit": 10},
+        },
+    ),
+    test.case(
+        "router-depends q=foo&skip=100&limit=200",
+        url="/router-depends/?q=foo&skip=100&limit=200",
+        status_code=200,
+        expected={
+            "in": "router-depends",
+            "params": {"q": "foo", "skip": 5, "limit": 10},
+        },
+    ),
+    test.case(
+        "router-decorator-depends",
+        url="/router-decorator-depends/",
+        status_code=200,
+        expected={"in": "router-decorator-depends"},
+    ),
 )
-def test_override_simple(url, status_code, expected):
+def override_simple(url: str, status_code: int, expected: dict):
     app.dependency_overrides[common_parameters] = overrider_dependency_simple
     response = client.get(url)
-    assert response.status_code == status_code
-    assert response.json() == expected
+    expect(response.status_code).to_equal(status_code)
+    expect(response.json()).to_equal(expected)
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_main_depends():
+@test
+def override_with_sub_main_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/main-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub__main_depends_q_foo():
+@test
+def override_with_sub__main_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/main-depends/?q=foo")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_main_depends_k_bar():
+@test
+def override_with_sub_main_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/main-depends/?k=bar")
-    assert response.status_code == 200
-    assert response.json() == {"in": "main-depends", "params": {"k": "bar"}}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "main-depends", "params": {"k": "bar"}})
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_decorator_depends():
+@test
+def override_with_sub_decorator_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/decorator-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_decorator_depends_q_foo():
+@test
+def override_with_sub_decorator_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/decorator-depends/?q=foo")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_decorator_depends_k_bar():
+@test
+def override_with_sub_decorator_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/decorator-depends/?k=bar")
-    assert response.status_code == 200
-    assert response.json() == {"in": "decorator-depends"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "decorator-depends"})
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_router_depends():
+@test
+def override_with_sub_router_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_router_depends_q_foo():
+@test
+def override_with_sub_router_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-depends/?q=foo")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_router_depends_k_bar():
+@test
+def override_with_sub_router_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-depends/?k=bar")
-    assert response.status_code == 200
-    assert response.json() == {"in": "router-depends", "params": {"k": "bar"}}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "router-depends", "params": {"k": "bar"}})
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_router_decorator_depends():
+@test
+def override_with_sub_router_decorator_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-decorator-depends/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_router_decorator_depends_q_foo():
+@test
+def override_with_sub_router_decorator_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-decorator-depends/?q=foo")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["query", "k"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["query", "k"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
     app.dependency_overrides = {}
 
 
-def test_override_with_sub_router_decorator_depends_k_bar():
+@test
+def override_with_sub_router_decorator_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-decorator-depends/?k=bar")
-    assert response.status_code == 200
-    assert response.json() == {"in": "router-decorator-depends"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"in": "router-decorator-depends"})
     app.dependency_overrides = {}

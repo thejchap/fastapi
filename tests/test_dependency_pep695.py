@@ -2,19 +2,18 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
-from typing_extensions import TypeAliasType
+from tryke import expect, test
 
 
 async def some_value() -> int:
     return 123
 
 
-DependedValue = TypeAliasType(
-    "DependedValue", Annotated[int, Depends(some_value)], type_params=()
-)
+type DependedValue = Annotated[int, Depends(some_value)]
 
 
-def test_pep695_type_dependencies():
+@test
+def pep695_type_dependencies():
     app = FastAPI()
 
     @app.get("/")
@@ -23,5 +22,5 @@ def test_pep695_type_dependencies():
 
     client = TestClient(app)
     response = client.get("/")
-    assert response.status_code == 200
-    assert response.text == '"value: 123"'
+    expect(response.status_code).to_equal(200)
+    expect(response.text).to_equal('"value: 123"')

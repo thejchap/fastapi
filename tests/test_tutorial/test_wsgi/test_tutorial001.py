@@ -1,17 +1,20 @@
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.wsgi.tutorial001_py310 import app
 
 client = TestClient(app)
 
 
-def test_flask():
+@test
+def flask():
     response = client.get("/v1/")
-    assert response.status_code == 200, response.text
-    assert response.text == "Hello, World from Flask!"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_equal("Hello, World from Flask!")
 
 
-def test_app():
+@test
+def app_v2():
     response = client.get("/v2")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Hello World"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Hello World"})

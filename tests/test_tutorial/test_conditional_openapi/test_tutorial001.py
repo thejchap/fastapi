@@ -2,6 +2,9 @@ import importlib
 
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
+
+from ..._shims import monkeypatch_ctx
 
 
 def get_client() -> TestClient:
@@ -13,49 +16,55 @@ def get_client() -> TestClient:
     return client
 
 
-def test_disable_openapi(monkeypatch):
-    monkeypatch.setenv("OPENAPI_URL", "")
-    # Load the client after setting the env var
-    client = get_client()
-    response = client.get("/openapi.json")
-    assert response.status_code == 404, response.text
-    response = client.get("/docs")
-    assert response.status_code == 404, response.text
-    response = client.get("/redoc")
-    assert response.status_code == 404, response.text
+@test
+def disable_openapi():
+    with monkeypatch_ctx() as monkeypatch:
+        monkeypatch.setenv("OPENAPI_URL", "")
+        # Load the client after setting the env var.
+        client = get_client()
+        response = client.get("/openapi.json")
+        expect(response.status_code).to_equal(404)
+        response = client.get("/docs")
+        expect(response.status_code).to_equal(404)
+        response = client.get("/redoc")
+        expect(response.status_code).to_equal(404)
 
 
-def test_root():
+@test
+def root():
     client = get_client()
     response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "Hello World"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"message": "Hello World"})
 
 
-def test_default_openapi():
+@test
+def default_openapi():
     client = get_client()
     response = client.get("/docs")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200)
     response = client.get("/redoc")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200)
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/": {
-                    "get": {
-                        "summary": "Root",
-                        "operationId": "root__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/": {
+                        "get": {
+                            "summary": "Root",
+                            "operationId": "root__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

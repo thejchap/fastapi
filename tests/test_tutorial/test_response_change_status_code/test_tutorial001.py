@@ -1,15 +1,17 @@
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.response_change_status_code.tutorial001_py310 import app
 
 client = TestClient(app)
 
 
-def test_path_operation():
+@test
+def path_operation():
     response = client.put("/get-or-create-task/foo")
     print(response.content)
-    assert response.status_code == 200, response.text
-    assert response.json() == "Listen to the Bar Fighters"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("Listen to the Bar Fighters")
     response = client.put("/get-or-create-task/bar")
-    assert response.status_code == 201, response.text
-    assert response.json() == "This didn't exist before"
+    expect(response.status_code).to_equal(201).fatal()
+    expect(response.json()).to_equal("This didn't exist before")

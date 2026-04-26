@@ -1,5 +1,6 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -30,32 +31,38 @@ app.include_router(router_default)
 client = TestClient(app)
 
 
-def test_lax_router_on_strict_app_accepts_no_content_type():
+@test
+def lax_router_on_strict_app_accepts_no_content_type():
     response = client.post("/lax/items/", content='{"key": "value"}')
-    assert response.status_code == 200
-    assert response.json() == {"key": "value"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"key": "value"})
 
 
-def test_strict_router_on_strict_app_rejects_no_content_type():
+@test
+def strict_router_on_strict_app_rejects_no_content_type():
     response = client.post("/strict/items/", content='{"key": "value"}')
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422)
 
 
-def test_default_router_inherits_strict_from_app():
+@test
+def default_router_inherits_strict_from_app():
     response = client.post("/default/items/", content='{"key": "value"}')
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422)
 
 
-def test_lax_router_accepts_json_content_type():
+@test
+def lax_router_accepts_json_content_type():
     response = client.post("/lax/items/", json={"key": "value"})
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)
 
 
-def test_strict_router_accepts_json_content_type():
+@test
+def strict_router_accepts_json_content_type():
     response = client.post("/strict/items/", json={"key": "value"})
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)
 
 
-def test_default_router_accepts_json_content_type():
+@test
+def default_router_accepts_json_content_type():
     response = client.post("/default/items/", json={"key": "value"})
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)

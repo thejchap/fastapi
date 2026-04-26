@@ -1,25 +1,14 @@
-import importlib
-from types import ModuleType
+from tryke import test
 
-import pytest
-
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="test_module",
-    params=[
-        pytest.param("app_b_py310.test_main", marks=needs_py310),
-        pytest.param("app_b_an_py310.test_main", marks=needs_py310),
-    ],
+@test.cases(
+    test.case("app_b_py310", name="app_b_py310.test_main"),
+    test.case("app_b_an_py310", name="app_b_an_py310.test_main"),
 )
-def get_test_module(request: pytest.FixtureRequest) -> ModuleType:
-    mod: ModuleType = importlib.import_module(f"docs_src.app_testing.{request.param}")
-    return mod
-
-
-def test_app(test_module: ModuleType):
-    test_main = test_module
+def app(name: str):
+    test_main = import_tutorial("app_testing", name)
     test_main.test_create_existing_item()
     test_main.test_create_item()
     test_main.test_create_item_bad_token()

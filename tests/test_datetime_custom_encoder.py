@@ -1,11 +1,13 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 
-def test_pydanticv2():
+@test
+def pydanticv2():
     from pydantic import field_serializer
 
     class ModelWithDatetimeField(BaseModel):
@@ -13,7 +15,7 @@ def test_pydanticv2():
 
         @field_serializer("dt_field")
         def serialize_datetime(self, dt_field: datetime):
-            return dt_field.replace(microsecond=0, tzinfo=timezone.utc).isoformat()
+            return dt_field.replace(microsecond=0, tzinfo=UTC).isoformat()
 
     app = FastAPI()
     model = ModelWithDatetimeField(dt_field=datetime(2019, 1, 1, 8))
@@ -25,4 +27,4 @@ def test_pydanticv2():
     client = TestClient(app)
     with client:
         response = client.get("/model")
-    assert response.json() == {"dt_field": "2019-01-01T08:00:00+00:00"}
+    expect(response.json()).to_equal({"dt_field": "2019-01-01T08:00:00+00:00"})

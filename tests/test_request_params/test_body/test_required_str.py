@@ -1,10 +1,10 @@
 from typing import Annotated, Any
 
-import pytest
 from dirty_equals import IsOneOf
 from fastapi import Body, FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
+from tryke import expect, test
 
 from .utils import get_body_model_name
 
@@ -28,54 +28,57 @@ async def read_model_required_str(p: BodyModelRequiredStr):
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/required-str", "/model-required-str"],
+@test.cases(
+    test.case("required-str", path="/required-str"),
+    test.case("model-required-str", path="/model-required-str"),
 )
-def test_required_str_schema(path: str):
+def required_str_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p": {"title": "P", "type": "string"},
-        },
-        "required": ["p"],
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {"p": {"title": "P", "type": "string"}},
+            "required": ["p"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize("json", [None, {}])
-@pytest.mark.parametrize(
-    "path",
-    ["/required-str", "/model-required-str"],
+@test.cases(
+    test.case("none-required-str", json=None, path="/required-str"),
+    test.case("none-model-required-str", json=None, path="/model-required-str"),
+    test.case("empty-dict-required-str", json={}, path="/required-str"),
+    test.case("empty-dict-model-required-str", json={}, path="/model-required-str"),
 )
-def test_required_str_missing(path: str, json: dict[str, Any] | None):
+def required_str_missing(path: str, json: dict[str, Any] | None):
     client = TestClient(app)
     response = client.post(path, json=json)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": IsOneOf(["body"], ["body", "p"]),
-                "msg": "Field required",
-                "input": IsOneOf(None, {}),
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": IsOneOf(["body"], ["body", "p"]),
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/required-str", "/model-required-str"],
+@test.cases(
+    test.case("required-str", path="/required-str"),
+    test.case("model-required-str", path="/model-required-str"),
 )
-def test_required_str(path: str):
+def required_str(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": "hello"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -98,77 +101,79 @@ async def read_model_required_alias(p: BodyModelRequiredAlias):
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-alias",
-        "/model-required-alias",
-    ],
+@test.cases(
+    test.case("required-alias", path="/required-alias"),
+    test.case("model-required-alias", path="/model-required-alias"),
 )
-def test_required_str_alias_schema(path: str):
+def required_str_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_alias": {"title": "P Alias", "type": "string"},
-        },
-        "required": ["p_alias"],
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {"p_alias": {"title": "P Alias", "type": "string"}},
+            "required": ["p_alias"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize("json", [None, {}])
-@pytest.mark.parametrize(
-    "path",
-    ["/required-alias", "/model-required-alias"],
+@test.cases(
+    test.case("none-required-alias", json=None, path="/required-alias"),
+    test.case("none-model-required-alias", json=None, path="/model-required-alias"),
+    test.case("empty-dict-required-alias", json={}, path="/required-alias"),
+    test.case("empty-dict-model-required-alias", json={}, path="/model-required-alias"),
 )
-def test_required_alias_missing(path: str, json: dict[str, Any] | None):
+def required_alias_missing(path: str, json: dict[str, Any] | None):
     client = TestClient(app)
     response = client.post(path, json=json)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": IsOneOf(["body", "p_alias"], ["body"]),
-                "msg": "Field required",
-                "input": IsOneOf(None, {}),
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": IsOneOf(["body", "p_alias"], ["body"]),
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/required-alias", "/model-required-alias"],
+@test.cases(
+    test.case("required-alias", path="/required-alias"),
+    test.case("model-required-alias", path="/model-required-alias"),
 )
-def test_required_alias_by_name(path: str):
+def required_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p_alias"],
-                "msg": "Field required",
-                "input": IsOneOf(None, {"p": "hello"}),
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_alias"],
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {"p": "hello"}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/required-alias", "/model-required-alias"],
+@test.cases(
+    test.case("required-alias", path="/required-alias"),
+    test.case("model-required-alias", path="/model-required-alias"),
 )
-def test_required_alias_by_alias(path: str):
+def required_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_alias": "hello"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"p": "hello"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -195,85 +200,101 @@ def read_model_required_validation_alias(
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/required-validation-alias", "/model-required-validation-alias"],
+@test.cases(
+    test.case("required-validation-alias", path="/required-validation-alias"),
+    test.case(
+        "model-required-validation-alias", path="/model-required-validation-alias"
+    ),
 )
-def test_required_validation_alias_schema(path: str):
+def required_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {"title": "P Val Alias", "type": "string"},
-        },
-        "required": ["p_val_alias"],
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {"p_val_alias": {"title": "P Val Alias", "type": "string"}},
+            "required": ["p_val_alias"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize("json", [None, {}])
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-validation-alias",
-        "/model-required-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "none-required-validation-alias", json=None, path="/required-validation-alias"
+    ),
+    test.case(
+        "none-model-required-validation-alias",
+        json=None,
+        path="/model-required-validation-alias",
+    ),
+    test.case(
+        "empty-dict-required-validation-alias",
+        json={},
+        path="/required-validation-alias",
+    ),
+    test.case(
+        "empty-dict-model-required-validation-alias",
+        json={},
+        path="/model-required-validation-alias",
+    ),
 )
-def test_required_validation_alias_missing(path: str, json: dict[str, Any] | None):
+def required_validation_alias_missing(path: str, json: dict[str, Any] | None):
     client = TestClient(app)
     response = client.post(path, json=json)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": IsOneOf(["body", "p_val_alias"], ["body"]),
-                "msg": "Field required",
-                "input": IsOneOf(None, {}),
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": IsOneOf(["body", "p_val_alias"], ["body"]),
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-validation-alias",
-        "/model-required-validation-alias",
-    ],
+@test.cases(
+    test.case("required-validation-alias", path="/required-validation-alias"),
+    test.case(
+        "model-required-validation-alias", path="/model-required-validation-alias"
+    ),
 )
-def test_required_validation_alias_by_name(path: str):
+def required_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 422, response.text
+    expect(response.status_code).to_equal(422).fatal()
 
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p_val_alias"],
-                "msg": "Field required",
-                "input": IsOneOf(None, {"p": "hello"}),
-            }
-        ]
-    }
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {"p": "hello"}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-validation-alias",
-        "/model-required-validation-alias",
-    ],
+@test.cases(
+    test.case("required-validation-alias", path="/required-validation-alias"),
+    test.case(
+        "model-required-validation-alias", path="/model-required-validation-alias"
+    ),
 )
-def test_required_validation_alias_by_validation_alias(path: str):
+def required_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_val_alias": "hello"})
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
 
-    assert response.json() == {"p": "hello"}
+    expect(response.json()).to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -306,114 +327,141 @@ def read_model_required_alias_and_validation_alias(
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-alias-and-validation-alias",
-        "/model-required-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "required-alias-and-validation-alias",
+        path="/required-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-required-alias-and-validation-alias",
+        path="/model-required-alias-and-validation-alias",
+    ),
 )
-def test_required_alias_and_validation_alias_schema(path: str):
+def required_alias_and_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {"title": "P Val Alias", "type": "string"},
-        },
-        "required": ["p_val_alias"],
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {"p_val_alias": {"title": "P Val Alias", "type": "string"}},
+            "required": ["p_val_alias"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize("json", [None, {}])
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-alias-and-validation-alias",
-        "/model-required-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "none-required-alias-and-validation-alias",
+        json=None,
+        path="/required-alias-and-validation-alias",
+    ),
+    test.case(
+        "none-model-required-alias-and-validation-alias",
+        json=None,
+        path="/model-required-alias-and-validation-alias",
+    ),
+    test.case(
+        "empty-dict-required-alias-and-validation-alias",
+        json={},
+        path="/required-alias-and-validation-alias",
+    ),
+    test.case(
+        "empty-dict-model-required-alias-and-validation-alias",
+        json={},
+        path="/model-required-alias-and-validation-alias",
+    ),
 )
-def test_required_alias_and_validation_alias_missing(
-    path: str, json: dict[str, Any] | None
-):
+def required_alias_and_validation_alias_missing(path: str, json: dict[str, Any] | None):
     client = TestClient(app)
     response = client.post(path, json=json)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": IsOneOf(["body"], ["body", "p_val_alias"]),
-                "msg": "Field required",
-                "input": IsOneOf(None, {}),
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": IsOneOf(["body"], ["body", "p_val_alias"]),
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-alias-and-validation-alias",
-        "/model-required-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "required-alias-and-validation-alias",
+        path="/required-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-required-alias-and-validation-alias",
+        path="/model-required-alias-and-validation-alias",
+    ),
 )
-def test_required_alias_and_validation_alias_by_name(path: str):
+def required_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422)
 
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": [
-                    "body",
-                    "p_val_alias",
-                ],
-                "msg": "Field required",
-                "input": IsOneOf(None, {"p": "hello"}),
-            }
-        ]
-    }
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {"p": "hello"}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-alias-and-validation-alias",
-        "/model-required-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "required-alias-and-validation-alias",
+        path="/required-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-required-alias-and-validation-alias",
+        path="/model-required-alias-and-validation-alias",
+    ),
 )
-def test_required_alias_and_validation_alias_by_alias(path: str):
+def required_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_alias": "hello"})
-    assert response.status_code == 422, response.text
+    expect(response.status_code).to_equal(422).fatal()
 
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p_val_alias"],
-                "msg": "Field required",
-                "input": IsOneOf(None, {"p_alias": "hello"}),
-            }
-        ]
-    }
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": IsOneOf(None, {"p_alias": "hello"}),
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/required-alias-and-validation-alias",
-        "/model-required-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "required-alias-and-validation-alias",
+        path="/required-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-required-alias-and-validation-alias",
+        path="/model-required-alias-and-validation-alias",
+    ),
 )
-def test_required_alias_and_validation_alias_by_validation_alias(path: str):
+def required_alias_and_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_val_alias": "hello"})
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
 
-    assert response.json() == {"p": "hello"}
+    expect(response.json()).to_equal({"p": "hello"})

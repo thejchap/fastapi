@@ -1,13 +1,14 @@
-import pytest
 from dirty_equals import HasRepr
 from fastapi import Depends, FastAPI
 from fastapi.exceptions import ResponseValidationError
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import Depends as TDepends
+from tryke import expect, fixture, test
 
 
-@pytest.fixture(name="client")
-def get_client():
+@fixture
+def client() -> TestClient:
     from pydantic import BaseModel, ValidationInfo, field_validator
 
     app = FastAPI()
@@ -42,141 +43,156 @@ def get_client():
             "tags": {"key1": "value1", "key2": "value2"},
         }
 
-    client = TestClient(app)
-    return client
+    return TestClient(app)
 
 
-def test_filter_sub_model(client: TestClient):
+@test
+def filter_sub_model(client: TestClient = TDepends(client)):
     response = client.get("/model/modelA")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "name": "modelA",
-        "description": "model-a-desc",
-        "foo": {"username": "test-user"},
-        "tags": {"key1": "value1", "key2": "value2"},
-    }
-
-
-def test_validator_is_cloned(client: TestClient):
-    with pytest.raises(ResponseValidationError) as err:
-        client.get("/model/modelX")
-    assert err.value.errors() == [
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
         {
-            "type": "value_error",
-            "loc": ("response", "name"),
-            "msg": "Value error, name must end in A",
-            "input": "modelX",
-            "ctx": {"error": HasRepr("ValueError('name must end in A')")},
+            "name": "modelA",
+            "description": "model-a-desc",
+            "foo": {"username": "test-user"},
+            "tags": {"key1": "value1", "key2": "value2"},
         }
-    ]
+    )
 
 
-def test_openapi_schema(client: TestClient):
+@test
+def validator_is_cloned(client: TestClient = TDepends(client)):
+    captured: ResponseValidationError | None = None
+    try:
+        client.get("/model/modelX")
+    except ResponseValidationError as exc:
+        captured = exc
+    expect(captured).not_.to_be_none().fatal()
+    expect(captured.errors()).to_equal(
+        [
+            {
+                "type": "value_error",
+                "loc": ("response", "name"),
+                "msg": "Value error, name must end in A",
+                "input": "modelX",
+                "ctx": {"error": HasRepr("ValueError('name must end in A')")},
+            }
+        ]
+    )
+
+
+@test
+def openapi_schema(client: TestClient = TDepends(client)):
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/model/{name}": {
-                    "get": {
-                        "summary": "Get Model A",
-                        "operationId": "get_model_a_model__name__get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "Name", "type": "string"},
-                                "name": "name",
-                                "in": "path",
-                            }
-                        ],
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/ModelA"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/model/{name}": {
+                        "get": {
+                            "summary": "Get Model A",
+                            "operationId": "get_model_a_model__name__get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "Name", "type": "string"},
+                                    "name": "name",
+                                    "in": "path",
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/ModelA"
+                                            }
                                         }
-                                    }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
                                 },
                             },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
+                        },
+                        "ModelA": {
+                            "title": "ModelA",
+                            "required": ["name", "foo"],
+                            "type": "object",
+                            "properties": {
+                                "name": {"title": "Name", "type": "string"},
+                                "description": {
+                                    "title": "Description",
+                                    "anyOf": [{"type": "string"}, {"type": "null"}],
                                 },
+                                "foo": {"$ref": "#/components/schemas/ModelB"},
+                                "tags": {
+                                    "additionalProperties": {"type": "string"},
+                                    "type": "object",
+                                    "title": "Tags",
+                                    "default": {},
+                                },
+                            },
+                        },
+                        "ModelB": {
+                            "title": "ModelB",
+                            "required": ["username"],
+                            "type": "object",
+                            "properties": {
+                                "username": {"title": "Username", "type": "string"}
+                            },
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
                             },
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "ModelA": {
-                        "title": "ModelA",
-                        "required": ["name", "foo"],
-                        "type": "object",
-                        "properties": {
-                            "name": {"title": "Name", "type": "string"},
-                            "description": {
-                                "title": "Description",
-                                "anyOf": [{"type": "string"}, {"type": "null"}],
-                            },
-                            "foo": {"$ref": "#/components/schemas/ModelB"},
-                            "tags": {
-                                "additionalProperties": {"type": "string"},
-                                "type": "object",
-                                "title": "Tags",
-                                "default": {},
-                            },
-                        },
-                    },
-                    "ModelB": {
-                        "title": "ModelB",
-                        "required": ["username"],
-                        "type": "object",
-                        "properties": {
-                            "username": {"title": "Username", "type": "string"}
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

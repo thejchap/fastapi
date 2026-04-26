@@ -1,48 +1,47 @@
 import os
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
+from tryke import Depends, expect, fixture, test
 
-from tests.utils import workdir_lock
 
-
-@pytest.fixture(scope="module")
+@fixture
 def client():
     static_dir: Path = Path(os.getcwd()) / "static"
-    print(static_dir)
+    created = not static_dir.exists()
     static_dir.mkdir(exist_ok=True)
     from docs_src.custom_docs_ui.tutorial002_py310 import app
 
     with TestClient(app) as client:
         yield client
-    static_dir.rmdir()
+    if created and static_dir.exists():
+        static_dir.rmdir()
 
 
-@workdir_lock
-def test_swagger_ui_html(client: TestClient):
+@test
+def swagger_ui_html(client: TestClient = Depends(client)):
     response = client.get("/docs")
-    assert response.status_code == 200, response.text
-    assert "/static/swagger-ui-bundle.js" in response.text
-    assert "/static/swagger-ui.css" in response.text
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_contain("/static/swagger-ui-bundle.js")
+    expect(response.text).to_contain("/static/swagger-ui.css")
 
 
-@workdir_lock
-def test_swagger_ui_oauth2_redirect_html(client: TestClient):
+@test
+def swagger_ui_oauth2_redirect_html(client: TestClient = Depends(client)):
     response = client.get("/docs/oauth2-redirect")
-    assert response.status_code == 200, response.text
-    assert "window.opener.swaggerUIRedirectOauth2" in response.text
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_contain("window.opener.swaggerUIRedirectOauth2")
 
 
-@workdir_lock
-def test_redoc_html(client: TestClient):
+@test
+def redoc_html(client: TestClient = Depends(client)):
     response = client.get("/redoc")
-    assert response.status_code == 200, response.text
-    assert "/static/redoc.standalone.js" in response.text
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_contain("/static/redoc.standalone.js")
 
 
-@workdir_lock
-def test_api(client: TestClient):
+@test
+def api(client: TestClient = Depends(client)):
     response = client.get("/users/john")
-    assert response.status_code == 200, response.text
-    assert response.json()["message"] == "Hello john"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()["message"]).to_equal("Hello john")

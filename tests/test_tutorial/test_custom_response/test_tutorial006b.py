@@ -1,32 +1,39 @@
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 from docs_src.custom_response.tutorial006b_py310 import app
 
 client = TestClient(app)
 
 
-def test_redirect_response_class():
+@test
+def redirect_response_class():
     response = client.get("/fastapi", follow_redirects=False)
-    assert response.status_code == 307
-    assert response.headers["location"] == "https://fastapi.tiangolo.com"
+    expect(response.status_code).to_equal(307)
+    expect(response.headers["location"]).to_equal("https://fastapi.tiangolo.com")
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/fastapi": {
-                    "get": {
-                        "summary": "Redirect Fastapi",
-                        "operationId": "redirect_fastapi_fastapi_get",
-                        "responses": {"307": {"description": "Successful Response"}},
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/fastapi": {
+                        "get": {
+                            "summary": "Redirect Fastapi",
+                            "operationId": "redirect_fastapi_fastapi_get",
+                            "responses": {
+                                "307": {"description": "Successful Response"}
+                            },
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )

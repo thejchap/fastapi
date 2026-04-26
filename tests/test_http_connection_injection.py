@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.requests import HTTPConnection
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocket
+from tryke import expect, test
 
 app = FastAPI()
 app.state.value = 42
@@ -28,12 +29,14 @@ async def get_value_by_ws(
 client = TestClient(app)
 
 
-def test_value_extracting_by_http():
+@test
+def value_extracting_by_http():
     response = client.get("/http")
-    assert response.status_code == 200
-    assert response.json() == 42
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(42)
 
 
-def test_value_extracting_by_ws():
+@test
+def value_extracting_by_ws():
     with client.websocket_connect("/ws") as websocket:
-        assert websocket.receive_json() == 42
+        expect(websocket.receive_json()).to_equal(42)

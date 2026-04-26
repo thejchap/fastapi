@@ -2,6 +2,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from pydantic import BaseModel
+from tryke import expect, test
 
 
 class ResponseModel(BaseModel):
@@ -58,125 +59,132 @@ app.include_router(router)
 client = TestClient(app)
 
 
-def test_a():
+@test
+def a_route():
     response = client.get("/a")
-    assert response.status_code == 200, response.text
-    assert response.json() == "a"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("a")
 
 
-def test_b():
+@test
+def b_route():
     response = client.get("/b")
-    assert response.status_code == 200, response.text
-    assert response.json() == "b"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("b")
 
 
-def test_c():
+@test
+def c_route():
     response = client.get("/c")
-    assert response.status_code == 200, response.text
-    assert response.json() == "c"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("c")
 
 
-def test_d():
+@test
+def d_route():
     response = client.get("/d")
-    assert response.status_code == 200, response.text
-    assert response.json() == "d"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("d")
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/a": {
-                    "get": {
-                        "responses": {
-                            "501": {"description": "Error 1"},
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                        },
-                        "summary": "A",
-                        "operationId": "a_a_get",
-                    }
-                },
-                "/b": {
-                    "get": {
-                        "responses": {
-                            "502": {"description": "Error 2"},
-                            "4XX": {"description": "Error with range, upper"},
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                        },
-                        "summary": "B",
-                        "operationId": "b_b_get",
-                    }
-                },
-                "/c": {
-                    "get": {
-                        "responses": {
-                            "400": {"description": "Error with str"},
-                            "5XX": {"description": "Error with range, lower"},
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "default": {"description": "A default response"},
-                        },
-                        "summary": "C",
-                        "operationId": "c_c_get",
-                    }
-                },
-                "/d": {
-                    "get": {
-                        "responses": {
-                            "400": {"description": "Error with str"},
-                            "5XX": {
-                                "description": "Server Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/ResponseModel"
-                                        }
-                                    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/a": {
+                        "get": {
+                            "responses": {
+                                "501": {"description": "Error 1"},
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
                                 },
                             },
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "default": {
-                                "description": "Default Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/ResponseModel"
-                                        }
-                                    }
+                            "summary": "A",
+                            "operationId": "a_a_get",
+                        }
+                    },
+                    "/b": {
+                        "get": {
+                            "responses": {
+                                "502": {"description": "Error 2"},
+                                "4XX": {"description": "Error with range, upper"},
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
                                 },
                             },
-                        },
-                        "summary": "D",
-                        "operationId": "d_d_get",
+                            "summary": "B",
+                            "operationId": "b_b_get",
+                        }
+                    },
+                    "/c": {
+                        "get": {
+                            "responses": {
+                                "400": {"description": "Error with str"},
+                                "5XX": {"description": "Error with range, lower"},
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "default": {"description": "A default response"},
+                            },
+                            "summary": "C",
+                            "operationId": "c_c_get",
+                        }
+                    },
+                    "/d": {
+                        "get": {
+                            "responses": {
+                                "400": {"description": "Error with str"},
+                                "5XX": {
+                                    "description": "Server Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/ResponseModel"
+                                            }
+                                        }
+                                    },
+                                },
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "default": {
+                                    "description": "Default Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/ResponseModel"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                            "summary": "D",
+                            "operationId": "d_d_get",
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "ResponseModel": {
+                            "title": "ResponseModel",
+                            "required": ["message"],
+                            "type": "object",
+                            "properties": {
+                                "message": {"title": "Message", "type": "string"}
+                            },
+                        }
                     }
                 },
-            },
-            "components": {
-                "schemas": {
-                    "ResponseModel": {
-                        "title": "ResponseModel",
-                        "required": ["message"],
-                        "type": "object",
-                        "properties": {
-                            "message": {"title": "Message", "type": "string"}
-                        },
-                    }
-                }
-            },
-        }
+            }
+        )
     )

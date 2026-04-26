@@ -1,8 +1,8 @@
 from collections.abc import AsyncGenerator, Generator
 
-import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -13,7 +13,7 @@ class CallableDependency:
 
 
 class CallableGenDependency:
-    def __call__(self, value: str) -> Generator[str, None, None]:
+    def __call__(self, value: str) -> Generator[str]:
         yield value
 
 
@@ -23,7 +23,7 @@ class AsyncCallableDependency:
 
 
 class AsyncCallableGenDependency:
-    async def __call__(self, value: str) -> AsyncGenerator[str, None]:
+    async def __call__(self, value: str) -> AsyncGenerator[str]:
         yield value
 
 
@@ -34,10 +34,10 @@ class MethodsDependency:
     async def asynchronous(self, value: str) -> str:
         return value
 
-    def synchronous_gen(self, value: str) -> Generator[str, None, None]:
+    def synchronous_gen(self, value: str) -> Generator[str]:
         yield value
 
-    async def asynchronous_gen(self, value: str) -> AsyncGenerator[str, None]:
+    async def asynchronous_gen(self, value: str) -> AsyncGenerator[str]:
         yield value
 
 
@@ -131,24 +131,67 @@ async def get_asynchronous_method_gen_dependency(
 client = TestClient(app)
 
 
-@pytest.mark.parametrize(
-    "route,value",
-    [
-        ("/callable-dependency", "callable-dependency"),
-        ("/callable-gen-dependency", "callable-gen-dependency"),
-        ("/async-callable-dependency", "async-callable-dependency"),
-        ("/async-callable-gen-dependency", "async-callable-gen-dependency"),
-        ("/synchronous-method-dependency", "synchronous-method-dependency"),
-        ("/synchronous-method-gen-dependency", "synchronous-method-gen-dependency"),
-        ("/asynchronous-method-dependency", "asynchronous-method-dependency"),
-        ("/asynchronous-method-gen-dependency", "asynchronous-method-gen-dependency"),
-        ("/callable-dependency-class", "callable-dependency-class"),
-        ("/callable-gen-dependency-class", "callable-gen-dependency-class"),
-        ("/async-callable-dependency-class", "async-callable-dependency-class"),
-        ("/async-callable-gen-dependency-class", "async-callable-gen-dependency-class"),
-    ],
+@test.cases(
+    test.case(
+        "callable-dependency", route="/callable-dependency", value="callable-dependency"
+    ),
+    test.case(
+        "callable-gen-dependency",
+        route="/callable-gen-dependency",
+        value="callable-gen-dependency",
+    ),
+    test.case(
+        "async-callable-dependency",
+        route="/async-callable-dependency",
+        value="async-callable-dependency",
+    ),
+    test.case(
+        "async-callable-gen-dependency",
+        route="/async-callable-gen-dependency",
+        value="async-callable-gen-dependency",
+    ),
+    test.case(
+        "synchronous-method-dependency",
+        route="/synchronous-method-dependency",
+        value="synchronous-method-dependency",
+    ),
+    test.case(
+        "synchronous-method-gen-dependency",
+        route="/synchronous-method-gen-dependency",
+        value="synchronous-method-gen-dependency",
+    ),
+    test.case(
+        "asynchronous-method-dependency",
+        route="/asynchronous-method-dependency",
+        value="asynchronous-method-dependency",
+    ),
+    test.case(
+        "asynchronous-method-gen-dependency",
+        route="/asynchronous-method-gen-dependency",
+        value="asynchronous-method-gen-dependency",
+    ),
+    test.case(
+        "callable-dependency-class",
+        route="/callable-dependency-class",
+        value="callable-dependency-class",
+    ),
+    test.case(
+        "callable-gen-dependency-class",
+        route="/callable-gen-dependency-class",
+        value="callable-gen-dependency-class",
+    ),
+    test.case(
+        "async-callable-dependency-class",
+        route="/async-callable-dependency-class",
+        value="async-callable-dependency-class",
+    ),
+    test.case(
+        "async-callable-gen-dependency-class",
+        route="/async-callable-gen-dependency-class",
+        value="async-callable-gen-dependency-class",
+    ),
 )
-def test_class_dependency(route, value):
+def class_dependency(route: str, value: str):
     response = client.get(route, params={"value": value})
-    assert response.status_code == 200, response.text
-    assert response.json() == value
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(value)

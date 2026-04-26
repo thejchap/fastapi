@@ -1,12 +1,14 @@
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.response_headers.tutorial002_py310 import app
 
 client = TestClient(app)
 
 
-def test_path_operation():
+@test
+def path_operation():
     response = client.get("/headers-and-object/")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"message": "Hello World"}
-    assert response.headers["X-Cat-Dog"] == "alone in the world"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"message": "Hello World"})
+    expect(response.headers["X-Cat-Dog"]).to_equal("alone in the world")

@@ -1,226 +1,239 @@
-import importlib
-
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
+
+from ..._shims import import_tutorial, tmp_path_ctx
 
 
-@pytest.fixture(
-    name="app",
-    params=[
-        "tutorial003_py310",
-        "tutorial003_an_py310",
-    ],
-)
-def get_app(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.request_files.{request.param}")
-
+def _app_for(name: str) -> FastAPI:
+    mod = import_tutorial("request_files", name)
     return mod.app
 
 
-@pytest.fixture(name="client")
-def get_client(app: FastAPI):
-    client = TestClient(app)
-    return client
+@test.cases(
+    test.case("tutorial003_py310", name="tutorial003_py310"),
+    test.case("tutorial003_an_py310", name="tutorial003_an_py310"),
+)
+def post_files(name: str):
+    app = _app_for(name)
+    with tmp_path_ctx() as tmp_path:
+        path = tmp_path / "test.txt"
+        path.write_bytes(b"<file content>")
+        path2 = tmp_path / "test2.txt"
+        path2.write_bytes(b"<file content2>")
+
+        client = TestClient(app)
+        with path.open("rb") as file, path2.open("rb") as file2:
+            response = client.post(
+                "/files/",
+                files=(
+                    ("files", ("test.txt", file)),
+                    ("files", ("test2.txt", file2)),
+                ),
+            )
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal({"file_sizes": [14, 15]})
 
 
-def test_post_files(tmp_path, app: FastAPI):
-    path = tmp_path / "test.txt"
-    path.write_bytes(b"<file content>")
-    path2 = tmp_path / "test2.txt"
-    path2.write_bytes(b"<file content2>")
+@test.cases(
+    test.case("tutorial003_py310", name="tutorial003_py310"),
+    test.case("tutorial003_an_py310", name="tutorial003_an_py310"),
+)
+def post_upload_file(name: str):
+    app = _app_for(name)
+    with tmp_path_ctx() as tmp_path:
+        path = tmp_path / "test.txt"
+        path.write_bytes(b"<file content>")
+        path2 = tmp_path / "test2.txt"
+        path2.write_bytes(b"<file content2>")
 
-    client = TestClient(app)
-    with path.open("rb") as file, path2.open("rb") as file2:
-        response = client.post(
-            "/files/",
-            files=(
-                ("files", ("test.txt", file)),
-                ("files", ("test2.txt", file2)),
-            ),
-        )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_sizes": [14, 15]}
-
-
-def test_post_upload_file(tmp_path, app: FastAPI):
-    path = tmp_path / "test.txt"
-    path.write_bytes(b"<file content>")
-    path2 = tmp_path / "test2.txt"
-    path2.write_bytes(b"<file content2>")
-
-    client = TestClient(app)
-    with path.open("rb") as file, path2.open("rb") as file2:
-        response = client.post(
-            "/uploadfiles/",
-            files=(
-                ("files", ("test.txt", file)),
-                ("files", ("test2.txt", file2)),
-            ),
-        )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"filenames": ["test.txt", "test2.txt"]}
+        client = TestClient(app)
+        with path.open("rb") as file, path2.open("rb") as file2:
+            response = client.post(
+                "/uploadfiles/",
+                files=(
+                    ("files", ("test.txt", file)),
+                    ("files", ("test2.txt", file2)),
+                ),
+            )
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()).to_equal({"filenames": ["test.txt", "test2.txt"]})
 
 
-def test_get_root(app: FastAPI):
+@test.cases(
+    test.case("tutorial003_py310", name="tutorial003_py310"),
+    test.case("tutorial003_an_py310", name="tutorial003_an_py310"),
+)
+def get_root(name: str):
+    app = _app_for(name)
     client = TestClient(app)
     response = client.get("/")
-    assert response.status_code == 200, response.text
-    assert b"<form" in response.content
+    expect(response.status_code).to_equal(200).fatal()
+    expect(b"<form" in response.content).to_be_truthy()
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial003_py310", name="tutorial003_py310"),
+    test.case("tutorial003_an_py310", name="tutorial003_an_py310"),
+)
+def openapi_schema(name: str):
+    client = TestClient(_app_for(name))
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/files/": {
-                    "post": {
-                        "summary": "Create Files",
-                        "operationId": "create_files_files__post",
-                        "requestBody": {
-                            "content": {
-                                "multipart/form-data": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_create_files_files__post"
-                                    }
-                                }
-                            },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/files/": {
+                        "post": {
+                            "summary": "Create Files",
+                            "operationId": "create_files_files__post",
+                            "requestBody": {
                                 "content": {
-                                    "application/json": {
+                                    "multipart/form-data": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "$ref": "#/components/schemas/Body_create_files_files__post"
                                         }
                                     }
                                 },
+                                "required": True,
                             },
-                        },
-                    }
-                },
-                "/uploadfiles/": {
-                    "post": {
-                        "summary": "Create Upload Files",
-                        "operationId": "create_upload_files_uploadfiles__post",
-                        "requestBody": {
-                            "content": {
-                                "multipart/form-data": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_create_upload_files_uploadfiles__post"
-                                    }
-                                }
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
                             },
-                            "required": True,
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
+                        }
+                    },
+                    "/uploadfiles/": {
+                        "post": {
+                            "summary": "Create Upload Files",
+                            "operationId": "create_upload_files_uploadfiles__post",
+                            "requestBody": {
                                 "content": {
-                                    "application/json": {
+                                    "multipart/form-data": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "$ref": "#/components/schemas/Body_create_upload_files_uploadfiles__post"
                                         }
                                     }
                                 },
+                                "required": True,
+                            },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    },
+                    "/": {
+                        "get": {
+                            "summary": "Main",
+                            "operationId": "main__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                        }
+                    },
+                },
+                "components": {
+                    "schemas": {
+                        "Body_create_files_files__post": {
+                            "title": "Body_create_files_files__post",
+                            "required": ["files"],
+                            "type": "object",
+                            "properties": {
+                                "files": {
+                                    "title": "Files",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "contentMediaType": "application/octet-stream",
+                                    },
+                                    "description": "Multiple files as bytes",
+                                }
+                            },
+                        },
+                        "Body_create_upload_files_uploadfiles__post": {
+                            "title": "Body_create_upload_files_uploadfiles__post",
+                            "required": ["files"],
+                            "type": "object",
+                            "properties": {
+                                "files": {
+                                    "title": "Files",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "contentMediaType": "application/octet-stream",
+                                    },
+                                    "description": "Multiple files as UploadFile",
+                                }
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
                         },
                     }
                 },
-                "/": {
-                    "get": {
-                        "summary": "Main",
-                        "operationId": "main__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                    }
-                },
-            },
-            "components": {
-                "schemas": {
-                    "Body_create_files_files__post": {
-                        "title": "Body_create_files_files__post",
-                        "required": ["files"],
-                        "type": "object",
-                        "properties": {
-                            "files": {
-                                "title": "Files",
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                    "contentMediaType": "application/octet-stream",
-                                },
-                                "description": "Multiple files as bytes",
-                            }
-                        },
-                    },
-                    "Body_create_upload_files_uploadfiles__post": {
-                        "title": "Body_create_upload_files_uploadfiles__post",
-                        "required": ["files"],
-                        "type": "object",
-                        "properties": {
-                            "files": {
-                                "title": "Files",
-                                "type": "array",
-                                "items": {
-                                    "type": "string",
-                                    "contentMediaType": "application/octet-stream",
-                                },
-                                "description": "Multiple files as UploadFile",
-                            }
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
-                        },
-                    },
-                }
-            },
-        }
+            }
+        )
     )

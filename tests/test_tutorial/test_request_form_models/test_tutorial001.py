@@ -1,184 +1,220 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        "tutorial001_py310",
-        "tutorial001_an_py310",
-    ],
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("request_form_models", name)
+    return TestClient(mod.app)
+
+
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
 )
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.request_form_models.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
-
-
-def test_post_body_form(client: TestClient):
+def post_body_form(name: str):
+    client = _client_for(name)
     response = client.post("/login/", data={"username": "Foo", "password": "secret"})
-    assert response.status_code == 200
-    assert response.json() == {"username": "Foo", "password": "secret"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"username": "Foo", "password": "secret"})
 
 
-def test_post_body_form_no_password(client: TestClient):
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def post_body_form_no_password(name: str):
+    client = _client_for(name)
     response = client.post("/login/", data={"username": "Foo"})
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "password"],
-                "msg": "Field required",
-                "input": {"username": "Foo"},
-            }
-        ]
-    }
-
-
-def test_post_body_form_no_username(client: TestClient):
-    response = client.post("/login/", data={"password": "secret"})
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "username"],
-                "msg": "Field required",
-                "input": {"password": "secret"},
-            }
-        ]
-    }
-
-
-def test_post_body_form_no_data(client: TestClient):
-    response = client.post("/login/")
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "username"],
-                "msg": "Field required",
-                "input": {},
-            },
-            {
-                "type": "missing",
-                "loc": ["body", "password"],
-                "msg": "Field required",
-                "input": {},
-            },
-        ]
-    }
-
-
-def test_post_body_json(client: TestClient):
-    response = client.post("/login/", json={"username": "Foo", "password": "secret"})
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "username"],
-                "msg": "Field required",
-                "input": {},
-            },
-            {
-                "type": "missing",
-                "loc": ["body", "password"],
-                "msg": "Field required",
-                "input": {},
-            },
-        ]
-    }
-
-
-def test_openapi_schema(client: TestClient):
-    response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
         {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/login/": {
-                    "post": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "password"],
+                    "msg": "Field required",
+                    "input": {"username": "Foo"},
+                }
+            ]
+        }
+    )
+
+
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def post_body_form_no_username(name: str):
+    client = _client_for(name)
+    response = client.post("/login/", data={"password": "secret"})
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "username"],
+                    "msg": "Field required",
+                    "input": {"password": "secret"},
+                }
+            ]
+        }
+    )
+
+
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def post_body_form_no_data(name: str):
+    client = _client_for(name)
+    response = client.post("/login/")
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "username"],
+                    "msg": "Field required",
+                    "input": {},
+                },
+                {
+                    "type": "missing",
+                    "loc": ["body", "password"],
+                    "msg": "Field required",
+                    "input": {},
+                },
+            ]
+        }
+    )
+
+
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def post_body_json(name: str):
+    client = _client_for(name)
+    response = client.post("/login/", json={"username": "Foo", "password": "secret"})
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "username"],
+                    "msg": "Field required",
+                    "input": {},
+                },
+                {
+                    "type": "missing",
+                    "loc": ["body", "password"],
+                    "msg": "Field required",
+                    "input": {},
+                },
+            ]
+        }
+    )
+
+
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
+    response = client.get("/openapi.json")
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/login/": {
+                        "post": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
                             },
-                            "422": {
-                                "description": "Validation Error",
+                            "summary": "Login",
+                            "operationId": "login_login__post",
+                            "requestBody": {
                                 "content": {
-                                    "application/json": {
+                                    "application/x-www-form-urlencoded": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "$ref": "#/components/schemas/FormData"
                                         }
                                     }
                                 },
+                                "required": True,
+                            },
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "FormData": {
+                            "properties": {
+                                "username": {"type": "string", "title": "Username"},
+                                "password": {"type": "string", "title": "Password"},
+                            },
+                            "type": "object",
+                            "required": ["username", "password"],
+                            "title": "FormData",
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
                         },
-                        "summary": "Login",
-                        "operationId": "login_login__post",
-                        "requestBody": {
-                            "content": {
-                                "application/x-www-form-urlencoded": {
-                                    "schema": {"$ref": "#/components/schemas/FormData"}
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
-                            "required": True,
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "FormData": {
-                        "properties": {
-                            "username": {"type": "string", "title": "Username"},
-                            "password": {"type": "string", "title": "Password"},
-                        },
-                        "type": "object",
-                        "required": ["username", "password"],
-                        "title": "FormData",
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

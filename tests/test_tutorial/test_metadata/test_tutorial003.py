@@ -1,56 +1,64 @@
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 from docs_src.metadata.tutorial003_py310 import app
 
 client = TestClient(app)
 
 
-def test_items():
+@test
+def items():
     response = client.get("/items/")
-    assert response.status_code == 200, response.text
-    assert response.json() == [{"name": "Foo"}]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal([{"name": "Foo"}])
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {
-                "title": "FastAPI",
-                "version": "0.1.0",
-            },
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__get",
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {
+                    "title": "FastAPI",
+                    "version": "0.1.0",
+                },
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__get",
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                        }
                     }
-                }
-            },
-        }
+                },
+            }
+        )
     )
 
 
-def test_swagger_ui_default_url():
+@test
+def swagger_ui_default_url():
     response = client.get("/docs")
-    assert response.status_code == 404, response.text
+    expect(response.status_code).to_equal(404)
 
 
-def test_swagger_ui_custom_url():
+@test
+def swagger_ui_custom_url():
     response = client.get("/documentation")
-    assert response.status_code == 200, response.text
-    assert "<title>FastAPI - Swagger UI</title>" in response.text
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_contain("<title>FastAPI - Swagger UI</title>")
 
 
-def test_redoc_ui_default_url():
+@test
+def redoc_ui_default_url():
     response = client.get("/redoc")
-    assert response.status_code == 404, response.text
+    expect(response.status_code).to_equal(404)

@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -17,14 +18,16 @@ async def read_users(user_id: int):
 client = TestClient(app)
 
 
-def test_read_users():
+@test
+def read_users():
     response = client.get("/users/42")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200)
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.json() == snapshot(
+    expect(response.json()).to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},
@@ -96,4 +99,4 @@ def test_openapi_schema():
                 }
             },
         }
-    )
+    ))

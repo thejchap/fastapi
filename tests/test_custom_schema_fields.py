@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, WithJsonSchema
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -49,14 +50,16 @@ item_schema = {
 }
 
 
-def test_custom_response_schema():
+@test
+def custom_response_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json()["components"]["schemas"]["Item"] == item_schema
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()["components"]["schemas"]["Item"]).to_equal(item_schema)
 
 
-def test_response():
+@test
+def response():
     # For coverage
     response = client.get("/foo")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"name": "Foo item", "description": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"name": "Foo item", "description": None})

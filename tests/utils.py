@@ -16,13 +16,13 @@ import sys
 # Re-export the migration shims so legacy import paths
 # (`from .utils import needs_py310`) keep working in any module that has
 # not yet been ported.
-from ._shims import needs_orjson  # noqa: F401
 from ._shims import (
     capture_logs,
     capture_output,
     expect_warning,
     import_tutorial,
     monkeypatch_ctx,
+    needs_orjson,  # noqa: F401
     tmp_path_ctx,
 )
 

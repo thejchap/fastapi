@@ -1,17 +1,14 @@
 import runpy
 from unittest.mock import patch
 
-import pytest
+from tryke import test
 
 
-@pytest.mark.parametrize(
-    "module_name",
-    [
-        "tutorial001_py310",
-        "tutorial002_py310",
-    ],
+@test.cases(
+    test.case("tutorial001_py310", module_name="tutorial001_py310"),
+    test.case("tutorial002_py310", module_name="tutorial002_py310"),
 )
-def test_run_module(module_name: str):
+def run_module(module_name: str):
     with patch("builtins.print") as mock_print:
         runpy.run_module(f"docs_src.python_types.{module_name}", run_name="__main__")
 

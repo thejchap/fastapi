@@ -1,8 +1,8 @@
 from typing import Annotated
 
-import pytest
 from fastapi import FastAPI, File, UploadFile
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from .utils import get_body_model_name
 
@@ -22,69 +22,64 @@ async def read_list_uploadfile(p: Annotated[list[UploadFile], File()]):
     return {"file_size": [file.size for file in p]}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes",
-        "/list-uploadfile",
-    ],
+@test.cases(
+    test.case("list-bytes", path="/list-bytes"),
+    test.case("list-uploadfile", path="/list-uploadfile"),
 )
-def test_list_schema(path: str):
+def list_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "contentMediaType": "application/octet-stream",
-                },
-                "title": "P",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "contentMediaType": "application/octet-stream",
+                    },
+                    "title": "P",
+                }
             },
-        },
-        "required": ["p"],
-        "title": body_model_name,
-        "type": "object",
-    }
+            "required": ["p"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes",
-        "/list-uploadfile",
-    ],
+@test.cases(
+    test.case("list-bytes", path="/list-bytes"),
+    test.case("list-uploadfile", path="/list-uploadfile"),
 )
-def test_list_missing(path: str):
+def list_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes",
-        "/list-uploadfile",
-    ],
+@test.cases(
+    test.case("list-bytes", path="/list-bytes"),
+    test.case("list-uploadfile", path="/list-uploadfile"),
 )
-def test_list(path: str):
+def list_(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello"), ("p", b"world")])
-    assert response.status_code == 200
-    assert response.json() == {"file_size": [5, 5]}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"file_size": [5, 5]})
 
 
 # =====================================================================================
@@ -103,92 +98,86 @@ async def read_list_uploadfile_alias(
     return {"file_size": [file.size for file in p]}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias",
-        "/list-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-alias", path="/list-bytes-alias"),
+    test.case("list-uploadfile-alias", path="/list-uploadfile-alias"),
 )
-def test_list_alias_schema(path: str):
+def list_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_alias": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "contentMediaType": "application/octet-stream",
-                },
-                "title": "P Alias",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_alias": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "contentMediaType": "application/octet-stream",
+                    },
+                    "title": "P Alias",
+                }
             },
-        },
-        "required": ["p_alias"],
-        "title": body_model_name,
-        "type": "object",
-    }
+            "required": ["p_alias"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias",
-        "/list-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-alias", path="/list-bytes-alias"),
+    test.case("list-uploadfile-alias", path="/list-uploadfile-alias"),
 )
-def test_list_alias_missing(path: str):
+def list_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p_alias"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_alias"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias",
-        "/list-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-alias", path="/list-bytes-alias"),
+    test.case("list-uploadfile-alias", path="/list-uploadfile-alias"),
 )
-def test_list_alias_by_name(path: str):
+def list_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello"), ("p", b"world")])
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p_alias"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_alias"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias",
-        "/list-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-alias", path="/list-bytes-alias"),
+    test.case("list-uploadfile-alias", path="/list-uploadfile-alias"),
 )
-def test_list_alias_by_alias(path: str):
+def list_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello"), ("p_alias", b"world")])
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": [5, 5]}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": [5, 5]})
 
 
 # =====================================================================================
@@ -212,98 +201,97 @@ def read_list_uploadfile_validation_alias(
     return {"file_size": [file.size for file in p]}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-validation-alias",
-        "/list-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-validation-alias", path="/list-bytes-validation-alias"),
+    test.case(
+        "list-uploadfile-validation-alias", path="/list-uploadfile-validation-alias"
+    ),
 )
-def test_list_validation_alias_schema(path: str):
+def list_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "contentMediaType": "application/octet-stream",
-                },
-                "title": "P Val Alias",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_val_alias": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "contentMediaType": "application/octet-stream",
+                    },
+                    "title": "P Val Alias",
+                }
             },
-        },
-        "required": ["p_val_alias"],
-        "title": body_model_name,
-        "type": "object",
-    }
+            "required": ["p_val_alias"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-validation-alias",
-        "/list-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-validation-alias", path="/list-bytes-validation-alias"),
+    test.case(
+        "list-uploadfile-validation-alias", path="/list-uploadfile-validation-alias"
+    ),
 )
-def test_list_validation_alias_missing(path: str):
+def list_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": [
-                    "body",
-                    "p_val_alias",
-                ],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-validation-alias",
-        "/list-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-validation-alias", path="/list-bytes-validation-alias"),
+    test.case(
+        "list-uploadfile-validation-alias", path="/list-uploadfile-validation-alias"
+    ),
 )
-def test_list_validation_alias_by_name(path: str):
+def list_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello"), ("p", b"world")])
-    assert response.status_code == 422, response.text
+    expect(response.status_code).to_equal(422).fatal()
 
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p_val_alias"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-validation-alias",
-        "/list-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case("list-bytes-validation-alias", path="/list-bytes-validation-alias"),
+    test.case(
+        "list-uploadfile-validation-alias", path="/list-uploadfile-validation-alias"
+    ),
 )
-def test_list_validation_alias_by_validation_alias(path: str):
+def list_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(
         path, files=[("p_val_alias", b"hello"), ("p_val_alias", b"world")]
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": [5, 5]}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": [5, 5]})
 
 
 # =====================================================================================
@@ -332,122 +320,139 @@ def read_list_uploadfile_alias_and_validation_alias(
     return {"file_size": [file.size for file in p]}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias-and-validation-alias",
-        "/list-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "list-bytes-alias-and-validation-alias",
+        path="/list-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "list-uploadfile-alias-and-validation-alias",
+        path="/list-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_list_alias_and_validation_alias_schema(path: str):
+def list_alias_and_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "contentMediaType": "application/octet-stream",
-                },
-                "title": "P Val Alias",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_val_alias": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "contentMediaType": "application/octet-stream",
+                    },
+                    "title": "P Val Alias",
+                }
             },
-        },
-        "required": ["p_val_alias"],
-        "title": body_model_name,
-        "type": "object",
-    }
+            "required": ["p_val_alias"],
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias-and-validation-alias",
-        "/list-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "list-bytes-alias-and-validation-alias",
+        path="/list-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "list-uploadfile-alias-and-validation-alias",
+        path="/list-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_list_alias_and_validation_alias_missing(path: str):
+def list_alias_and_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": [
-                    "body",
-                    "p_val_alias",
-                ],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.status_code).to_equal(422)
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias-and-validation-alias",
-        "/list-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "list-bytes-alias-and-validation-alias",
+        path="/list-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "list-uploadfile-alias-and-validation-alias",
+        path="/list-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_list_alias_and_validation_alias_by_name(path: str):
+def list_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", "hello"), ("p", "world")])
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422)
 
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": [
-                    "body",
-                    "p_val_alias",
-                ],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias-and-validation-alias",
-        "/list-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "list-bytes-alias-and-validation-alias",
+        path="/list-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "list-uploadfile-alias-and-validation-alias",
+        path="/list-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_list_alias_and_validation_alias_by_alias(path: str):
+def list_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello"), ("p_alias", b"world")])
-    assert response.status_code == 422, response.text
+    expect(response.status_code).to_equal(422).fatal()
 
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["body", "p_val_alias"],
-                "msg": "Field required",
-                "input": None,
-            }
-        ]
-    }
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "type": "missing",
+                    "loc": ["body", "p_val_alias"],
+                    "msg": "Field required",
+                    "input": None,
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/list-bytes-alias-and-validation-alias",
-        "/list-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "list-bytes-alias-and-validation-alias",
+        path="/list-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "list-uploadfile-alias-and-validation-alias",
+        path="/list-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_list_alias_and_validation_alias_by_validation_alias(path: str):
+def list_alias_and_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(
         path, files=[("p_val_alias", b"hello"), ("p_val_alias", b"world")]
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": [5, 5]}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": [5, 5]})

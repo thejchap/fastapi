@@ -1,32 +1,24 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
+from tryke import Depends, expect, fixture, test
 
-from tests.utils import needs_py310
-
-
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial003_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.custom_request_and_route.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
+from docs_src.custom_request_and_route.tutorial003_py310 import app
 
 
-def test_get(client: TestClient):
+@fixture
+def client() -> TestClient:
+    return TestClient(app)
+
+
+@test
+def get(client: TestClient = Depends(client)):
     response = client.get("/")
-    assert response.json() == {"message": "Not timed"}
-    assert "X-Response-Time" not in response.headers
+    expect(response.json()).to_equal({"message": "Not timed"})
+    expect("X-Response-Time" in response.headers).to_be_falsy()
 
 
-def test_get_timed(client: TestClient):
+@test
+def get_timed(client: TestClient = Depends(client)):
     response = client.get("/timed")
-    assert response.json() == {"message": "It's the time of my life"}
-    assert "X-Response-Time" in response.headers
-    assert float(response.headers["X-Response-Time"]) >= 0
+    expect(response.json()).to_equal({"message": "It's the time of my life"})
+    expect("X-Response-Time" in response.headers).to_be_truthy()
+    expect(float(response.headers["X-Response-Time"]) >= 0).to_be_truthy()

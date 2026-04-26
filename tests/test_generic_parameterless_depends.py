@@ -3,6 +3,7 @@ from typing import Annotated, TypeVar
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -32,48 +33,52 @@ async def b(dep: Dep[B]):
 client = TestClient(app)
 
 
-def test_generic_parameterless_depends():
+@test
+def generic_parameterless_depends():
     response = client.get("/a")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"cls": "A"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"cls": "A"})
 
     response = client.get("/b")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"cls": "B"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"cls": "B"})
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "openapi": "3.1.0",
-            "paths": {
-                "/a": {
-                    "get": {
-                        "operationId": "a_a_get",
-                        "responses": {
-                            "200": {
-                                "content": {"application/json": {"schema": {}}},
-                                "description": "Successful Response",
-                            }
-                        },
-                        "summary": "A",
-                    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "openapi": "3.1.0",
+                "paths": {
+                    "/a": {
+                        "get": {
+                            "operationId": "a_a_get",
+                            "responses": {
+                                "200": {
+                                    "content": {"application/json": {"schema": {}}},
+                                    "description": "Successful Response",
+                                }
+                            },
+                            "summary": "A",
+                        }
+                    },
+                    "/b": {
+                        "get": {
+                            "operationId": "b_b_get",
+                            "responses": {
+                                "200": {
+                                    "content": {"application/json": {"schema": {}}},
+                                    "description": "Successful Response",
+                                }
+                            },
+                            "summary": "B",
+                        }
+                    },
                 },
-                "/b": {
-                    "get": {
-                        "operationId": "b_b_get",
-                        "responses": {
-                            "200": {
-                                "content": {"application/json": {"schema": {}}},
-                                "description": "Successful Response",
-                            }
-                        },
-                        "summary": "B",
-                    }
-                },
-            },
-        }
+            }
+        )
     )

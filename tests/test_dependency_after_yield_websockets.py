@@ -2,9 +2,9 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Annotated, Any
 
-import pytest
 from fastapi import Depends, FastAPI, WebSocket
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 class Session:
@@ -12,7 +12,7 @@ class Session:
         self.data = ["foo", "bar", "baz"]
         self.open = True
 
-    def __iter__(self) -> Generator[str, None, None]:
+    def __iter__(self) -> Generator[str]:
         for item in self.data:
             if self.open:
                 yield item
@@ -21,7 +21,7 @@ class Session:
 
 
 @contextmanager
-def acquire_session() -> Generator[Session, None, None]:
+def acquire_session() -> Generator[Session]:
     session = Session()
     try:
         yield session
@@ -63,17 +63,21 @@ async def websocket_endpoint_broken(websocket: WebSocket, session: BrokenSession
 client = TestClient(app)
 
 
-def test_websocket_dependency_after_yield():
+@test
+def websocket_dependency_after_yield():
     with client.websocket_connect("/ws") as websocket:
         data = websocket.receive_text()
-        assert data == "foo"
+        expect(data).to_equal("foo")
         data = websocket.receive_text()
-        assert data == "bar"
+        expect(data).to_equal("bar")
         data = websocket.receive_text()
-        assert data == "baz"
+        expect(data).to_equal("baz")
 
 
-def test_websocket_dependency_after_yield_broken():
-    with pytest.raises(ValueError, match="Session closed"):
+@test
+def websocket_dependency_after_yield_broken():
+    def _body():
         with client.websocket_connect("/ws-broken"):
             pass  # pragma no cover
+
+    expect(_body).to_raise(ValueError, match="Session closed")

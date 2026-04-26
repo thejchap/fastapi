@@ -3,12 +3,12 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import Annotated, Any, Literal
+from warnings import deprecated
 
 from fastapi.exceptions import FastAPIDeprecationWarning
 from fastapi.openapi.models import Example
 from pydantic import AliasChoices, AliasPath
 from pydantic.fields import FieldInfo
-from typing_extensions import deprecated
 
 from ._compat import (
     Undefined,

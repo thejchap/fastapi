@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, WebSocket
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 def dependency_list() -> list[str]:
@@ -51,22 +52,27 @@ app.include_router(
 )
 
 
-def test_index():
+@test
+def index_ws():
     client = TestClient(app)
     with client.websocket_connect("/") as websocket:
         data = json.loads(websocket.receive_text())
-        assert data == ["app", "index"]
+        expect(data).to_equal(["app", "index"])
 
 
-def test_routerindex():
+@test
+def routerindex_ws():
     client = TestClient(app)
     with client.websocket_connect("/router") as websocket:
         data = json.loads(websocket.receive_text())
-        assert data == ["app", "router2", "router", "routerindex"]
+        expect(data).to_equal(["app", "router2", "router", "routerindex"])
 
 
-def test_routerprefixindex():
+@test
+def routerprefixindex_ws():
     client = TestClient(app)
     with client.websocket_connect("/prefix/") as websocket:
         data = json.loads(websocket.receive_text())
-        assert data == ["app", "prefix_router2", "prefix_router", "routerprefixindex"]
+        expect(data).to_equal(
+            ["app", "prefix_router2", "prefix_router", "routerprefixindex"]
+        )

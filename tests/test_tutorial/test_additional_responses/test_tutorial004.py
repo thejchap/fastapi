@@ -1,143 +1,156 @@
-import importlib
 import os
 import shutil
 
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from tests.utils import needs_py310, workdir_lock
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial004_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.additional_responses.{request.param}")
-
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("additional_responses", name)
     client = TestClient(mod.app)
     client.headers.clear()
     return client
 
 
-def test_path_operation(client: TestClient):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+)
+def path_operation(name: str):
+    client = _client_for(name)
     response = client.get("/items/foo")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"id": "foo", "value": "there goes my hero"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"id": "foo", "value": "there goes my hero"})
 
 
-@workdir_lock
-def test_path_operation_img(client: TestClient):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+)
+def path_operation_img(name: str):
+    client = _client_for(name)
     shutil.copy("./docs/en/docs/img/favicon.png", "./image.png")
     response = client.get("/items/foo?img=1")
-    assert response.status_code == 200, response.text
-    assert response.headers["Content-Type"] == "image/png"
-    assert len(response.content)
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.headers["Content-Type"]).to_equal("image/png")
+    expect(len(response.content)).to_be_truthy()
     os.remove("./image.png")
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial004_py310", name="tutorial004_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/{item_id}": {
-                    "get": {
-                        "responses": {
-                            "404": {"description": "Item not found"},
-                            "302": {"description": "The item was moved"},
-                            "403": {"description": "Not enough privileges"},
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "image/png": {},
-                                    "application/json": {
-                                        "schema": {"$ref": "#/components/schemas/Item"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/{item_id}": {
+                        "get": {
+                            "responses": {
+                                "404": {"description": "Item not found"},
+                                "302": {"description": "The item was moved"},
+                                "403": {"description": "Not enough privileges"},
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "image/png": {},
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/Item"
+                                            }
+                                        },
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
                                     },
                                 },
                             },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
-                                        }
-                                    }
+                            "summary": "Read Item",
+                            "operationId": "read_item_items__item_id__get",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {"title": "Item Id", "type": "string"},
+                                    "name": "item_id",
+                                    "in": "path",
                                 },
-                            },
-                        },
-                        "summary": "Read Item",
-                        "operationId": "read_item_items__item_id__get",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {"title": "Item Id", "type": "string"},
-                                "name": "item_id",
-                                "in": "path",
-                            },
-                            {
-                                "required": False,
-                                "schema": {
-                                    "anyOf": [{"type": "boolean"}, {"type": "null"}],
-                                    "title": "Img",
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "anyOf": [
+                                            {"type": "boolean"},
+                                            {"type": "null"},
+                                        ],
+                                        "title": "Img",
+                                    },
+                                    "name": "img",
+                                    "in": "query",
                                 },
-                                "name": "img",
-                                "in": "query",
-                            },
-                        ],
+                            ],
+                        }
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "Item": {
-                        "title": "Item",
-                        "required": ["id", "value"],
-                        "type": "object",
-                        "properties": {
-                            "id": {"title": "Id", "type": "string"},
-                            "value": {"title": "Value", "type": "string"},
-                        },
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
+                },
+                "components": {
+                    "schemas": {
+                        "Item": {
+                            "title": "Item",
+                            "required": ["id", "value"],
+                            "type": "object",
+                            "properties": {
+                                "id": {"title": "Id", "type": "string"},
+                                "value": {"title": "Value", "type": "string"},
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
                         },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
-                            }
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
+                            },
                         },
-                    },
-                }
-            },
-        }
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
+                        },
+                    }
+                },
+            }
+        )
     )

@@ -1,26 +1,30 @@
-import pytest
 from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocketDisconnect
+from tryke import expect, test
 
 from docs_src.websockets_.tutorial001_py310 import app
 
 client = TestClient(app)
 
 
-def test_main():
+@test
+def main():
     response = client.get("/")
-    assert response.status_code == 200, response.text
-    assert b"<!DOCTYPE html>" in response.content
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.content).to_contain(b"<!DOCTYPE html>")
 
 
-def test_websocket():
-    with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect("/ws") as websocket:
+@test
+def websocket():
+    def _body():
+        with client.websocket_connect("/ws") as ws:
             message = "Message one"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}")
             message = "Message two"
-            websocket.send_text(message)
-            data = websocket.receive_text()
-            assert data == f"Message text was: {message}"
+            ws.send_text(message)
+            data = ws.receive_text()
+            expect(data).to_equal(f"Message text was: {message}")
+
+    expect(_body).to_raise(WebSocketDisconnect)

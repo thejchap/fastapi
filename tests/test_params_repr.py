@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi.params import Body, Cookie, Header, Param, Path, Query
+from tryke import expect, test
 
 test_data: list[Any] = ["teststr", None, ..., 1, []]
 
@@ -9,106 +10,132 @@ def get_user():
     return {}  # pragma: no cover
 
 
-def test_param_repr_str():
-    assert repr(Param("teststr")) == "Param(teststr)"
+@test
+def param_repr_str():
+    expect(repr(Param("teststr"))).to_equal("Param(teststr)")
 
 
-def test_param_repr_none():
-    assert repr(Param(None)) == "Param(None)"
+@test
+def param_repr_none():
+    expect(repr(Param(None))).to_equal("Param(None)")
 
 
-def test_param_repr_ellipsis():
-    assert repr(Param(...)) == "Param(PydanticUndefined)"
+@test
+def param_repr_ellipsis():
+    expect(repr(Param(...))).to_equal("Param(PydanticUndefined)")
 
 
-def test_param_repr_number():
-    assert repr(Param(1)) == "Param(1)"
+@test
+def param_repr_number():
+    expect(repr(Param(1))).to_equal("Param(1)")
 
 
-def test_param_repr_list():
-    assert repr(Param([])) == "Param([])"
+@test
+def param_repr_list():
+    expect(repr(Param([]))).to_equal("Param([])")
 
 
-def test_path_repr():
-    assert repr(Path()) == "Path(PydanticUndefined)"
-    assert repr(Path(...)) == "Path(PydanticUndefined)"
+@test
+def path_repr():
+    expect(repr(Path())).to_equal("Path(PydanticUndefined)")
+    expect(repr(Path(...))).to_equal("Path(PydanticUndefined)")
 
 
-def test_query_repr_str():
-    assert repr(Query("teststr")) == "Query(teststr)"
+@test
+def query_repr_str():
+    expect(repr(Query("teststr"))).to_equal("Query(teststr)")
 
 
-def test_query_repr_none():
-    assert repr(Query(None)) == "Query(None)"
+@test
+def query_repr_none():
+    expect(repr(Query(None))).to_equal("Query(None)")
 
 
-def test_query_repr_ellipsis():
-    assert repr(Query(...)) == "Query(PydanticUndefined)"
+@test
+def query_repr_ellipsis():
+    expect(repr(Query(...))).to_equal("Query(PydanticUndefined)")
 
 
-def test_query_repr_number():
-    assert repr(Query(1)) == "Query(1)"
+@test
+def query_repr_number():
+    expect(repr(Query(1))).to_equal("Query(1)")
 
 
-def test_query_repr_list():
-    assert repr(Query([])) == "Query([])"
+@test
+def query_repr_list():
+    expect(repr(Query([]))).to_equal("Query([])")
 
 
-def test_header_repr_str():
-    assert repr(Header("teststr")) == "Header(teststr)"
+@test
+def header_repr_str():
+    expect(repr(Header("teststr"))).to_equal("Header(teststr)")
 
 
-def test_header_repr_none():
-    assert repr(Header(None)) == "Header(None)"
+@test
+def header_repr_none():
+    expect(repr(Header(None))).to_equal("Header(None)")
 
 
-def test_header_repr_ellipsis():
-    assert repr(Header(...)) == "Header(PydanticUndefined)"
+@test
+def header_repr_ellipsis():
+    expect(repr(Header(...))).to_equal("Header(PydanticUndefined)")
 
 
-def test_header_repr_number():
-    assert repr(Header(1)) == "Header(1)"
+@test
+def header_repr_number():
+    expect(repr(Header(1))).to_equal("Header(1)")
 
 
-def test_header_repr_list():
-    assert repr(Header([])) == "Header([])"
+@test
+def header_repr_list():
+    expect(repr(Header([]))).to_equal("Header([])")
 
 
-def test_cookie_repr_str():
-    assert repr(Cookie("teststr")) == "Cookie(teststr)"
+@test
+def cookie_repr_str():
+    expect(repr(Cookie("teststr"))).to_equal("Cookie(teststr)")
 
 
-def test_cookie_repr_none():
-    assert repr(Cookie(None)) == "Cookie(None)"
+@test
+def cookie_repr_none():
+    expect(repr(Cookie(None))).to_equal("Cookie(None)")
 
 
-def test_cookie_repr_ellipsis():
-    assert repr(Cookie(...)) == "Cookie(PydanticUndefined)"
+@test
+def cookie_repr_ellipsis():
+    expect(repr(Cookie(...))).to_equal("Cookie(PydanticUndefined)")
 
 
-def test_cookie_repr_number():
-    assert repr(Cookie(1)) == "Cookie(1)"
+@test
+def cookie_repr_number():
+    expect(repr(Cookie(1))).to_equal("Cookie(1)")
 
 
-def test_cookie_repr_list():
-    assert repr(Cookie([])) == "Cookie([])"
+@test
+def cookie_repr_list():
+    expect(repr(Cookie([]))).to_equal("Cookie([])")
 
 
-def test_body_repr_str():
-    assert repr(Body("teststr")) == "Body(teststr)"
+@test
+def body_repr_str():
+    expect(repr(Body("teststr"))).to_equal("Body(teststr)")
 
 
-def test_body_repr_none():
-    assert repr(Body(None)) == "Body(None)"
+@test
+def body_repr_none():
+    expect(repr(Body(None))).to_equal("Body(None)")
 
 
-def test_body_repr_ellipsis():
-    assert repr(Body(...)) == "Body(PydanticUndefined)"
+@test
+def body_repr_ellipsis():
+    expect(repr(Body(...))).to_equal("Body(PydanticUndefined)")
 
 
-def test_body_repr_number():
-    assert repr(Body(1)) == "Body(1)"
+@test
+def body_repr_number():
+    expect(repr(Body(1))).to_equal("Body(1)")
 
 
-def test_body_repr_list():
-    assert repr(Body([])) == "Body([])"
+@test
+def body_repr_list():
+    expect(repr(Body([]))).to_equal("Body([])")

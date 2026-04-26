@@ -1,7 +1,10 @@
-import pytest
+from tryke import test
+
+from ..._shims import expect_warning
 
 
-def test_main():
-    with pytest.warns(DeprecationWarning):
+@test
+def main():
+    with expect_warning(DeprecationWarning):
         from docs_src.app_testing.tutorial003_py310 import test_read_items
     test_read_items()

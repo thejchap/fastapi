@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from starlette.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -84,69 +85,89 @@ def get_validdict_exclude_unset():
 client = TestClient(app)
 
 
-def test_valid():
+@test
+def valid():
     response = client.get("/items/valid")
     response.raise_for_status()
-    assert response.json() == {"aliased_name": "valid", "price": 1.0, "owner_ids": None}
+    expect(response.json()).to_equal(
+        {"aliased_name": "valid", "price": 1.0, "owner_ids": None}
+    )
 
 
-def test_coerce():
+@test
+def coerce():
     response = client.get("/items/coerce")
     response.raise_for_status()
-    assert response.json() == {
-        "aliased_name": "coerce",
-        "price": 1.0,
-        "owner_ids": None,
-    }
+    expect(response.json()).to_equal(
+        {
+            "aliased_name": "coerce",
+            "price": 1.0,
+            "owner_ids": None,
+        }
+    )
 
 
-def test_validlist():
+@test
+def validlist():
     response = client.get("/items/validlist")
     response.raise_for_status()
-    assert response.json() == [
-        {"aliased_name": "foo", "price": None, "owner_ids": None},
-        {"aliased_name": "bar", "price": 1.0, "owner_ids": None},
-        {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
-    ]
+    expect(response.json()).to_equal(
+        [
+            {"aliased_name": "foo", "price": None, "owner_ids": None},
+            {"aliased_name": "bar", "price": 1.0, "owner_ids": None},
+            {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
+        ]
+    )
 
 
-def test_validdict():
+@test
+def validdict():
     response = client.get("/items/validdict")
     response.raise_for_status()
-    assert response.json() == {
-        "k1": {"aliased_name": "foo", "price": None, "owner_ids": None},
-        "k2": {"aliased_name": "bar", "price": 1.0, "owner_ids": None},
-        "k3": {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
-    }
+    expect(response.json()).to_equal(
+        {
+            "k1": {"aliased_name": "foo", "price": None, "owner_ids": None},
+            "k2": {"aliased_name": "bar", "price": 1.0, "owner_ids": None},
+            "k3": {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
+        }
+    )
 
 
-def test_valid_exclude_unset():
+@test
+def valid_exclude_unset():
     response = client.get("/items/valid-exclude-unset")
     response.raise_for_status()
-    assert response.json() == {"aliased_name": "valid", "price": 1.0}
+    expect(response.json()).to_equal({"aliased_name": "valid", "price": 1.0})
 
 
-def test_coerce_exclude_unset():
+@test
+def coerce_exclude_unset():
     response = client.get("/items/coerce-exclude-unset")
     response.raise_for_status()
-    assert response.json() == {"aliased_name": "coerce", "price": 1.0}
+    expect(response.json()).to_equal({"aliased_name": "coerce", "price": 1.0})
 
 
-def test_validlist_exclude_unset():
+@test
+def validlist_exclude_unset():
     response = client.get("/items/validlist-exclude-unset")
     response.raise_for_status()
-    assert response.json() == [
-        {"aliased_name": "foo"},
-        {"aliased_name": "bar", "price": 1.0},
-        {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
-    ]
+    expect(response.json()).to_equal(
+        [
+            {"aliased_name": "foo"},
+            {"aliased_name": "bar", "price": 1.0},
+            {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
+        ]
+    )
 
 
-def test_validdict_exclude_unset():
+@test
+def validdict_exclude_unset():
     response = client.get("/items/validdict-exclude-unset")
     response.raise_for_status()
-    assert response.json() == {
-        "k1": {"aliased_name": "foo"},
-        "k2": {"aliased_name": "bar", "price": 1.0},
-        "k3": {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
-    }
+    expect(response.json()).to_equal(
+        {
+            "k1": {"aliased_name": "foo"},
+            "k2": {"aliased_name": "bar", "price": 1.0},
+            "k3": {"aliased_name": "baz", "price": 2.0, "owner_ids": [1, 2, 3]},
+        }
+    )

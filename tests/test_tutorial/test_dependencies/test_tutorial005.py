@@ -1,144 +1,178 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial005_py310", marks=needs_py310),
-        pytest.param("tutorial005_an_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.dependencies.{request.param}")
-
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("dependencies", name)
     client = TestClient(mod.app)
     return client
 
 
-@pytest.mark.parametrize(
-    "path,cookie,expected_status,expected_response",
-    [
-        (
-            "/items",
-            "from_cookie",
-            200,
-            {"q_or_cookie": "from_cookie"},
-        ),
-        (
-            "/items?q=foo",
-            "from_cookie",
-            200,
-            {"q_or_cookie": "foo"},
-        ),
-        (
-            "/items",
-            None,
-            200,
-            {"q_or_cookie": None},
-        ),
-    ],
+@test.cases(
+    test.case(
+        "tutorial005_py310 /items cookie",
+        name="tutorial005_py310",
+        path="/items",
+        cookie="from_cookie",
+        expected_status=200,
+        expected_response={"q_or_cookie": "from_cookie"},
+    ),
+    test.case(
+        "tutorial005_py310 /items?q=foo cookie",
+        name="tutorial005_py310",
+        path="/items?q=foo",
+        cookie="from_cookie",
+        expected_status=200,
+        expected_response={"q_or_cookie": "foo"},
+    ),
+    test.case(
+        "tutorial005_py310 /items no-cookie",
+        name="tutorial005_py310",
+        path="/items",
+        cookie=None,
+        expected_status=200,
+        expected_response={"q_or_cookie": None},
+    ),
+    test.case(
+        "tutorial005_an_py310 /items cookie",
+        name="tutorial005_an_py310",
+        path="/items",
+        cookie="from_cookie",
+        expected_status=200,
+        expected_response={"q_or_cookie": "from_cookie"},
+    ),
+    test.case(
+        "tutorial005_an_py310 /items?q=foo cookie",
+        name="tutorial005_an_py310",
+        path="/items?q=foo",
+        cookie="from_cookie",
+        expected_status=200,
+        expected_response={"q_or_cookie": "foo"},
+    ),
+    test.case(
+        "tutorial005_an_py310 /items no-cookie",
+        name="tutorial005_an_py310",
+        path="/items",
+        cookie=None,
+        expected_status=200,
+        expected_response={"q_or_cookie": None},
+    ),
 )
-def test_get(path, cookie, expected_status, expected_response, client: TestClient):
+def get(
+    name: str,
+    path: str,
+    cookie: str | None,
+    expected_status: int,
+    expected_response: dict,
+):
+    client = _client_for(name)
     if cookie is not None:
         client.cookies.set("last_query", cookie)
     else:
         client.cookies.clear()
     response = client.get(path)
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(expected_status)
+    expect(response.json()).to_equal(expected_response)
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial005_py310", name="tutorial005_py310"),
+    test.case("tutorial005_an_py310", name="tutorial005_an_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
                                         }
-                                    }
+                                    },
                                 },
                             },
-                        },
-                        "summary": "Read Query",
-                        "operationId": "read_query_items__get",
-                        "parameters": [
-                            {
-                                "required": False,
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "Q",
+                            "summary": "Read Query",
+                            "operationId": "read_query_items__get",
+                            "parameters": [
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "Q",
+                                    },
+                                    "name": "q",
+                                    "in": "query",
                                 },
-                                "name": "q",
-                                "in": "query",
-                            },
-                            {
-                                "required": False,
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "Last Query",
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "Last Query",
+                                    },
+                                    "name": "last_query",
+                                    "in": "cookie",
                                 },
-                                "name": "last_query",
-                                "in": "cookie",
-                            },
-                        ],
+                            ],
+                        }
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
+                },
+                "components": {
+                    "schemas": {
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
                         },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
                         },
-                    },
-                }
-            },
-        }
+                    }
+                },
+            }
+        )
     )

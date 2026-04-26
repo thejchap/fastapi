@@ -1,5 +1,6 @@
 from fastapi.responses import PlainTextResponse
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.advanced_middleware.tutorial003_py310 import app
 
@@ -12,11 +13,12 @@ async def large():
 client = TestClient(app)
 
 
-def test_middleware():
+@test
+def middleware():
     response = client.get("/large", headers={"accept-encoding": "gzip"})
-    assert response.status_code == 200, response.text
-    assert response.text == "x" * 4000
-    assert response.headers["Content-Encoding"] == "gzip"
-    assert int(response.headers["Content-Length"]) < 4000
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.text).to_equal("x" * 4000)
+    expect(response.headers["Content-Encoding"]).to_equal("gzip")
+    expect(int(response.headers["Content-Length"])).to_be_less_than(4000)
     response = client.get("/")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()

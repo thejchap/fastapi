@@ -1,8 +1,8 @@
 from typing import Annotated
 
-import pytest
 from fastapi import FastAPI, File, UploadFile
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from .utils import get_body_model_name
 
@@ -22,58 +22,54 @@ async def read_optional_uploadfile(p: Annotated[UploadFile | None, File()] = Non
     return {"file_size": p.size if p else None}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes",
-        "/optional-uploadfile",
-    ],
+@test.cases(
+    test.case("optional-bytes", path="/optional-bytes"),
+    test.case("optional-uploadfile", path="/optional-uploadfile"),
 )
-def test_optional_schema(path: str):
+def optional_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p": {
-                "anyOf": [
-                    {"type": "string", "contentMediaType": "application/octet-stream"},
-                    {"type": "null"},
-                ],
-                "title": "P",
-            }
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "contentMediaType": "application/octet-stream",
+                        },
+                        {"type": "null"},
+                    ],
+                    "title": "P",
+                }
+            },
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes",
-        "/optional-uploadfile",
-    ],
+@test.cases(
+    test.case("optional-bytes", path="/optional-bytes"),
+    test.case("optional-uploadfile", path="/optional-uploadfile"),
 )
-def test_optional_missing(path: str):
+def optional_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes",
-        "/optional-uploadfile",
-    ],
+@test.cases(
+    test.case("optional-bytes", path="/optional-bytes"),
+    test.case("optional-uploadfile", path="/optional-uploadfile"),
 )
-def test_optional(path: str):
+def optional(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello")])
-    assert response.status_code == 200
-    assert response.json() == {"file_size": 5}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"file_size": 5})
 
 
 # =====================================================================================
@@ -94,72 +90,65 @@ async def read_optional_uploadfile_alias(
     return {"file_size": p.size if p else None}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias",
-        "/optional-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("optional-bytes-alias", path="/optional-bytes-alias"),
+    test.case("optional-uploadfile-alias", path="/optional-uploadfile-alias"),
 )
-def test_optional_alias_schema(path: str):
+def optional_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_alias": {
-                "anyOf": [
-                    {"type": "string", "contentMediaType": "application/octet-stream"},
-                    {"type": "null"},
-                ],
-                "title": "P Alias",
-            }
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_alias": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "contentMediaType": "application/octet-stream",
+                        },
+                        {"type": "null"},
+                    ],
+                    "title": "P Alias",
+                }
+            },
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias",
-        "/optional-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("optional-bytes-alias", path="/optional-bytes-alias"),
+    test.case("optional-uploadfile-alias", path="/optional-uploadfile-alias"),
 )
-def test_optional_alias_missing(path: str):
+def optional_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 200
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias",
-        "/optional-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("optional-bytes-alias", path="/optional-bytes-alias"),
+    test.case("optional-uploadfile-alias", path="/optional-uploadfile-alias"),
 )
-def test_optional_alias_by_name(path: str):
+def optional_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello")])
-    assert response.status_code == 200
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias",
-        "/optional-uploadfile-alias",
-    ],
+@test.cases(
+    test.case("optional-bytes-alias", path="/optional-bytes-alias"),
+    test.case("optional-uploadfile-alias", path="/optional-uploadfile-alias"),
 )
-def test_optional_alias_by_alias(path: str):
+def optional_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello")])
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": 5}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": 5})
 
 
 # =====================================================================================
@@ -185,72 +174,85 @@ def read_optional_uploadfile_validation_alias(
     return {"file_size": p.size if p else None}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-validation-alias",
-        "/optional-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-validation-alias", path="/optional-bytes-validation-alias"
+    ),
+    test.case(
+        "optional-uploadfile-validation-alias",
+        path="/optional-uploadfile-validation-alias",
+    ),
 )
-def test_optional_validation_alias_schema(path: str):
+def optional_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {
-                "anyOf": [
-                    {"type": "string", "contentMediaType": "application/octet-stream"},
-                    {"type": "null"},
-                ],
-                "title": "P Val Alias",
-            }
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_val_alias": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "contentMediaType": "application/octet-stream",
+                        },
+                        {"type": "null"},
+                    ],
+                    "title": "P Val Alias",
+                }
+            },
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-validation-alias",
-        "/optional-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-validation-alias", path="/optional-bytes-validation-alias"
+    ),
+    test.case(
+        "optional-uploadfile-validation-alias",
+        path="/optional-uploadfile-validation-alias",
+    ),
 )
-def test_optional_validation_alias_missing(path: str):
+def optional_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 200
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-validation-alias",
-        "/optional-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-validation-alias", path="/optional-bytes-validation-alias"
+    ),
+    test.case(
+        "optional-uploadfile-validation-alias",
+        path="/optional-uploadfile-validation-alias",
+    ),
 )
-def test_optional_validation_alias_by_name(path: str):
+def optional_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello")])
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-validation-alias",
-        "/optional-uploadfile-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-validation-alias", path="/optional-bytes-validation-alias"
+    ),
+    test.case(
+        "optional-uploadfile-validation-alias",
+        path="/optional-uploadfile-validation-alias",
+    ),
 )
-def test_optional_validation_alias_by_validation_alias(path: str):
+def optional_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_val_alias", b"hello")])
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": 5}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": 5})
 
 
 # =====================================================================================
@@ -281,83 +283,103 @@ def read_optional_uploadfile_alias_and_validation_alias(
     return {"file_size": p.size if p else None}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias-and-validation-alias",
-        "/optional-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-alias-and-validation-alias",
+        path="/optional-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "optional-uploadfile-alias-and-validation-alias",
+        path="/optional-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_schema(path: str):
+def optional_alias_and_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {
-                "anyOf": [
-                    {"type": "string", "contentMediaType": "application/octet-stream"},
-                    {"type": "null"},
-                ],
-                "title": "P Val Alias",
-            }
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_val_alias": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "contentMediaType": "application/octet-stream",
+                        },
+                        {"type": "null"},
+                    ],
+                    "title": "P Val Alias",
+                }
+            },
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias-and-validation-alias",
-        "/optional-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-alias-and-validation-alias",
+        path="/optional-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "optional-uploadfile-alias-and-validation-alias",
+        path="/optional-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_missing(path: str):
+def optional_alias_and_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    assert response.status_code == 200
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias-and-validation-alias",
-        "/optional-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-alias-and-validation-alias",
+        path="/optional-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "optional-uploadfile-alias-and-validation-alias",
+        path="/optional-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_by_name(path: str):
+def optional_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files={"p": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias-and-validation-alias",
-        "/optional-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-alias-and-validation-alias",
+        path="/optional-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "optional-uploadfile-alias-and-validation-alias",
+        path="/optional-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_by_alias(path: str):
+def optional_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello")])
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-bytes-alias-and-validation-alias",
-        "/optional-uploadfile-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-bytes-alias-and-validation-alias",
+        path="/optional-bytes-alias-and-validation-alias",
+    ),
+    test.case(
+        "optional-uploadfile-alias-and-validation-alias",
+        path="/optional-uploadfile-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_by_validation_alias(path: str):
+def optional_alias_and_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_val_alias", b"hello")])
-    assert response.status_code == 200, response.text
-    assert response.json() == {"file_size": 5}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"file_size": 5})

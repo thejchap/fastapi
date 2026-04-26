@@ -81,7 +81,9 @@ class MonkeyPatch:
         self._undo_env.append((name, os.environ[name]))
         del os.environ[name]
 
-    def setattr(self, target: Any, name: str, value: Any = _UNSET, raising: bool = True) -> None:
+    def setattr(
+        self, target: Any, name: str, value: Any = _UNSET, raising: bool = True
+    ) -> None:
         if isinstance(target, str) and value is _UNSET:
             module_path, _, attr_name = target.rpartition(".")
             module = importlib.import_module(module_path)
@@ -208,9 +210,7 @@ def capture_logs(
     """Replacement for pytest's `caplog`. Attaches a list-collecting
     handler to the named logger (or the root logger) for the duration of
     the block."""
-    target = (
-        logger if isinstance(logger, logging.Logger) else logging.getLogger(logger)
-    )
+    target = logger if isinstance(logger, logging.Logger) else logging.getLogger(logger)
     capture = LogCapture()
 
     class _Handler(logging.Handler):
@@ -284,9 +284,7 @@ def needs_orjson() -> str | None:
     return None if _HAS_ORJSON else "requires orjson"
 
 
-def import_tutorial(
-    package: str, name: str, *, base: str = "docs_src"
-) -> ModuleType:
+def import_tutorial(package: str, name: str, *, base: str = "docs_src") -> ModuleType:
     """Convenience wrapper for the `test_tutorial/` files that
     historically used `importlib.import_module(f"{base}.{package}.{name}")`
     inside a fixture parametrized over many `tutorialNNN_*` variants.

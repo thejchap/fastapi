@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Annotated
 
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from .utils import needs_py314
 
@@ -10,8 +11,11 @@ if TYPE_CHECKING:  # pragma: no cover
     class DummyUser: ...
 
 
-@needs_py314
-def test_stringified_annotation():
+_NEEDS_PY314 = needs_py314()
+
+
+@test.skip_if(_NEEDS_PY314 is not None, reason=_NEEDS_PY314 or "")
+def stringified_annotation():
     # python3.14: Use forward reference without "from __future__ import annotations"
     async def get_current_user() -> DummyUser | None:
         return None
@@ -27,4 +31,4 @@ def test_stringified_annotation():
         return "hello world"
 
     response = client.get("/")
-    assert response.status_code == 200
+    expect(response.status_code).to_equal(200)

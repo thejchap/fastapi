@@ -1,18 +1,18 @@
 import warnings
 from collections import deque
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum
 from math import isinf, isnan
 from pathlib import PurePath, PurePosixPath, PureWindowsPath
 from typing import TypedDict
 
-import pytest
 from fastapi._compat import Undefined
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import PydanticV1NotSupportedError
 from pydantic import BaseModel, Field, ValidationError
+from tryke import expect, test
 
 
 class Person:
@@ -72,72 +72,94 @@ class ModelWithDefault(BaseModel):
     bla: str = "bla"
 
 
-def test_encode_dict():
+@test
+def encode_dict():
     pet = {"name": "Firulais", "owner": {"name": "Foo"}}
-    assert jsonable_encoder(pet) == {"name": "Firulais", "owner": {"name": "Foo"}}
-    assert jsonable_encoder(pet, include={"name"}) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, exclude={"owner"}) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, include={}) == {}
-    assert jsonable_encoder(pet, exclude={}) == {
-        "name": "Firulais",
-        "owner": {"name": "Foo"},
-    }
+    expect(jsonable_encoder(pet)).to_equal(
+        {"name": "Firulais", "owner": {"name": "Foo"}}
+    )
+    expect(jsonable_encoder(pet, include={"name"})).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, exclude={"owner"})).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, include={})).to_equal({})
+    expect(jsonable_encoder(pet, exclude={})).to_equal(
+        {
+            "name": "Firulais",
+            "owner": {"name": "Foo"},
+        }
+    )
 
 
-def test_encode_dict_include_exclude_list():
+@test
+def encode_dict_include_exclude_list():
     pet = {"name": "Firulais", "owner": {"name": "Foo"}}
-    assert jsonable_encoder(pet) == {"name": "Firulais", "owner": {"name": "Foo"}}
-    assert jsonable_encoder(pet, include=["name"]) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, exclude=["owner"]) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, include=[]) == {}
-    assert jsonable_encoder(pet, exclude=[]) == {
-        "name": "Firulais",
-        "owner": {"name": "Foo"},
-    }
+    expect(jsonable_encoder(pet)).to_equal(
+        {"name": "Firulais", "owner": {"name": "Foo"}}
+    )
+    expect(jsonable_encoder(pet, include=["name"])).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, exclude=["owner"])).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, include=[])).to_equal({})
+    expect(jsonable_encoder(pet, exclude=[])).to_equal(
+        {
+            "name": "Firulais",
+            "owner": {"name": "Foo"},
+        }
+    )
 
 
-def test_encode_class():
+@test
+def encode_class():
     person = Person(name="Foo")
     pet = Pet(owner=person, name="Firulais")
-    assert jsonable_encoder(pet) == {"name": "Firulais", "owner": {"name": "Foo"}}
-    assert jsonable_encoder(pet, include={"name"}) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, exclude={"owner"}) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, include={}) == {}
-    assert jsonable_encoder(pet, exclude={}) == {
-        "name": "Firulais",
-        "owner": {"name": "Foo"},
-    }
+    expect(jsonable_encoder(pet)).to_equal(
+        {"name": "Firulais", "owner": {"name": "Foo"}}
+    )
+    expect(jsonable_encoder(pet, include={"name"})).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, exclude={"owner"})).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, include={})).to_equal({})
+    expect(jsonable_encoder(pet, exclude={})).to_equal(
+        {
+            "name": "Firulais",
+            "owner": {"name": "Foo"},
+        }
+    )
 
 
-def test_encode_dictable():
+@test
+def encode_dictable():
     person = DictablePerson(name="Foo")
     pet = DictablePet(owner=person, name="Firulais")
-    assert jsonable_encoder(pet) == {"name": "Firulais", "owner": {"name": "Foo"}}
-    assert jsonable_encoder(pet, include={"name"}) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, exclude={"owner"}) == {"name": "Firulais"}
-    assert jsonable_encoder(pet, include={}) == {}
-    assert jsonable_encoder(pet, exclude={}) == {
-        "name": "Firulais",
-        "owner": {"name": "Foo"},
-    }
+    expect(jsonable_encoder(pet)).to_equal(
+        {"name": "Firulais", "owner": {"name": "Foo"}}
+    )
+    expect(jsonable_encoder(pet, include={"name"})).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, exclude={"owner"})).to_equal({"name": "Firulais"})
+    expect(jsonable_encoder(pet, include={})).to_equal({})
+    expect(jsonable_encoder(pet, exclude={})).to_equal(
+        {
+            "name": "Firulais",
+            "owner": {"name": "Foo"},
+        }
+    )
 
 
-def test_encode_dataclass():
+@test
+def encode_dataclass():
     item = Item(name="foo", count=100)
-    assert jsonable_encoder(item) == {"name": "foo", "count": 100}
-    assert jsonable_encoder(item, include={"name"}) == {"name": "foo"}
-    assert jsonable_encoder(item, exclude={"count"}) == {"name": "foo"}
-    assert jsonable_encoder(item, include={}) == {}
-    assert jsonable_encoder(item, exclude={}) == {"name": "foo", "count": 100}
+    expect(jsonable_encoder(item)).to_equal({"name": "foo", "count": 100})
+    expect(jsonable_encoder(item, include={"name"})).to_equal({"name": "foo"})
+    expect(jsonable_encoder(item, exclude={"count"})).to_equal({"name": "foo"})
+    expect(jsonable_encoder(item, include={})).to_equal({})
+    expect(jsonable_encoder(item, exclude={})).to_equal({"name": "foo", "count": 100})
 
 
-def test_encode_unsupported():
+@test
+def encode_unsupported():
     unserializable = Unserializable()
-    with pytest.raises(ValueError):
-        jsonable_encoder(unserializable)
+    expect(lambda: jsonable_encoder(unserializable)).to_raise(ValueError)
 
 
-def test_encode_custom_json_encoders_model_pydanticv2():
+@test
+def encode_custom_json_encoders_model_pydanticv2():
     from pydantic import field_serializer
 
     class ModelWithCustomEncoder(BaseModel):
@@ -145,18 +167,21 @@ def test_encode_custom_json_encoders_model_pydanticv2():
 
         @field_serializer("dt_field")
         def serialize_dt_field(self, dt):
-            return dt.replace(microsecond=0, tzinfo=timezone.utc).isoformat()
+            return dt.replace(microsecond=0, tzinfo=UTC).isoformat()
 
     class ModelWithCustomEncoderSubclass(ModelWithCustomEncoder):
         pass
 
     model = ModelWithCustomEncoder(dt_field=datetime(2019, 1, 1, 8))
-    assert jsonable_encoder(model) == {"dt_field": "2019-01-01T08:00:00+00:00"}
+    expect(jsonable_encoder(model)).to_equal({"dt_field": "2019-01-01T08:00:00+00:00"})
     subclass_model = ModelWithCustomEncoderSubclass(dt_field=datetime(2019, 1, 1, 8))
-    assert jsonable_encoder(subclass_model) == {"dt_field": "2019-01-01T08:00:00+00:00"}
+    expect(jsonable_encoder(subclass_model)).to_equal(
+        {"dt_field": "2019-01-01T08:00:00+00:00"}
+    )
 
 
-def test_json_encoder_error_with_pydanticv1():
+@test
+def json_encoder_error_with_pydanticv1():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
         from pydantic import v1
@@ -165,44 +190,53 @@ def test_json_encoder_error_with_pydanticv1():
         name: str
 
     data = ModelV1(name="test")
-    with pytest.raises(PydanticV1NotSupportedError):
-        jsonable_encoder(data)
+    expect(lambda: jsonable_encoder(data)).to_raise(PydanticV1NotSupportedError)
 
 
-def test_encode_model_with_config():
+@test
+def encode_model_with_config():
     model = ModelWithConfig(role=RoleEnum.admin)
-    assert jsonable_encoder(model) == {"role": "admin"}
+    expect(jsonable_encoder(model)).to_equal({"role": "admin"})
 
 
-def test_encode_model_with_alias_raises():
-    with pytest.raises(ValidationError):
-        ModelWithAlias(foo="Bar")
+@test
+def encode_model_with_alias_raises():
+    expect(lambda: ModelWithAlias(foo="Bar")).to_raise(ValidationError)
 
 
-def test_encode_model_with_alias():
+@test
+def encode_model_with_alias():
     model = ModelWithAlias(Foo="Bar")
-    assert jsonable_encoder(model) == {"Foo": "Bar"}
+    expect(jsonable_encoder(model)).to_equal({"Foo": "Bar"})
 
 
-def test_encode_model_with_default():
+@test
+def encode_model_with_default():
     model = ModelWithDefault(foo="foo", bar="bar")
-    assert jsonable_encoder(model) == {"foo": "foo", "bar": "bar", "bla": "bla"}
-    assert jsonable_encoder(model, exclude_unset=True) == {"foo": "foo", "bar": "bar"}
-    assert jsonable_encoder(model, exclude_defaults=True) == {"foo": "foo"}
-    assert jsonable_encoder(model, exclude_unset=True, exclude_defaults=True) == {
-        "foo": "foo"
-    }
-    assert jsonable_encoder(model, include={"foo"}) == {"foo": "foo"}
-    assert jsonable_encoder(model, exclude={"bla"}) == {"foo": "foo", "bar": "bar"}
-    assert jsonable_encoder(model, include={}) == {}
-    assert jsonable_encoder(model, exclude={}) == {
-        "foo": "foo",
-        "bar": "bar",
-        "bla": "bla",
-    }
+    expect(jsonable_encoder(model)).to_equal({"foo": "foo", "bar": "bar", "bla": "bla"})
+    expect(jsonable_encoder(model, exclude_unset=True)).to_equal(
+        {"foo": "foo", "bar": "bar"}
+    )
+    expect(jsonable_encoder(model, exclude_defaults=True)).to_equal({"foo": "foo"})
+    expect(jsonable_encoder(model, exclude_unset=True, exclude_defaults=True)).to_equal(
+        {"foo": "foo"}
+    )
+    expect(jsonable_encoder(model, include={"foo"})).to_equal({"foo": "foo"})
+    expect(jsonable_encoder(model, exclude={"bla"})).to_equal(
+        {"foo": "foo", "bar": "bar"}
+    )
+    expect(jsonable_encoder(model, include={})).to_equal({})
+    expect(jsonable_encoder(model, exclude={})).to_equal(
+        {
+            "foo": "foo",
+            "bar": "bar",
+            "bla": "bla",
+        }
+    )
 
 
-def test_custom_encoders():
+@test
+def custom_encoders():
     class safe_datetime(datetime):
         pass
 
@@ -214,18 +248,23 @@ def test_custom_encoders():
     encoded_instance = jsonable_encoder(
         instance, custom_encoder={safe_datetime: lambda o: o.strftime("%H:%M:%S")}
     )
-    assert encoded_instance["dt_field"] == instance["dt_field"].strftime("%H:%M:%S")
+    expect(encoded_instance["dt_field"]).to_equal(
+        instance["dt_field"].strftime("%H:%M:%S")
+    )
 
     encoded_instance = jsonable_encoder(
         instance, custom_encoder={datetime: lambda o: o.strftime("%H:%M:%S")}
     )
-    assert encoded_instance["dt_field"] == instance["dt_field"].strftime("%H:%M:%S")
+    expect(encoded_instance["dt_field"]).to_equal(
+        instance["dt_field"].strftime("%H:%M:%S")
+    )
 
     encoded_instance2 = jsonable_encoder(instance)
-    assert encoded_instance2["dt_field"] == instance["dt_field"].isoformat()
+    expect(encoded_instance2["dt_field"]).to_equal(instance["dt_field"].isoformat())
 
 
-def test_custom_enum_encoders():
+@test
+def custom_enum_encoders():
     def custom_enum_encoder(v: Enum):
         return v.value.lower()
 
@@ -237,10 +276,11 @@ def test_custom_enum_encoders():
     encoded_instance = jsonable_encoder(
         instance, custom_encoder={MyEnum: custom_enum_encoder}
     )
-    assert encoded_instance == custom_enum_encoder(instance)
+    expect(encoded_instance).to_equal(custom_enum_encoder(instance))
 
 
-def test_encode_model_with_pure_path():
+@test
+def encode_model_with_pure_path():
     class ModelWithPath(BaseModel):
         path: PurePath
 
@@ -248,84 +288,91 @@ def test_encode_model_with_pure_path():
 
     test_path = PurePath("/foo", "bar")
     obj = ModelWithPath(path=test_path)
-    assert jsonable_encoder(obj) == {"path": str(test_path)}
+    expect(jsonable_encoder(obj)).to_equal({"path": str(test_path)})
 
 
-def test_encode_model_with_pure_posix_path():
+@test
+def encode_model_with_pure_posix_path():
     class ModelWithPath(BaseModel):
         path: PurePosixPath
 
         model_config = {"arbitrary_types_allowed": True}
 
     obj = ModelWithPath(path=PurePosixPath("/foo", "bar"))
-    assert jsonable_encoder(obj) == {"path": "/foo/bar"}
+    expect(jsonable_encoder(obj)).to_equal({"path": "/foo/bar"})
 
 
-def test_encode_model_with_pure_windows_path():
+@test
+def encode_model_with_pure_windows_path():
     class ModelWithPath(BaseModel):
         path: PureWindowsPath
 
         model_config = {"arbitrary_types_allowed": True}
 
     obj = ModelWithPath(path=PureWindowsPath("/foo", "bar"))
-    assert jsonable_encoder(obj) == {"path": "\\foo\\bar"}
+    expect(jsonable_encoder(obj)).to_equal({"path": "\\foo\\bar"})
 
 
-def test_encode_pure_path():
+@test
+def encode_pure_path():
     test_path = PurePath("/foo", "bar")
 
-    assert jsonable_encoder({"path": test_path}) == {"path": str(test_path)}
+    expect(jsonable_encoder({"path": test_path})).to_equal({"path": str(test_path)})
 
 
-def test_decimal_encoder_float():
+@test
+def decimal_encoder_float():
     data = {"value": Decimal(1.23)}
-    assert jsonable_encoder(data) == {"value": 1.23}
+    expect(jsonable_encoder(data)).to_equal({"value": 1.23})
 
 
-def test_decimal_encoder_int():
+@test
+def decimal_encoder_int():
     data = {"value": Decimal(2)}
-    assert jsonable_encoder(data) == {"value": 2}
+    expect(jsonable_encoder(data)).to_equal({"value": 2})
 
 
-def test_decimal_encoder_nan():
+@test
+def decimal_encoder_nan():
     data = {"value": Decimal("NaN")}
-    assert isnan(jsonable_encoder(data)["value"])
+    expect(isnan(jsonable_encoder(data)["value"])).to_be_truthy()
 
 
-def test_decimal_encoder_infinity():
+@test
+def decimal_encoder_infinity():
     data = {"value": Decimal("Infinity")}
-    assert isinf(jsonable_encoder(data)["value"])
+    expect(isinf(jsonable_encoder(data)["value"])).to_be_truthy()
     data = {"value": Decimal("-Infinity")}
-    assert isinf(jsonable_encoder(data)["value"])
+    expect(isinf(jsonable_encoder(data)["value"])).to_be_truthy()
 
 
-def test_encode_deque_encodes_child_models():
+@test
+def encode_deque_encodes_child_models():
     class Model(BaseModel):
         test: str
 
     dq = deque([Model(test="test")])
 
-    assert jsonable_encoder(dq)[0]["test"] == "test"
+    expect(jsonable_encoder(dq)[0]["test"]).to_equal("test")
 
 
-def test_encode_pydantic_undefined():
+@test
+def encode_pydantic_undefined():
     data = {"value": Undefined}
-    assert jsonable_encoder(data) == {"value": None}
+    expect(jsonable_encoder(data)).to_equal({"value": None})
 
 
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
-@pytest.mark.parametrize(
-    "module_path",
-    [
-        pytest.param("pydantic.color"),
-        pytest.param("pydantic_extra_types.color"),
-    ],
+@test.cases(
+    test.case("pydantic.color", module_path="pydantic.color"),
+    test.case("pydantic_extra_types.color", module_path="pydantic_extra_types.color"),
 )
-def test_encode_color(module_path):
-    try:
-        Color = __import__(module_path, fromlist=["Color"]).Color
-    except ImportError:  # pragma: no cover
-        pytest.skip(f"{module_path} not available")
+def encode_color(module_path: str):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        try:
+            Color = __import__(module_path, fromlist=["Color"]).Color
+        except ImportError:  # pragma: no cover
+            return  # Skip when not installed.
 
-    data = {"color": Color("blue")}
-    assert jsonable_encoder(data) == {"color": "blue"}
+        data = {"color": Color("blue")}
+        expect(jsonable_encoder(data)).to_equal({"color": "blue"})

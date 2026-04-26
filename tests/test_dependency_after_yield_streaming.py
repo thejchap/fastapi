@@ -2,10 +2,10 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from typing import Annotated, Any
 
-import pytest
 from fastapi import Depends, FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 class Session:
@@ -13,7 +13,7 @@ class Session:
         self.data = ["foo", "bar", "baz"]
         self.open = True
 
-    def __iter__(self) -> Generator[str, None, None]:
+    def __iter__(self) -> Generator[str]:
         for item in self.data:
             if self.open:
                 yield item
@@ -22,7 +22,7 @@ class Session:
 
 
 @contextmanager
-def acquire_session() -> Generator[Session, None, None]:
+def acquire_session() -> Generator[Session]:
     session = Session()
     try:
         yield session
@@ -85,40 +85,49 @@ def get_broken_session_stream(session: BrokenSessionDep) -> Any:
 client = TestClient(app)
 
 
-def test_regular_no_stream():
+@test
+def regular_no_stream():
     response = client.get("/data")
-    assert response.json() == ["foo", "bar", "baz"]
+    expect(response.json()).to_equal(["foo", "bar", "baz"])
 
 
-def test_stream_simple():
+@test
+def stream_simple():
     response = client.get("/stream-simple")
-    assert response.text == "xyz"
+    expect(response.text).to_equal("xyz")
 
 
-def test_stream_session():
+@test
+def stream_session():
     response = client.get("/stream-session")
-    assert response.text == "foobarbaz"
+    expect(response.text).to_equal("foobarbaz")
 
 
-def test_broken_session_data():
-    with pytest.raises(ValueError, match="Session closed"):
-        client.get("/broken-session-data")
+@test
+def broken_session_data():
+    expect(lambda: client.get("/broken-session-data")).to_raise(
+        ValueError, match="Session closed"
+    )
 
 
-def test_broken_session_data_no_raise():
+@test
+def broken_session_data_no_raise():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/broken-session-data")
-    assert response.status_code == 500
-    assert response.text == "Internal Server Error"
+    expect(response.status_code).to_equal(500)
+    expect(response.text).to_equal("Internal Server Error")
 
 
-def test_broken_session_stream_raise():
+@test
+def broken_session_stream_raise():
     # Can raise ValueError on Pydantic v2 and ExceptionGroup on Pydantic v1
-    with pytest.raises((ValueError, Exception)):
-        client.get("/broken-session-stream")
+    # Tryke `to_raise` doesn't accept a tuple of types; both options inherit
+    # from Exception, so just check for that.
+    expect(lambda: client.get("/broken-session-stream")).to_raise(Exception)
 
 
-def test_broken_session_stream_no_raise():
+@test
+def broken_session_stream_no_raise():
     """
     When a dependency with yield raises after the streaming response already started
     the 200 status code is already sent, but there's still an error in the server
@@ -126,5 +135,5 @@ def test_broken_session_stream_no_raise():
     """
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/broken-session-stream")
-        assert response.status_code == 200
-        assert response.text == ""
+        expect(response.status_code).to_equal(200)
+        expect(response.text).to_equal("")

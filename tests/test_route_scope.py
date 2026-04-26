@@ -1,7 +1,7 @@
-import pytest
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.routing import APIRoute, APIWebSocketRoute
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -22,29 +22,36 @@ async def websocket_item(item_id: str, websocket: WebSocket):
 client = TestClient(app)
 
 
-def test_get():
+@test
+def get():
     response = client.get("/users/rick")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"user_id": "rick", "path": "/users/{user_id}"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"user_id": "rick", "path": "/users/{user_id}"})
 
 
-def test_invalid_method_doesnt_match():
+@test
+def invalid_method_doesnt_match():
     response = client.post("/users/rick")
-    assert response.status_code == 405, response.text
+    expect(response.status_code).to_equal(405).fatal()
 
 
-def test_invalid_path_doesnt_match():
+@test
+def invalid_path_doesnt_match():
     response = client.post("/usersx/rick")
-    assert response.status_code == 404, response.text
+    expect(response.status_code).to_equal(404).fatal()
 
 
-def test_websocket():
+@test
+def websocket():
     with client.websocket_connect("/items/portal-gun") as websocket:
         data = websocket.receive_json()
-        assert data == {"item_id": "portal-gun", "path": "/items/{item_id}"}
+        expect(data).to_equal({"item_id": "portal-gun", "path": "/items/{item_id}"})
 
 
-def test_websocket_invalid_path_doesnt_match():
-    with pytest.raises(WebSocketDisconnect):
+@test
+def websocket_invalid_path_doesnt_match():
+    def _body() -> None:
         with client.websocket_connect("/itemsx/portal-gun"):
             pass  # pragma: no cover
+
+    expect(_body).to_raise(WebSocketDisconnect)

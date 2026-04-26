@@ -2,12 +2,11 @@ import os
 import shutil
 
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
-from tests.utils import workdir_lock
 
-
-@workdir_lock
-def test_main():
+@test
+def main():
     if os.path.isdir("./static"):  # pragma: nocover
         shutil.rmtree("./static")
     if os.path.isdir("./templates"):  # pragma: nocover
@@ -18,13 +17,12 @@ def test_main():
 
     client = TestClient(app)
     response = client.get("/items/foo")
-    assert response.status_code == 200, response.text
-    assert (
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.content).to_contain(
         b'<h1><a href="http://testserver/items/foo">Item ID: foo</a></h1>'
-        in response.content
     )
     response = client.get("/static/styles.css")
-    assert response.status_code == 200, response.text
-    assert b"color: green;" in response.content
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.content).to_contain(b"color: green;")
     shutil.rmtree("./templates")
     shutil.rmtree("./static")

@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from docs_src.behind_a_proxy.tutorial001_01_py310 import app
 
@@ -9,13 +10,15 @@ client = TestClient(
 )
 
 
-def test_redirect() -> None:
+@test
+def redirect() -> None:
     response = client.get("/items")
-    assert response.status_code == 307
-    assert response.headers["location"] == "https://example.com/items/"
+    expect(response.status_code).to_equal(307).fatal()
+    expect(response.headers["location"]).to_equal("https://example.com/items/")
 
 
-def test_no_redirect() -> None:
+@test
+def no_redirect() -> None:
     response = client.get("/items/")
-    assert response.status_code == 200
-    assert response.json() == ["plumbus", "portal gun"]
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(["plumbus", "portal gun"])

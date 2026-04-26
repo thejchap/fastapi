@@ -1,10 +1,10 @@
 from contextvars import ContextVar
 from typing import Annotated, Any
 
-import pytest
 from fastapi import Depends, FastAPI, WebSocket
 from fastapi.exceptions import FastAPIError
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 global_context: ContextVar[dict[str, Any]] = ContextVar("global_context", default={})  # noqa: B039
 
@@ -127,74 +127,82 @@ async def get_regular_function_scope(
 client = TestClient(app)
 
 
-def test_function_scope() -> None:
+@test
+def function_scope_test() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/function-scope") as websocket:
         data = websocket.receive_json()
-    assert data["is_open"] is True
-    assert global_state["session_closed"] is True
+    expect(data["is_open"]).to_be(True)
+    expect(global_state["session_closed"]).to_be(True)
 
 
-def test_request_scope() -> None:
+@test
+def request_scope_test() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/request-scope") as websocket:
         data = websocket.receive_json()
-    assert data["is_open"] is True
-    assert global_state["session_closed"] is True
+    expect(data["is_open"]).to_be(True)
+    expect(global_state["session_closed"]).to_be(True)
 
 
-def test_two_scopes() -> None:
+@test
+def two_scopes() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/two-scopes") as websocket:
         data = websocket.receive_json()
-    assert data["func_is_open"] is True
-    assert data["req_is_open"] is True
-    assert global_state["session_closed"] is True
+    expect(data["func_is_open"]).to_be(True)
+    expect(data["req_is_open"]).to_be(True)
+    expect(global_state["session_closed"]).to_be(True)
 
 
-def test_sub() -> None:
+@test
+def sub() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/sub") as websocket:
         data = websocket.receive_json()
-    assert data["named_session_open"] is True
-    assert data["session_open"] is True
-    assert global_state["session_closed"] is True
-    assert global_state["named_session_closed"] is True
+    expect(data["named_session_open"]).to_be(True)
+    expect(data["session_open"]).to_be(True)
+    expect(global_state["session_closed"]).to_be(True)
+    expect(global_state["named_session_closed"]).to_be(True)
 
 
-def test_broken_scope() -> None:
-    with pytest.raises(
-        FastAPIError,
-        match='The dependency "get_named_func_session" has a scope of "request", it cannot depend on dependencies with scope "function"',
-    ):
-
+@test
+def broken_scope() -> None:
+    def _body():
         @app.websocket("/broken-scope")
         async def get_broken(
             websocket: WebSocket, sessions: BrokenSessionsDep
         ) -> Any:  # pragma: no cover
             pass
 
+    expect(_body).to_raise(
+        FastAPIError,
+        match='The dependency "get_named_func_session" has a scope of "request", it cannot depend on dependencies with scope "function"',
+    )
 
-def test_named_function_scope() -> None:
+
+@test
+def named_function_scope() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/named-function-scope") as websocket:
         data = websocket.receive_json()
-    assert data["named_session_open"] is True
-    assert data["session_open"] is True
-    assert global_state["session_closed"] is True
-    assert global_state["named_func_session_closed"] is True
+    expect(data["named_session_open"]).to_be(True)
+    expect(data["session_open"]).to_be(True)
+    expect(global_state["session_closed"]).to_be(True)
+    expect(global_state["named_func_session_closed"]).to_be(True)
 
 
-def test_regular_function_scope() -> None:
+@test
+def regular_function_scope() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/regular-function-scope") as websocket:
         data = websocket.receive_json()
-    assert data["named_session_open"] is True
-    assert data["session_open"] is True
-    assert global_state["session_closed"] is True
+    expect(data["named_session_open"]).to_be(True)
+    expect(data["session_open"]).to_be(True)
+    expect(global_state["session_closed"]).to_be(True)

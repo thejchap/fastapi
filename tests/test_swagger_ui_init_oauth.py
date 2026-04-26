@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 swagger_ui_init_oauth = {"clientId": "the-foo-clients", "appName": "The Predendapp"}
 
@@ -14,15 +15,17 @@ async def read_items():
 client = TestClient(app)
 
 
-def test_swagger_ui():
+@test
+def swagger_ui():
     response = client.get("/docs")
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
     print(response.text)
-    assert "ui.initOAuth" in response.text
-    assert '"appName": "The Predendapp"' in response.text
-    assert '"clientId": "the-foo-clients"' in response.text
+    expect(response.text).to_contain("ui.initOAuth")
+    expect(response.text).to_contain('"appName": "The Predendapp"')
+    expect(response.text).to_contain('"clientId": "the-foo-clients"')
 
 
-def test_response():
+@test
+def response():
     response = client.get("/items/")
-    assert response.json() == {"id": "foo"}
+    expect(response.json()).to_equal({"id": "foo"})

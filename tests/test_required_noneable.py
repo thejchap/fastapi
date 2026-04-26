@@ -1,5 +1,6 @@
 from fastapi import Body, FastAPI, Query
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -22,39 +23,46 @@ def send_body_embed(b: str | None = Body(embed=True)):
 client = TestClient(app)
 
 
-def test_required_nonable_query_invalid():
+@test
+def required_nonable_query_invalid():
     response = client.get("/query")
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422).fatal()
 
 
-def test_required_noneable_query_value():
+@test
+def required_noneable_query_value():
     response = client.get("/query", params={"q": "foo"})
-    assert response.status_code == 200
-    assert response.json() == "foo"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("foo")
 
 
-def test_required_nonable_explicit_query_invalid():
+@test
+def required_nonable_explicit_query_invalid():
     response = client.get("/explicit-query")
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422).fatal()
 
 
-def test_required_nonable_explicit_query_value():
+@test
+def required_nonable_explicit_query_value():
     response = client.get("/explicit-query", params={"q": "foo"})
-    assert response.status_code == 200
-    assert response.json() == "foo"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("foo")
 
 
-def test_required_nonable_body_embed_no_content():
+@test
+def required_nonable_body_embed_no_content():
     response = client.post("/body-embed")
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422).fatal()
 
 
-def test_required_nonable_body_embed_invalid():
+@test
+def required_nonable_body_embed_invalid():
     response = client.post("/body-embed", json={"invalid": "invalid"})
-    assert response.status_code == 422
+    expect(response.status_code).to_equal(422).fatal()
 
 
-def test_required_noneable_body_embed_value():
+@test
+def required_noneable_body_embed_value():
     response = client.post("/body-embed", json={"b": "foo"})
-    assert response.status_code == 200
-    assert response.json() == "foo"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("foo")

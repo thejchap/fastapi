@@ -3,6 +3,7 @@ from fastapi.security import APIKeyQuery
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -26,45 +27,50 @@ def read_current_user(current_user: User = Depends(get_current_user)):
 client = TestClient(app)
 
 
-def test_security_api_key():
+@test
+def security_api_key():
     response = client.get("/users/me?key=secret")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"username": "secret"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"username": "secret"})
 
 
-def test_security_api_key_no_key():
+@test
+def security_api_key_no_key():
     response = client.get("/users/me")
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "Not authenticated"}
-    assert response.headers["WWW-Authenticate"] == "APIKey"
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"]).to_equal("APIKey")
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/users/me": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            }
-                        },
-                        "summary": "Read Current User",
-                        "operationId": "read_current_user_users_me_get",
-                        "security": [{"APIKeyQuery": []}],
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/users/me": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                }
+                            },
+                            "summary": "Read Current User",
+                            "operationId": "read_current_user_users_me_get",
+                            "security": [{"APIKeyQuery": []}],
+                        }
                     }
-                }
-            },
-            "components": {
-                "securitySchemes": {
-                    "APIKeyQuery": {"type": "apiKey", "name": "key", "in": "query"}
-                }
-            },
-        }
+                },
+                "components": {
+                    "securitySchemes": {
+                        "APIKeyQuery": {"type": "apiKey", "name": "key", "in": "query"}
+                    }
+                },
+            }
+        )
     )

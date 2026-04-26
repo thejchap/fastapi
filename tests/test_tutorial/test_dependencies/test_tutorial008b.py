@@ -1,36 +1,45 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial008b_py310"),
-        pytest.param("tutorial008b_an_py310"),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.dependencies.{request.param}")
-
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("dependencies", name)
     client = TestClient(mod.app)
     return client
 
 
-def test_get_no_item(client: TestClient):
+@test.cases(
+    test.case("tutorial008b_py310", name="tutorial008b_py310"),
+    test.case("tutorial008b_an_py310", name="tutorial008b_an_py310"),
+)
+def get_no_item(name: str):
+    client = _client_for(name)
     response = client.get("/items/foo")
-    assert response.status_code == 404, response.text
-    assert response.json() == {"detail": "Item not found"}
+    expect(response.status_code).to_equal(404).fatal()
+    expect(response.json()).to_equal({"detail": "Item not found"})
 
 
-def test_owner_error(client: TestClient):
+@test.cases(
+    test.case("tutorial008b_py310", name="tutorial008b_py310"),
+    test.case("tutorial008b_an_py310", name="tutorial008b_an_py310"),
+)
+def owner_error(name: str):
+    client = _client_for(name)
     response = client.get("/items/plumbus")
-    assert response.status_code == 400, response.text
-    assert response.json() == {"detail": "Owner error: Rick"}
+    expect(response.status_code).to_equal(400).fatal()
+    expect(response.json()).to_equal({"detail": "Owner error: Rick"})
 
 
-def test_get_item(client: TestClient):
+@test.cases(
+    test.case("tutorial008b_py310", name="tutorial008b_py310"),
+    test.case("tutorial008b_an_py310", name="tutorial008b_an_py310"),
+)
+def get_item(name: str):
+    client = _client_for(name)
     response = client.get("/items/portal-gun")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"description": "Gun to create portals", "owner": "Rick"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {"description": "Gun to create portals", "owner": "Rick"}
+    )

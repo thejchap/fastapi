@@ -2,6 +2,7 @@ import functools
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 from .forward_reference_type import forwardref_method
 
@@ -14,7 +15,8 @@ def passthrough(f):
     return method
 
 
-def test_wrapped_method_type_inference():
+@test
+def wrapped_method_type_inference():
     """
     Regression test ensuring that when a method imported from another module
     is decorated with something that sets the __wrapped__ attribute (functools.wraps),
@@ -28,4 +30,5 @@ def test_wrapped_method_type_inference():
     with client:
         response = client.post("/endpoint", json={"input": {"x": 0}})
         response2 = client.post("/endpoint2", json={"input": {"x": 0}})
-    assert response.json() == response2.json() == {"x": 1}
+    expect(response.json()).to_equal({"x": 1})
+    expect(response2.json()).to_equal({"x": 1})

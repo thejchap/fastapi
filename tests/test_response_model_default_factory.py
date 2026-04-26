@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -29,19 +30,21 @@ async def response_model_has_default_factory_return_model():
 client = TestClient(app)
 
 
-def test_response_model_has_default_factory_return_dict():
+@test
+def response_model_has_default_factory_return_dict():  # noqa: F811
     response = client.get("/response_model_has_default_factory_return_dict")
 
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
 
-    assert response.json()["code"] == 200
-    assert response.json()["message"] == "Successful operation."
+    expect(response.json()["code"]).to_equal(200)
+    expect(response.json()["message"]).to_equal("Successful operation.")
 
 
-def test_response_model_has_default_factory_return_model():
+@test
+def response_model_has_default_factory_return_model():  # noqa: F811
     response = client.get("/response_model_has_default_factory_return_model")
 
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
 
-    assert response.json()["code"] == 200
-    assert response.json()["message"] == "Successful operation."
+    expect(response.json()["code"]).to_equal(200)
+    expect(response.json()["message"]).to_equal("Successful operation.")

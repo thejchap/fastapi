@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 
 class Model1(BaseModel):
@@ -113,63 +114,81 @@ def mixed_dict():
 client = TestClient(app)
 
 
-def test_nested_include_simple():
+@test
+def nested_include_simple():
     response = client.get("/simple_include")
 
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
 
-    assert response.json() == {
-        "baz": "simple_include model2 baz",
-        "ref": {"foo": "simple_include model foo"},
-    }
+    expect(response.json()).to_equal(
+        {
+            "baz": "simple_include model2 baz",
+            "ref": {"foo": "simple_include model foo"},
+        }
+    )
 
 
-def test_nested_include_simple_dict():
+@test
+def nested_include_simple_dict():
     response = client.get("/simple_include_dict")
 
-    assert response.status_code == 200, response.text
+    expect(response.status_code).to_equal(200).fatal()
 
-    assert response.json() == {
-        "baz": "simple_include_dict model2 baz",
-        "ref": {"foo": "simple_include_dict model foo"},
-    }
+    expect(response.json()).to_equal(
+        {
+            "baz": "simple_include_dict model2 baz",
+            "ref": {"foo": "simple_include_dict model foo"},
+        }
+    )
 
 
-def test_nested_exclude_simple():
+@test
+def nested_exclude_simple():
     response = client.get("/simple_exclude")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "baz": "simple_exclude model2 baz",
-        "ref": {"foo": "simple_exclude model foo"},
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "baz": "simple_exclude model2 baz",
+            "ref": {"foo": "simple_exclude model foo"},
+        }
+    )
 
 
-def test_nested_exclude_simple_dict():
+@test
+def nested_exclude_simple_dict():
     response = client.get("/simple_exclude_dict")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "baz": "simple_exclude_dict model2 baz",
-        "ref": {"foo": "simple_exclude_dict model foo"},
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "baz": "simple_exclude_dict model2 baz",
+            "ref": {"foo": "simple_exclude_dict model foo"},
+        }
+    )
 
 
-def test_nested_include_mixed():
+@test
+def nested_include_mixed():
     response = client.get("/mixed")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "name": "mixed model3 name",
-        "ref2": {
-            "ref": {"foo": "mixed model foo", "bar": "mixed model bar"},
-        },
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "name": "mixed model3 name",
+            "ref2": {
+                "ref": {"foo": "mixed model foo", "bar": "mixed model bar"},
+            },
+        }
+    )
 
 
-def test_nested_include_mixed_dict():
+@test
+def nested_include_mixed_dict():
     response = client.get("/mixed_dict")
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "name": "mixed_dict model3 name",
-        "ref2": {
-            "ref": {"foo": "mixed_dict model foo", "bar": "mixed_dict model bar"},
-        },
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "name": "mixed_dict model3 name",
+            "ref2": {
+                "ref": {"foo": "mixed_dict model foo", "bar": "mixed_dict model bar"},
+            },
+        }
+    )

@@ -1,24 +1,21 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
+
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial002_py310"),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.response_directly.{request.param}")
-
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("response_directly", name)
     client = TestClient(mod.app)
     return client
 
 
-def test_path_operation(client: TestClient):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+)
+def path_operation(name: str):
+    client = _client_for(name)
     expected_content = """<?xml version="1.0"?>
     <shampoo>
     <Header>
@@ -31,38 +28,44 @@ def test_path_operation(client: TestClient):
     """
 
     response = client.get("/legacy/")
-    assert response.status_code == 200, response.text
-    assert response.headers["content-type"] == "application/xml"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.headers["content-type"]).to_equal("application/xml")
     assert response.text == expected_content
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "info": {
-                "title": "FastAPI",
-                "version": "0.1.0",
-            },
-            "openapi": "3.1.0",
-            "paths": {
-                "/legacy/": {
-                    "get": {
-                        "operationId": "get_legacy_data_legacy__get",
-                        "responses": {
-                            "200": {
-                                "content": {
-                                    "application/json": {
-                                        "schema": {},
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "info": {
+                    "title": "FastAPI",
+                    "version": "0.1.0",
+                },
+                "openapi": "3.1.0",
+                "paths": {
+                    "/legacy/": {
+                        "get": {
+                            "operationId": "get_legacy_data_legacy__get",
+                            "responses": {
+                                "200": {
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {},
+                                        },
                                     },
+                                    "description": "Successful Response",
                                 },
-                                "description": "Successful Response",
                             },
+                            "summary": "Get Legacy Data",
                         },
-                        "summary": "Get Legacy Data",
                     },
                 },
-            },
-        }
+            }
+        )
     )

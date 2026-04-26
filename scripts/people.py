@@ -4,7 +4,7 @@ import subprocess
 import time
 from collections import Counter
 from collections.abc import Container
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from math import ceil
 from pathlib import Path
 from typing import Annotated, Any
@@ -28,12 +28,12 @@ class RateLimiter:
     def __init__(self) -> None:
         self.last_query_cost: int = 1
         self.remaining_points: int = 5000
-        self.reset_at: datetime = datetime.fromtimestamp(0, timezone.utc)
-        self.last_request_start_time: datetime = datetime.fromtimestamp(0, timezone.utc)
+        self.reset_at: datetime = datetime.fromtimestamp(0, UTC)
+        self.last_request_start_time: datetime = datetime.fromtimestamp(0, UTC)
         self.speed_multiplier: float = 1.0
 
     def __enter__(self) -> "RateLimiter":
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
 
         # Handle primary rate limits
         primary_limit_wait_time = 0.0
@@ -56,7 +56,7 @@ class RateLimiter:
         logging.info(f"Sleeping for {final_wait_time} seconds to respect rate limit")
         time.sleep(max(final_wait_time, 1))
 
-        self.last_request_start_time = datetime.now(tz=timezone.utc)
+        self.last_request_start_time = datetime.now(tz=UTC)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
@@ -275,7 +275,7 @@ def get_discussions_experts(
     one_year_commenters = Counter[str]()
     authors: dict[str, Author] = {}
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     one_month_ago = now - timedelta(days=30)
     three_months_ago = now - timedelta(days=90)
     six_months_ago = now - timedelta(days=180)

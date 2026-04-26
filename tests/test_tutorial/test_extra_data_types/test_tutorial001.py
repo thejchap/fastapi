@@ -1,27 +1,21 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial001_py310", marks=needs_py310),
-        pytest.param("tutorial001_an_py310", marks=needs_py310),
-    ],
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("extra_data_types", name)
+    return TestClient(mod.app)
+
+
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
 )
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.extra_data_types.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
-
-
-def test_extra_types(client: TestClient):
+def extra_types(name: str):
+    client = _client_for(name)
     item_id = "ff97dd87-a4a5-4a12-b412-cde99f33e00e"
     data = {
         "start_datetime": "2018-12-22T14:00:00+00:00",
@@ -38,126 +32,140 @@ def test_extra_types(client: TestClient):
         }
     )
     response = client.put(f"/items/{item_id}", json=data)
-    assert response.status_code == 200, response.text
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(expected_response)
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/{item_id}": {
-                    "put": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/{item_id}": {
+                        "put": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
                             },
-                            "422": {
-                                "description": "Validation Error",
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__item_id__put",
+                            "parameters": [
+                                {
+                                    "required": True,
+                                    "schema": {
+                                        "title": "Item Id",
+                                        "type": "string",
+                                        "format": "uuid",
+                                    },
+                                    "name": "item_id",
+                                    "in": "path",
+                                }
+                            ],
+                            "requestBody": {
+                                "required": True,
                                 "content": {
                                     "application/json": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "$ref": "#/components/schemas/Body_read_items_items__item_id__put"
                                         }
                                     }
                                 },
                             },
-                        },
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__item_id__put",
-                        "parameters": [
-                            {
-                                "required": True,
-                                "schema": {
-                                    "title": "Item Id",
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "Body_read_items_items__item_id__put": {
+                            "title": "Body_read_items_items__item_id__put",
+                            "type": "object",
+                            "properties": {
+                                "start_datetime": {
+                                    "title": "Start Datetime",
                                     "type": "string",
-                                    "format": "uuid",
+                                    "format": "date-time",
                                 },
-                                "name": "item_id",
-                                "in": "path",
-                            }
-                        ],
-                        "requestBody": {
-                            "required": True,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Body_read_items_items__item_id__put"
-                                    }
+                                "end_datetime": {
+                                    "title": "End Datetime",
+                                    "type": "string",
+                                    "format": "date-time",
+                                },
+                                "repeat_at": {
+                                    "title": "Repeat At",
+                                    "anyOf": [
+                                        {"type": "string", "format": "time"},
+                                        {"type": "null"},
+                                    ],
+                                },
+                                "process_after": {
+                                    "title": "Process After",
+                                    "type": "string",
+                                    "format": "duration",
+                                },
+                            },
+                            "required": [
+                                "start_datetime",
+                                "end_datetime",
+                                "process_after",
+                            ],
+                        },
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                            },
+                        },
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
                                 }
                             },
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "Body_read_items_items__item_id__put": {
-                        "title": "Body_read_items_items__item_id__put",
-                        "type": "object",
-                        "properties": {
-                            "start_datetime": {
-                                "title": "Start Datetime",
-                                "type": "string",
-                                "format": "date-time",
-                            },
-                            "end_datetime": {
-                                "title": "End Datetime",
-                                "type": "string",
-                                "format": "date-time",
-                            },
-                            "repeat_at": {
-                                "title": "Repeat At",
-                                "anyOf": [
-                                    {"type": "string", "format": "time"},
-                                    {"type": "null"},
-                                ],
-                            },
-                            "process_after": {
-                                "title": "Process After",
-                                "type": "string",
-                                "format": "duration",
-                            },
-                        },
-                        "required": ["start_datetime", "end_datetime", "process_after"],
-                    },
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                            },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                        },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
-                        },
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

@@ -1,127 +1,176 @@
-import importlib
-
-import pytest
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
+from tryke import expect, test
 
-from ...utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial002_py310", marks=needs_py310),
-        pytest.param("tutorial002_an_py310", marks=needs_py310),
-    ],
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("header_params", name)
+    return TestClient(mod.app)
+
+
+@test.cases(
+    test.case(
+        "py310 default",
+        name="tutorial002_py310",
+        path="/items",
+        headers=None,
+        expected_status=200,
+        expected_response={"strange_header": None},
+    ),
+    test.case(
+        "py310 invalid",
+        name="tutorial002_py310",
+        path="/items",
+        headers={"X-Header": "notvalid"},
+        expected_status=200,
+        expected_response={"strange_header": None},
+    ),
+    test.case(
+        "py310 valid",
+        name="tutorial002_py310",
+        path="/items",
+        headers={"strange_header": "FastAPI test"},
+        expected_status=200,
+        expected_response={"strange_header": "FastAPI test"},
+    ),
+    test.case(
+        "py310 dashed",
+        name="tutorial002_py310",
+        path="/items",
+        headers={"strange-header": "Not really underscore"},
+        expected_status=200,
+        expected_response={"strange_header": None},
+    ),
+    test.case(
+        "an_py310 default",
+        name="tutorial002_an_py310",
+        path="/items",
+        headers=None,
+        expected_status=200,
+        expected_response={"strange_header": None},
+    ),
+    test.case(
+        "an_py310 invalid",
+        name="tutorial002_an_py310",
+        path="/items",
+        headers={"X-Header": "notvalid"},
+        expected_status=200,
+        expected_response={"strange_header": None},
+    ),
+    test.case(
+        "an_py310 valid",
+        name="tutorial002_an_py310",
+        path="/items",
+        headers={"strange_header": "FastAPI test"},
+        expected_status=200,
+        expected_response={"strange_header": "FastAPI test"},
+    ),
+    test.case(
+        "an_py310 dashed",
+        name="tutorial002_an_py310",
+        path="/items",
+        headers={"strange-header": "Not really underscore"},
+        expected_status=200,
+        expected_response={"strange_header": None},
+    ),
 )
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.header_params.{request.param}")
-
-    client = TestClient(mod.app)
-    return client
-
-
-@pytest.mark.parametrize(
-    "path,headers,expected_status,expected_response",
-    [
-        ("/items", None, 200, {"strange_header": None}),
-        ("/items", {"X-Header": "notvalid"}, 200, {"strange_header": None}),
-        (
-            "/items",
-            {"strange_header": "FastAPI test"},
-            200,
-            {"strange_header": "FastAPI test"},
-        ),
-        (
-            "/items",
-            {"strange-header": "Not really underscore"},
-            200,
-            {"strange_header": None},
-        ),
-    ],
-)
-def test(path, headers, expected_status, expected_response, client: TestClient):
+def get_items(
+    name: str, path: str, headers, expected_status: int, expected_response: dict
+):
+    client = _client_for(name)
     response = client.get(path, headers=headers)
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    expect(response.status_code).to_equal(expected_status).fatal()
+    expect(response.json()).to_equal(expected_response)
 
 
-def test_openapi_schema(client: TestClient):
+@test.cases(
+    test.case("tutorial002_py310", name="tutorial002_py310"),
+    test.case("tutorial002_an_py310", name="tutorial002_an_py310"),
+)
+def openapi_schema(name: str):
+    client = _client_for(name)
     response = client.get("/openapi.json")
-    assert response.status_code == 200
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "get": {
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {}}},
-                            },
-                            "422": {
-                                "description": "Validation Error",
-                                "content": {
-                                    "application/json": {
-                                        "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {"application/json": {"schema": {}}},
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
                                         }
-                                    }
+                                    },
                                 },
                             },
-                        },
-                        "summary": "Read Items",
-                        "operationId": "read_items_items__get",
-                        "parameters": [
-                            {
-                                "required": False,
-                                "schema": {
-                                    "anyOf": [{"type": "string"}, {"type": "null"}],
-                                    "title": "Strange Header",
-                                },
-                                "name": "strange_header",
-                                "in": "header",
-                            }
-                        ],
+                            "summary": "Read Items",
+                            "operationId": "read_items_items__get",
+                            "parameters": [
+                                {
+                                    "required": False,
+                                    "schema": {
+                                        "anyOf": [{"type": "string"}, {"type": "null"}],
+                                        "title": "Strange Header",
+                                    },
+                                    "name": "strange_header",
+                                    "in": "header",
+                                }
+                            ],
+                        }
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "ValidationError": {
-                        "title": "ValidationError",
-                        "required": ["loc", "msg", "type"],
-                        "type": "object",
-                        "properties": {
-                            "loc": {
-                                "title": "Location",
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
+                },
+                "components": {
+                    "schemas": {
+                        "ValidationError": {
+                            "title": "ValidationError",
+                            "required": ["loc", "msg", "type"],
+                            "type": "object",
+                            "properties": {
+                                "loc": {
+                                    "title": "Location",
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
                                 },
+                                "msg": {"title": "Message", "type": "string"},
+                                "type": {"title": "Error Type", "type": "string"},
+                                "input": {"title": "Input"},
+                                "ctx": {"title": "Context", "type": "object"},
                             },
-                            "msg": {"title": "Message", "type": "string"},
-                            "type": {"title": "Error Type", "type": "string"},
-                            "input": {"title": "Input"},
-                            "ctx": {"title": "Context", "type": "object"},
                         },
-                    },
-                    "HTTPValidationError": {
-                        "title": "HTTPValidationError",
-                        "type": "object",
-                        "properties": {
-                            "detail": {
-                                "title": "Detail",
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                            }
+                        "HTTPValidationError": {
+                            "title": "HTTPValidationError",
+                            "type": "object",
+                            "properties": {
+                                "detail": {
+                                    "title": "Detail",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                }
+                            },
                         },
-                    },
-                }
-            },
-        }
+                    }
+                },
+            }
+        )
     )

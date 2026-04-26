@@ -1,6 +1,7 @@
 from collections.abc import Awaitable, Callable, Coroutine, Sequence
 from enum import Enum
 from typing import Annotated, Any, TypeVar
+from warnings import deprecated
 
 from annotated_doc import Doc
 from fastapi import routing
@@ -33,7 +34,6 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse, Response
 from starlette.routing import BaseRoute
 from starlette.types import ASGIApp, ExceptionHandler, Lifespan, Receive, Scope, Send
-from typing_extensions import deprecated
 
 AppType = TypeVar("AppType", bound="FastAPI")
 

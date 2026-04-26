@@ -1,9 +1,9 @@
 from typing import Annotated
 
-import pytest
 from fastapi import Body, FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
+from tryke import expect, test
 
 from .utils import get_body_model_name
 
@@ -27,69 +27,72 @@ async def read_model_optional_str(p: BodyModelOptionalStr):
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-str", "/model-optional-str"],
+@test.cases(
+    test.case("optional-str", path="/optional-str"),
+    test.case("model-optional-str", path="/model-optional-str"),
 )
-def test_optional_str_schema(path: str):
+def optional_str_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p": {
-                "anyOf": [{"type": "string"}, {"type": "null"}],
-                "title": "P",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p": {"anyOf": [{"type": "string"}, {"type": "null"}], "title": "P"}
             },
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-def test_optional_str_missing():
+@test
+def optional_str_missing():
     client = TestClient(app)
     response = client.post("/optional-str")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"p": None})
 
 
-def test_model_optional_str_missing():
+@test
+def model_optional_str_missing():
     client = TestClient(app)
     response = client.post("/model-optional-str")
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "input": None,
-                "loc": ["body"],
-                "msg": "Field required",
-                "type": "missing",
-            },
-        ],
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "input": None,
+                    "loc": ["body"],
+                    "msg": "Field required",
+                    "type": "missing",
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-str", "/model-optional-str"],
+@test.cases(
+    test.case("optional-str", path="/optional-str"),
+    test.case("model-optional-str", path="/model-optional-str"),
 )
-def test_optional_str_missing_empty_dict(path: str):
+def optional_str_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-str", "/model-optional-str"],
+@test.cases(
+    test.case("optional-str", path="/optional-str"),
+    test.case("model-optional-str", path="/model-optional-str"),
 )
-def test_optional_str(path: str):
+def optional_str(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": "hello"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -112,83 +115,86 @@ async def read_model_optional_alias(p: BodyModelOptionalAlias):
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-alias",
-        "/model-optional-alias",
-    ],
+@test.cases(
+    test.case("optional-alias", path="/optional-alias"),
+    test.case("model-optional-alias", path="/model-optional-alias"),
 )
-def test_optional_str_alias_schema(path: str):
+def optional_str_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_alias": {
-                "anyOf": [{"type": "string"}, {"type": "null"}],
-                "title": "P Alias",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_alias": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "P Alias",
+                }
             },
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-def test_optional_alias_missing():
+@test
+def optional_alias_missing():
     client = TestClient(app)
     response = client.post("/optional-alias")
-    assert response.status_code == 200
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": None})
 
 
-def test_model_optional_alias_missing():
+@test
+def model_optional_alias_missing():
     client = TestClient(app)
     response = client.post("/model-optional-alias")
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "input": None,
-                "loc": ["body"],
-                "msg": "Field required",
-                "type": "missing",
-            },
-        ],
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "input": None,
+                    "loc": ["body"],
+                    "msg": "Field required",
+                    "type": "missing",
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-alias", "/model-optional-alias"],
+@test.cases(
+    test.case("optional-alias", path="/optional-alias"),
+    test.case("model-optional-alias", path="/model-optional-alias"),
 )
-def test_model_optional_alias_missing_empty_dict(path: str):
+def model_optional_alias_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-alias", "/model-optional-alias"],
+@test.cases(
+    test.case("optional-alias", path="/optional-alias"),
+    test.case("model-optional-alias", path="/model-optional-alias"),
 )
-def test_optional_alias_by_name(path: str):
+def optional_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-alias", "/model-optional-alias"],
+@test.cases(
+    test.case("optional-alias", path="/optional-alias"),
+    test.case("model-optional-alias", path="/model-optional-alias"),
 )
-def test_optional_alias_by_alias(path: str):
+def optional_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_alias": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": "hello"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -215,86 +221,94 @@ def read_model_optional_validation_alias(
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-validation-alias", "/model-optional-validation-alias"],
+@test.cases(
+    test.case("optional-validation-alias", path="/optional-validation-alias"),
+    test.case(
+        "model-optional-validation-alias", path="/model-optional-validation-alias"
+    ),
 )
-def test_optional_validation_alias_schema(path: str):
+def optional_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {
-                "anyOf": [{"type": "string"}, {"type": "null"}],
-                "title": "P Val Alias",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_val_alias": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "P Val Alias",
+                }
             },
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-def test_optional_validation_alias_missing():
+@test
+def optional_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/optional-validation-alias")
-    assert response.status_code == 200
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": None})
 
 
-def test_model_optional_validation_alias_missing():
+@test
+def model_optional_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/model-optional-validation-alias")
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "input": None,
-                "loc": ["body"],
-                "msg": "Field required",
-                "type": "missing",
-            },
-        ],
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "input": None,
+                    "loc": ["body"],
+                    "msg": "Field required",
+                    "type": "missing",
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    ["/optional-validation-alias", "/model-optional-validation-alias"],
+@test.cases(
+    test.case("optional-validation-alias", path="/optional-validation-alias"),
+    test.case(
+        "model-optional-validation-alias", path="/model-optional-validation-alias"
+    ),
 )
-def test_model_optional_validation_alias_missing_empty_dict(path: str):
+def model_optional_validation_alias_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-validation-alias",
-        "/model-optional-validation-alias",
-    ],
+@test.cases(
+    test.case("optional-validation-alias", path="/optional-validation-alias"),
+    test.case(
+        "model-optional-validation-alias", path="/model-optional-validation-alias"
+    ),
 )
-def test_optional_validation_alias_by_name(path: str):
+def optional_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-validation-alias",
-        "/model-optional-validation-alias",
-    ],
+@test.cases(
+    test.case("optional-validation-alias", path="/optional-validation-alias"),
+    test.case(
+        "model-optional-validation-alias", path="/model-optional-validation-alias"
+    ),
 )
-def test_optional_validation_alias_by_validation_alias(path: str):
+def optional_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_val_alias": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": "hello"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -327,103 +341,124 @@ def read_model_optional_alias_and_validation_alias(
     return {"p": p.p}
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-alias-and-validation-alias",
-        "/model-optional-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-alias-and-validation-alias",
+        path="/optional-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-optional-alias-and-validation-alias",
+        path="/model-optional-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_schema(path: str):
+def optional_alias_and_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    assert app.openapi()["components"]["schemas"][body_model_name] == {
-        "properties": {
-            "p_val_alias": {
-                "anyOf": [{"type": "string"}, {"type": "null"}],
-                "title": "P Val Alias",
+    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+        {
+            "properties": {
+                "p_val_alias": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "title": "P Val Alias",
+                }
             },
-        },
-        "title": body_model_name,
-        "type": "object",
-    }
+            "title": body_model_name,
+            "type": "object",
+        }
+    )
 
 
-def test_optional_alias_and_validation_alias_missing():
+@test
+def optional_alias_and_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/optional-alias-and-validation-alias")
-    assert response.status_code == 200
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": None})
 
 
-def test_model_optional_alias_and_validation_alias_missing():
+@test
+def model_optional_alias_and_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/model-optional-alias-and-validation-alias")
-    assert response.status_code == 422, response.text
-    assert response.json() == {
-        "detail": [
-            {
-                "input": None,
-                "loc": ["body"],
-                "msg": "Field required",
-                "type": "missing",
-            },
-        ],
-    }
+    expect(response.status_code).to_equal(422).fatal()
+    expect(response.json()).to_equal(
+        {
+            "detail": [
+                {
+                    "input": None,
+                    "loc": ["body"],
+                    "msg": "Field required",
+                    "type": "missing",
+                }
+            ]
+        }
+    )
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-alias-and-validation-alias",
-        "/model-optional-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-alias-and-validation-alias",
+        path="/optional-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-optional-alias-and-validation-alias",
+        path="/model-optional-alias-and-validation-alias",
+    ),
 )
-def test_model_optional_alias_and_validation_alias_missing_empty_dict(path: str):
+def model_optional_alias_and_validation_alias_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-alias-and-validation-alias",
-        "/model-optional-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-alias-and-validation-alias",
+        path="/optional-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-optional-alias-and-validation-alias",
+        path="/model-optional-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_by_name(path: str):
+def optional_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-alias-and-validation-alias",
-        "/model-optional-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-alias-and-validation-alias",
+        path="/optional-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-optional-alias-and-validation-alias",
+        path="/model-optional-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_by_alias(path: str):
+def optional_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_alias": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": None}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": None})
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "/optional-alias-and-validation-alias",
-        "/model-optional-alias-and-validation-alias",
-    ],
+@test.cases(
+    test.case(
+        "optional-alias-and-validation-alias",
+        path="/optional-alias-and-validation-alias",
+    ),
+    test.case(
+        "model-optional-alias-and-validation-alias",
+        path="/model-optional-alias-and-validation-alias",
+    ),
 )
-def test_optional_alias_and_validation_alias_by_validation_alias(path: str):
+def optional_alias_and_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_val_alias": "hello"})
-    assert response.status_code == 200
-    assert response.json() == {"p": "hello"}
+    expect(response.status_code).to_equal(200)
+    expect(response.json()).to_equal({"p": "hello"})

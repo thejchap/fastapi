@@ -1,36 +1,33 @@
 import gzip
-import importlib
 import json
 
-import pytest
 from fastapi import Request
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
-from tests.utils import needs_py310
+from ..._shims import import_tutorial
 
 
-@pytest.fixture(
-    name="client",
-    params=[
-        pytest.param("tutorial001_py310", marks=needs_py310),
-        pytest.param("tutorial001_an_py310", marks=needs_py310),
-    ],
-)
-def get_client(request: pytest.FixtureRequest):
-    mod = importlib.import_module(f"docs_src.custom_request_and_route.{request.param}")
+def _client_for(name: str) -> TestClient:
+    mod = import_tutorial("custom_request_and_route", name)
 
     @mod.app.get("/check-class")
     async def check_gzip_request(request: Request):
         return {"request_class": type(request).__name__}
 
-    client = TestClient(mod.app)
-    return client
+    return TestClient(mod.app)
 
 
-@pytest.mark.parametrize("compress", [True, False])
-def test_gzip_request(client: TestClient, compress):
+@test.cases(
+    test.case("py310 compress", name="tutorial001_py310", compress=True),
+    test.case("py310 plain", name="tutorial001_py310", compress=False),
+    test.case("an_py310 compress", name="tutorial001_an_py310", compress=True),
+    test.case("an_py310 plain", name="tutorial001_an_py310", compress=False),
+)
+def gzip_request(name: str, compress: bool):
+    client = _client_for(name)
     n = 1000
-    headers = {}
+    headers: dict[str, str] = {}
     body = [1] * n
     data = json.dumps(body).encode()
     if compress:
@@ -38,9 +35,14 @@ def test_gzip_request(client: TestClient, compress):
         headers["Content-Encoding"] = "gzip"
     headers["Content-Type"] = "application/json"
     response = client.post("/sum", content=data, headers=headers)
-    assert response.json() == {"sum": n}
+    expect(response.json()).to_equal({"sum": n})
 
 
-def test_request_class(client: TestClient):
+@test.cases(
+    test.case("tutorial001_py310", name="tutorial001_py310"),
+    test.case("tutorial001_an_py310", name="tutorial001_an_py310"),
+)
+def request_class(name: str):
+    client = _client_for(name)
     response = client.get("/check-class")
-    assert response.json() == {"request_class": "GzipRequest"}
+    expect(response.json()).to_equal({"request_class": "GzipRequest"})

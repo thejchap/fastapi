@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, Response
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -26,9 +27,10 @@ def get_indirect_cookie(dep: str = Depends(set_indirect_cookie)):
 client = TestClient(app)
 
 
-def test_cookie_is_set_once():
+@test
+def cookie_is_set_once():
     direct_response = client.get("/directCookie")
     indirect_response = client.get("/indirectCookie")
-    assert (
-        direct_response.headers["set-cookie"] == indirect_response.headers["set-cookie"]
+    expect(direct_response.headers["set-cookie"]).to_equal(
+        indirect_response.headers["set-cookie"]
     )

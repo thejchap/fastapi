@@ -6,6 +6,7 @@ from fastapi.security import (
     SecurityScopes,
 )
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -51,27 +52,31 @@ def get_parameterless_without_scopes():
 client = TestClient(app)
 
 
-def test_get_credentials():
+@test
+def get_credentials_test():
     response = client.get("/get-credentials", headers={"authorization": "Bearer token"})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"token": "token", "scopes": ["a", "b"]}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"token": "token", "scopes": ["a", "b"]})
 
 
-def test_parameterless_with_scopes():
+@test
+def parameterless_with_scopes():
     response = client.get(
         "/parameterless-with-scopes", headers={"authorization": "Bearer token"}
     )
-    assert response.status_code == 200, response.text
-    assert response.json() == {"status": "ok"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"status": "ok"})
 
 
-def test_parameterless_without_scopes():
+@test
+def parameterless_without_scopes():
     response = client.get(
         "/parameterless-without-scopes", headers={"authorization": "Bearer token"}
     )
-    assert response.status_code == 401, response.text
-    assert response.json() == {"detail": "a or b not in scopes"}
+    expect(response.status_code).to_equal(401).fatal()
+    expect(response.json()).to_equal({"detail": "a or b not in scopes"})
 
 
-def test_call_get_parameterless_without_scopes_for_coverage():
-    assert get_parameterless_without_scopes() == {"status": "ok"}
+@test
+def call_get_parameterless_without_scopes_for_coverage():
+    expect(get_parameterless_without_scopes()).to_equal({"status": "ok"})

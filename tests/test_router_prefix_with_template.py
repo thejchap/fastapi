@@ -1,5 +1,6 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -17,7 +18,8 @@ app.include_router(router, prefix="/{segment}")
 client = TestClient(app)
 
 
-def test_get():
+@test
+def get():
     response = client.get("/seg/users/foo")
-    assert response.status_code == 200, response.text
-    assert response.json() == {"segment": "seg", "id": "foo"}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"segment": "seg", "id": "foo"})

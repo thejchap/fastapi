@@ -5,9 +5,11 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from pydantic import BaseModel, Field
+from tryke import expect, test
 
 
-def test_discriminator_pydantic_v2() -> None:
+@test
+def discriminator_pydantic_v2() -> None:
     from pydantic import Tag
 
     app = FastAPI()
@@ -33,172 +35,181 @@ def test_discriminator_pydantic_v2() -> None:
 
     client = TestClient(app)
     response = client.post("/items/?q=first", json={"value": "first", "price": 100})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"item": {"value": "first", "price": 100}}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"item": {"value": "first", "price": 100}})
 
     response = client.post("/items/?q=other", json={"value": "other", "price": 100.5})
-    assert response.status_code == 200, response.text
-    assert response.json() == {"item": {"value": "other", "price": 100.5}}
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"item": {"value": "other", "price": 100.5}})
 
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
-        {
-            "openapi": "3.1.0",
-            "info": {"title": "FastAPI", "version": "0.1.0"},
-            "paths": {
-                "/items/": {
-                    "post": {
-                        "summary": "Save Union Body Discriminator",
-                        "operationId": "save_union_body_discriminator_items__post",
-                        "parameters": [
-                            {
-                                "name": "q",
-                                "in": "query",
-                                "required": True,
-                                "schema": {
-                                    "type": "string",
-                                    "description": "Query string",
-                                    "title": "Q",
-                                },
-                            }
-                        ],
-                        "requestBody": {
-                            "required": True,
-                            "content": {
-                                "application/json": {
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        snapshot(
+            {
+                "openapi": "3.1.0",
+                "info": {"title": "FastAPI", "version": "0.1.0"},
+                "paths": {
+                    "/items/": {
+                        "post": {
+                            "summary": "Save Union Body Discriminator",
+                            "operationId": "save_union_body_discriminator_items__post",
+                            "parameters": [
+                                {
+                                    "name": "q",
+                                    "in": "query",
+                                    "required": True,
                                     "schema": {
-                                        "oneOf": [
-                                            {"$ref": "#/components/schemas/FirstItem"},
-                                            {"$ref": "#/components/schemas/OtherItem"},
-                                        ],
-                                        "discriminator": {
-                                            "propertyName": "value",
-                                            "mapping": {
-                                                "first": "#/components/schemas/FirstItem",
-                                                "other": "#/components/schemas/OtherItem",
-                                            },
-                                        },
-                                        "title": "Item",
-                                    }
+                                        "type": "string",
+                                        "description": "Query string",
+                                        "title": "Q",
+                                    },
                                 }
-                            },
-                        },
-                        "responses": {
-                            "200": {
-                                "description": "Successful Response",
-                                "content": {
-                                    "application/json": {
-                                        "schema": IsOneOf(
-                                            # Pydantic < 2.11: no additionalProperties
-                                            {
-                                                "type": "object",
-                                                "title": "Response Save Union Body Discriminator Items  Post",
-                                            },
-                                            # Pydantic >= 2.11: has additionalProperties
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": True,
-                                                "title": "Response Save Union Body Discriminator Items  Post",
-                                            },
-                                        )
-                                    }
-                                },
-                            },
-                            "422": {
-                                "description": "Validation Error",
+                            ],
+                            "requestBody": {
+                                "required": True,
                                 "content": {
                                     "application/json": {
                                         "schema": {
-                                            "$ref": "#/components/schemas/HTTPValidationError"
+                                            "oneOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/FirstItem"
+                                                },
+                                                {
+                                                    "$ref": "#/components/schemas/OtherItem"
+                                                },
+                                            ],
+                                            "discriminator": {
+                                                "propertyName": "value",
+                                                "mapping": {
+                                                    "first": "#/components/schemas/FirstItem",
+                                                    "other": "#/components/schemas/OtherItem",
+                                                },
+                                            },
+                                            "title": "Item",
                                         }
                                     }
                                 },
                             },
+                            "responses": {
+                                "200": {
+                                    "description": "Successful Response",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": IsOneOf(
+                                                # Pydantic < 2.11: no additionalProperties
+                                                {
+                                                    "type": "object",
+                                                    "title": "Response Save Union Body Discriminator Items  Post",
+                                                },
+                                                # Pydantic >= 2.11: has additionalProperties
+                                                {
+                                                    "type": "object",
+                                                    "additionalProperties": True,
+                                                    "title": "Response Save Union Body Discriminator Items  Post",
+                                                },
+                                            )
+                                        }
+                                    },
+                                },
+                                "422": {
+                                    "description": "Validation Error",
+                                    "content": {
+                                        "application/json": {
+                                            "schema": {
+                                                "$ref": "#/components/schemas/HTTPValidationError"
+                                            }
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    }
+                },
+                "components": {
+                    "schemas": {
+                        "FirstItem": {
+                            "properties": {
+                                "value": IsOneOf(
+                                    # Pydantic >= 2.10: const only
+                                    {
+                                        "type": "string",
+                                        "const": "first",
+                                        "title": "Value",
+                                    },
+                                    # Pydantic 2.9: const + enum
+                                    {
+                                        "type": "string",
+                                        "const": "first",
+                                        "enum": ["first"],
+                                        "title": "Value",
+                                    },
+                                ),
+                                "price": {"type": "integer", "title": "Price"},
+                            },
+                            "type": "object",
+                            "required": ["value", "price"],
+                            "title": "FirstItem",
+                        },
+                        "HTTPValidationError": {
+                            "properties": {
+                                "detail": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/ValidationError"
+                                    },
+                                    "type": "array",
+                                    "title": "Detail",
+                                }
+                            },
+                            "type": "object",
+                            "title": "HTTPValidationError",
+                        },
+                        "OtherItem": {
+                            "properties": {
+                                "value": IsOneOf(
+                                    # Pydantic >= 2.10.0: const only
+                                    {
+                                        "type": "string",
+                                        "const": "other",
+                                        "title": "Value",
+                                    },
+                                    # Pydantic 2.9.x: const + enum
+                                    {
+                                        "type": "string",
+                                        "const": "other",
+                                        "enum": ["other"],
+                                        "title": "Value",
+                                    },
+                                ),
+                                "price": {"type": "number", "title": "Price"},
+                            },
+                            "type": "object",
+                            "required": ["value", "price"],
+                            "title": "OtherItem",
+                        },
+                        "ValidationError": {
+                            "properties": {
+                                "ctx": {"title": "Context", "type": "object"},
+                                "input": {"title": "Input"},
+                                "loc": {
+                                    "items": {
+                                        "anyOf": [
+                                            {"type": "string"},
+                                            {"type": "integer"},
+                                        ]
+                                    },
+                                    "type": "array",
+                                    "title": "Location",
+                                },
+                                "msg": {"type": "string", "title": "Message"},
+                                "type": {"type": "string", "title": "Error Type"},
+                            },
+                            "type": "object",
+                            "required": ["loc", "msg", "type"],
+                            "title": "ValidationError",
                         },
                     }
-                }
-            },
-            "components": {
-                "schemas": {
-                    "FirstItem": {
-                        "properties": {
-                            "value": IsOneOf(
-                                # Pydantic >= 2.10: const only
-                                {
-                                    "type": "string",
-                                    "const": "first",
-                                    "title": "Value",
-                                },
-                                # Pydantic 2.9: const + enum
-                                {
-                                    "type": "string",
-                                    "const": "first",
-                                    "enum": ["first"],
-                                    "title": "Value",
-                                },
-                            ),
-                            "price": {"type": "integer", "title": "Price"},
-                        },
-                        "type": "object",
-                        "required": ["value", "price"],
-                        "title": "FirstItem",
-                    },
-                    "HTTPValidationError": {
-                        "properties": {
-                            "detail": {
-                                "items": {
-                                    "$ref": "#/components/schemas/ValidationError"
-                                },
-                                "type": "array",
-                                "title": "Detail",
-                            }
-                        },
-                        "type": "object",
-                        "title": "HTTPValidationError",
-                    },
-                    "OtherItem": {
-                        "properties": {
-                            "value": IsOneOf(
-                                # Pydantic >= 2.10.0: const only
-                                {
-                                    "type": "string",
-                                    "const": "other",
-                                    "title": "Value",
-                                },
-                                # Pydantic 2.9.x: const + enum
-                                {
-                                    "type": "string",
-                                    "const": "other",
-                                    "enum": ["other"],
-                                    "title": "Value",
-                                },
-                            ),
-                            "price": {"type": "number", "title": "Price"},
-                        },
-                        "type": "object",
-                        "required": ["value", "price"],
-                        "title": "OtherItem",
-                    },
-                    "ValidationError": {
-                        "properties": {
-                            "ctx": {"title": "Context", "type": "object"},
-                            "input": {"title": "Input"},
-                            "loc": {
-                                "items": {
-                                    "anyOf": [{"type": "string"}, {"type": "integer"}]
-                                },
-                                "type": "array",
-                                "title": "Location",
-                            },
-                            "msg": {"type": "string", "title": "Message"},
-                            "type": {"type": "string", "title": "Error Type"},
-                        },
-                        "type": "object",
-                        "required": ["loc", "msg", "type"],
-                        "title": "ValidationError",
-                    },
-                }
-            },
-        }
+                },
+            }
+        )
     )

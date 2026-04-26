@@ -7,18 +7,21 @@ from fastapi._compat.shared import is_bytes_sequence_annotation
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, ConfigDict
 from pydantic.fields import FieldInfo
+from tryke import expect, test
 
 
-def test_model_field_default_required():
+@test
+def model_field_default_required():
     from fastapi._compat import v2
 
     # For coverage
     field_info = FieldInfo(annotation=str)
     field = v2.ModelField(name="foo", field_info=field_info)
-    assert field.default is Undefined
+    expect(field.default).to_be(Undefined)
 
 
-def test_complex():
+@test
+def complex():
     app = FastAPI()
 
     @app.post("/")
@@ -28,15 +31,16 @@ def test_complex():
     client = TestClient(app)
 
     response = client.post("/", json="bar")
-    assert response.status_code == 200, response.text
-    assert response.json() == "bar"
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal("bar")
 
     response2 = client.post("/", json=[1, 2])
-    assert response2.status_code == 200, response2.text
-    assert response2.json() == [1, 2]
+    expect(response2.status_code).to_equal(200).fatal()
+    expect(response2.json()).to_equal([1, 2])
 
 
-def test_propagates_pydantic2_model_config():
+@test
+def propagates_pydantic2_model_config():
     app = FastAPI()
 
     class Missing:
@@ -64,61 +68,72 @@ def test_propagates_pydantic2_model_config():
     client = TestClient(app)
 
     response = client.post("/", json={})
-    assert response.status_code == 200, response.text
-    assert response.json() == {
-        "value": None,
-        "embedded_value": None,
-    }
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(
+        {
+            "value": None,
+            "embedded_value": None,
+        }
+    )
 
     response2 = client.post(
         "/", json={"value": "foo", "embedded_model": {"value": "bar"}}
     )
-    assert response2.status_code == 200, response2.text
-    assert response2.json() == {
-        "value": "foo",
-        "embedded_value": "bar",
-    }
+    expect(response2.status_code).to_equal(200).fatal()
+    expect(response2.json()).to_equal(
+        {
+            "value": "foo",
+            "embedded_value": "bar",
+        }
+    )
 
 
-def test_is_bytes_sequence_annotation_union():
+@test
+def is_bytes_sequence_annotation_union():
     # For coverage
     # TODO: in theory this would allow declaring types that could be lists of bytes
     # to be read from files and other types, but I'm not even sure it's a good idea
     # to support it as a first class "feature"
-    assert is_bytes_sequence_annotation(list[str] | list[bytes])
+    expect(is_bytes_sequence_annotation(list[str] | list[bytes])).to_be_truthy()
 
 
-def test_is_uploadfile_sequence_annotation():
+@test
+def is_uploadfile_sequence_annotation_test():
     # For coverage
     # TODO: in theory this would allow declaring types that could be lists of UploadFile
     # and other types, but I'm not even sure it's a good idea to support it as a first
     # class "feature"
-    assert is_uploadfile_sequence_annotation(list[str] | list[UploadFile])
+    expect(
+        is_uploadfile_sequence_annotation(list[str] | list[UploadFile])
+    ).to_be_truthy()
 
 
-def test_serialize_sequence_value_with_optional_list():
+@test
+def serialize_sequence_value_with_optional_list():
     """Test that serialize_sequence_value handles optional lists correctly."""
     from fastapi._compat import v2
 
     field_info = FieldInfo(annotation=list[str] | None)
     field = v2.ModelField(name="items", field_info=field_info)
     result = v2.serialize_sequence_value(field=field, value=["a", "b", "c"])
-    assert result == ["a", "b", "c"]
-    assert isinstance(result, list)
+    expect(result).to_equal(["a", "b", "c"])
+    expect(result).to_be_instance_of(list)
 
 
-def test_serialize_sequence_value_with_optional_list_pipe_union():
+@test
+def serialize_sequence_value_with_optional_list_pipe_union():
     """Test that serialize_sequence_value handles optional lists correctly (with new syntax)."""
     from fastapi._compat import v2
 
     field_info = FieldInfo(annotation=list[str] | None)
     field = v2.ModelField(name="items", field_info=field_info)
     result = v2.serialize_sequence_value(field=field, value=["a", "b", "c"])
-    assert result == ["a", "b", "c"]
-    assert isinstance(result, list)
+    expect(result).to_equal(["a", "b", "c"])
+    expect(result).to_be_instance_of(list)
 
 
-def test_serialize_sequence_value_with_none_first_in_union():
+@test
+def serialize_sequence_value_with_none_first_in_union():
     """Test that serialize_sequence_value handles Union[None, List[...]] correctly."""
     from typing import Union
 
@@ -128,5 +143,5 @@ def test_serialize_sequence_value_with_none_first_in_union():
     field_info = FieldInfo(annotation=Union[None, list[str]])  # noqa: UP007
     field = v2.ModelField(name="items", field_info=field_info)
     result = v2.serialize_sequence_value(field=field, value=["x", "y"])
-    assert result == ["x", "y"]
-    assert isinstance(result, list)
+    expect(result).to_equal(["x", "y"])
+    expect(result).to_be_instance_of(list)

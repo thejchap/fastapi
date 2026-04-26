@@ -1,13 +1,17 @@
-import pytest
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
-pytest.importorskip("orjson")
+from ..._shims import needs_orjson
 
-from docs_src.custom_response.tutorial009c_py310 import app
-
-client = TestClient(app)
+_SKIP_ORJSON = needs_orjson()
 
 
-def test_get():
-    response = client.get("/")
-    assert response.content == b'{\n  "message": "Hello World"\n}'
+if not _SKIP_ORJSON:
+    from docs_src.custom_response.tutorial009c_py310 import app
+
+    client = TestClient(app)
+
+    @test
+    def get():
+        response = client.get("/")
+        expect(response.content).to_equal(b'{\n  "message": "Hello World"\n}')

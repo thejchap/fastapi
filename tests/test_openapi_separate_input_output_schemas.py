@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from inline_snapshot import snapshot
 from pydantic import BaseModel, computed_field
+from tryke import expect, test
 
 
 class SubItem(BaseModel):
@@ -59,20 +60,20 @@ def get_app_client(separate_input_output_schemas: bool = True) -> TestClient:
     return client
 
 
-def test_create_item():
+@test
+def create_item():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     response = client.post("/items/", json={"name": "Plumbus"})
     response2 = client_no.post("/items/", json={"name": "Plumbus"})
-    assert response.status_code == response2.status_code == 200, response.text
-    assert (
-        response.json()
-        == response2.json()
-        == {"name": "Plumbus", "description": None, "sub": None}
-    )
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response2.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal({"name": "Plumbus", "description": None, "sub": None})
+    expect(response2.json()).to_equal({"name": "Plumbus", "description": None, "sub": None})
 
 
-def test_create_item_with_sub():
+@test
+def create_item_with_sub():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     data = {
@@ -81,19 +82,19 @@ def test_create_item_with_sub():
     }
     response = client.post("/items/", json=data)
     response2 = client_no.post("/items/", json=data)
-    assert response.status_code == response2.status_code == 200, response.text
-    assert (
-        response.json()
-        == response2.json()
-        == {
-            "name": "Plumbus",
-            "description": None,
-            "sub": {"subname": "SubPlumbus", "sub_description": "Sub WTF", "tags": []},
-        }
-    )
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response2.status_code).to_equal(200).fatal()
+    expected = {
+        "name": "Plumbus",
+        "description": None,
+        "sub": {"subname": "SubPlumbus", "sub_description": "Sub WTF", "tags": []},
+    }
+    expect(response.json()).to_equal(expected)
+    expect(response2.json()).to_equal(expected)
 
 
-def test_create_item_list():
+@test
+def create_item_list():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     data = [
@@ -105,62 +106,62 @@ def test_create_item_list():
     ]
     response = client.post("/items-list/", json=data)
     response2 = client_no.post("/items-list/", json=data)
-    assert response.status_code == response2.status_code == 200, response.text
-    assert (
-        response.json()
-        == response2.json()
-        == [
-            {"name": "Plumbus", "description": None, "sub": None},
-            {
-                "name": "Portal Gun",
-                "description": "Device to travel through the multi-rick-verse",
-                "sub": None,
-            },
-        ]
-    )
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response2.status_code).to_equal(200).fatal()
+    expected = [
+        {"name": "Plumbus", "description": None, "sub": None},
+        {
+            "name": "Portal Gun",
+            "description": "Device to travel through the multi-rick-verse",
+            "sub": None,
+        },
+    ]
+    expect(response.json()).to_equal(expected)
+    expect(response2.json()).to_equal(expected)
 
 
-def test_read_items():
+@test
+def read_items():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     response = client.get("/items/")
     response2 = client_no.get("/items/")
-    assert response.status_code == response2.status_code == 200, response.text
-    assert (
-        response.json()
-        == response2.json()
-        == [
-            {
-                "name": "Portal Gun",
-                "description": "Device to travel through the multi-rick-verse",
-                "sub": {"subname": "subname", "sub_description": None, "tags": []},
-            },
-            {"name": "Plumbus", "description": None, "sub": None},
-        ]
-    )
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response2.status_code).to_equal(200).fatal()
+    expected = [
+        {
+            "name": "Portal Gun",
+            "description": "Device to travel through the multi-rick-verse",
+            "sub": {"subname": "subname", "sub_description": None, "tags": []},
+        },
+        {"name": "Plumbus", "description": None, "sub": None},
+    ]
+    expect(response.json()).to_equal(expected)
+    expect(response2.json()).to_equal(expected)
 
 
-def test_with_computed_field():
+@test
+def with_computed_field():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     response = client.post("/with-computed-field/", json={"name": "example"})
     response2 = client_no.post("/with-computed-field/", json={"name": "example"})
-    assert response.status_code == response2.status_code == 200, response.text
-    assert (
-        response.json()
-        == response2.json()
-        == {
-            "name": "example",
-            "computed_field": "computed example",
-        }
-    )
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response2.status_code).to_equal(200).fatal()
+    expected = {
+        "name": "example",
+        "computed_field": "computed example",
+    }
+    expect(response.json()).to_equal(expected)
+    expect(response2.json()).to_equal(expected)
 
 
-def test_openapi_schema():
+@test
+def openapi_schema():
     client = get_app_client()
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},
@@ -435,14 +436,15 @@ def test_openapi_schema():
                 }
             },
         }
-    )
+    ))
 
 
-def test_openapi_schema_no_separate():
+@test
+def openapi_schema_no_separate():
     client = get_app_client(separate_input_output_schemas=False)
     response = client.get("/openapi.json")
-    assert response.status_code == 200, response.text
-    assert response.json() == snapshot(
+    expect(response.status_code).to_equal(200).fatal()
+    expect(response.json()).to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},
@@ -673,4 +675,4 @@ def test_openapi_schema_no_separate():
                 }
             },
         }
-    )
+    ))

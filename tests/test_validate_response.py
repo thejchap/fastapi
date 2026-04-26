@@ -1,8 +1,8 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.exceptions import ResponseValidationError
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -48,35 +48,37 @@ def get_invalidlist():
 client = TestClient(app)
 
 
-def test_invalid():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/invalid")
+@test
+def invalid():
+    expect(lambda: client.get("/items/invalid")).to_raise(ResponseValidationError)
 
 
-def test_invalid_none():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/invalidnone")
+@test
+def invalid_none():
+    expect(lambda: client.get("/items/invalidnone")).to_raise(ResponseValidationError)
 
 
-def test_valid_none_data():
+@test
+def valid_none_data():
     response = client.get("/items/validnone")
     data = response.json()
-    assert response.status_code == 200
-    assert data == {"name": "invalid", "price": 3.2, "owner_ids": None}
+    expect(response.status_code).to_equal(200)
+    expect(data).to_equal({"name": "invalid", "price": 3.2, "owner_ids": None})
 
 
-def test_valid_none_none():
+@test
+def valid_none_none():
     response = client.get("/items/validnone", params={"send_none": "true"})
     data = response.json()
-    assert response.status_code == 200
-    assert data is None
+    expect(response.status_code).to_equal(200)
+    expect(data).to_be_none()
 
 
-def test_double_invalid():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/innerinvalid")
+@test
+def double_invalid():
+    expect(lambda: client.get("/items/innerinvalid")).to_raise(ResponseValidationError)
 
 
-def test_invalid_list():
-    with pytest.raises(ResponseValidationError):
-        client.get("/items/invalidlist")
+@test
+def invalid_list():
+    expect(lambda: client.get("/items/invalidlist")).to_raise(ResponseValidationError)

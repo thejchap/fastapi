@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from tryke import expect, test
 
 app = FastAPI()
 
@@ -68,26 +69,31 @@ def get_exclude_unset_none() -> ModelDefaults:
 client = TestClient(app)
 
 
-def test_return_defaults():
+@test
+def return_defaults():
     response = client.get("/")
-    assert response.json() == {"sub": {}}
+    expect(response.json()).to_equal({"sub": {}})
 
 
-def test_return_exclude_unset():
+@test
+def return_exclude_unset():
     response = client.get("/exclude_unset")
-    assert response.json() == {"x": None, "y": "y"}
+    expect(response.json()).to_equal({"x": None, "y": "y"})
 
 
-def test_return_exclude_defaults():
+@test
+def return_exclude_defaults():
     response = client.get("/exclude_defaults")
-    assert response.json() == {}
+    expect(response.json()).to_equal({})
 
 
-def test_return_exclude_none():
+@test
+def return_exclude_none():
     response = client.get("/exclude_none")
-    assert response.json() == {"y": "y", "z": "z"}
+    expect(response.json()).to_equal({"y": "y", "z": "z"})
 
 
-def test_return_exclude_unset_none():
+@test
+def return_exclude_unset_none():
     response = client.get("/exclude_unset_none")
-    assert response.json() == {"y": "y"}
+    expect(response.json()).to_equal({"y": "y"})
