@@ -52,6 +52,9 @@ jobs:
     if: needs.changes.outputs.src == 'true' || github.ref == 'refs/heads/master'
     strategy:
       matrix:
+        # Tryke wheels currently target Python 3.13+. The lower-bound
+        # 3.10/3.12 entries from the pre-migration matrix are dropped;
+        # restore them when tryke ships wheels for those versions.
         os: [ windows-latest, macos-latest ]
         python-version: [ "3.14", "3.14t" ]
         deprecated-tests: [ "no-deprecation" ]
@@ -61,16 +64,6 @@ jobs:
           - starlette-pypi
           - starlette-git
         include:
-          - os: macos-latest
-            python-version: "3.10"
-            coverage: coverage
-            uv-resolution: lowest-direct
-            deprecated-tests: "no-deprecation"
-          - os: windows-latest
-            python-version: "3.12"
-            coverage: coverage
-            uv-resolution: lowest-direct
-            deprecated-tests: "no-deprecation"
           - os: ubuntu-latest
             python-version: "3.13"
             coverage: coverage
