@@ -2,6 +2,7 @@ from functools import partial
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from tryke import expect, test
 
 
 def main(some_arg, q: str | None = None):
@@ -18,7 +19,8 @@ app.get("/")(endpoint)
 client = TestClient(app)
 
 
-def test_partial():
+@test
+def partial_endpoint():
     response = client.get("/?q=bar")
     data = response.json()
-    assert data == {"some_arg": "foo", "q": "bar"}
+    expect(data).to_equal({"some_arg": "foo", "q": "bar"})
