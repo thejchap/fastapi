@@ -45,25 +45,25 @@ app.include_router(item_router, prefix="/users/{user_id}/items")
 client = TestClient(app)
 
 
+# Check that /users returns expected data
 @test
-def get_users():
-    """Check that /users returns expected data"""
+def get_users():  # noqa: F811
     response = client.get("/users")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal([{"user_id": "u1"}, {"user_id": "u2"}])
 
 
+# Check that /users/{user_id} returns expected data
 @test
-def get_user():
-    """Check that /users/{user_id} returns expected data"""
+def get_user():  # noqa: F811
     response = client.get("/users/abc123")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal({"user_id": "abc123"})
 
 
+# Check that /items returns expected data
 @test
 def get_items_1():
-    """Check that /items returns expected data"""
     response = client.get("/items")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal(
@@ -74,41 +74,41 @@ def get_items_1():
     )
 
 
+# Check that /items returns expected data with user_id specified
 @test
 def get_items_2():
-    """Check that /items returns expected data with user_id specified"""
     response = client.get("/items?user_id=abc123")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal([{"item_id": "i2", "user_id": "abc123"}])
 
 
+# Check that /items/{item_id} returns expected data
 @test
 def get_item_1():
-    """Check that /items/{item_id} returns expected data"""
     response = client.get("/items/item01")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal({"item_id": "item01"})
 
 
+# Check that /items/{item_id} returns expected data with user_id specified
 @test
 def get_item_2():
-    """Check that /items/{item_id} returns expected data with user_id specified"""
     response = client.get("/items/item01?user_id=abc123")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal({"item_id": "item01", "user_id": "abc123"})
 
 
+# Check that /users/{user_id}/items returns expected data
 @test
 def get_users_items():
-    """Check that /users/{user_id}/items returns expected data"""
     response = client.get("/users/abc123/items")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal([{"item_id": "i2", "user_id": "abc123"}])
 
 
+# Check that /users/{user_id}/items/{item_id} returns expected data
 @test
 def get_users_item():
-    """Check that /users/{user_id}/items returns expected data"""
     response = client.get("/users/abc123/items/item01")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal({"item_id": "item01", "user_id": "abc123"})

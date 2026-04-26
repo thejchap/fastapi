@@ -253,15 +253,12 @@ def call_api():
     expect(response.status_code).to_equal(200).fatal()
 
 
+# Test that example overrides work:
+# * pydantic model schema_extra is included
+# * Body(example={}) overrides schema_extra in pydantic model
+# * Body(examples{}) overrides Body(example={}) and schema_extra in pydantic model
 @test
 def openapi_schema():
-    """
-    Test that example overrides work:
-
-    * pydantic model schema_extra is included
-    * Body(example={}) overrides schema_extra in pydantic model
-    * Body(examples{}) overrides Body(example={}) and schema_extra in pydantic model
-    """
     app = create_app()
     client = TestClient(app)
     response = client.get("/openapi.json")

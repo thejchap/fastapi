@@ -9,6 +9,13 @@ def main():
     test_read_main()
 
 
+# Pytest discovered the imported `test_read_main` here at module scope; mirror
+# that by re-invoking it under a dedicated tryke test.
+@test
+def read_main():
+    test_read_main()
+
+
 @test
 def openapi_schema():
     response = client.get("/openapi.json")

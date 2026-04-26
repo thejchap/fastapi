@@ -5,11 +5,12 @@ from tryke import Depends, expect, fixture, test
 
 from ..._shims import expect_warning
 
+with expect_warning(DeprecationWarning):
+    from docs_src.events.tutorial002_py310 import app as _app
 
-@fixture(per="file")
+
+@fixture(per="scope")
 def app() -> FastAPI:
-    with expect_warning(DeprecationWarning):
-        from docs_src.events.tutorial002_py310 import app as _app
     return _app
 
 

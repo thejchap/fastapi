@@ -39,16 +39,13 @@ def get_user():
 client = TestClient(app)
 
 
+# Check that custom middlewares don't affect the contextvar context for
+# dependencies. The code before yield and the code after yield should be run
+# in the same contextvar context, so that
+# request_state_context_var.reset(contextvar_token). If they are run in a
+# different context, that raises an error.
 @test
 def dependency_contextvars():
-    """
-    Check that custom middlewares don't affect the contextvar context for dependencies.
-
-    The code before yield and the code after yield should be run in the same contextvar
-    context, so that request_state_context_var.reset(contextvar_token).
-
-    If they are run in a different context, that raises an error.
-    """
     response = client.get("/user")
     expect(response.json()).to_equal("deadpond")
     expect(response.headers["custom"]).to_equal("foo")

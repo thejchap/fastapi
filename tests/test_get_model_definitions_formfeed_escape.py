@@ -51,11 +51,9 @@ def get(client: TestClient = Depends(client)):
     )
 
 
+# Sanity check to ensure our app's openapi schema renders as we expect
 @test
 def openapi_schema(client: TestClient = Depends(client)):
-    """
-    Sanity check to ensure our app's openapi schema renders as we expect
-    """
     response = client.get("/openapi.json")
     expect(response.status_code).to_equal(200).fatal()
     expect(response.json()).to_equal(

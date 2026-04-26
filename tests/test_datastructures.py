@@ -1,5 +1,9 @@
+import asyncio
 import io
+from types import ModuleType
+from typing import Any
 
+import trio
 from fastapi import FastAPI, UploadFile
 from fastapi.datastructures import Default
 from fastapi.testclient import TestClient
@@ -60,15 +64,31 @@ def upload_file_is_closed():
 
 
 # Async test ported from `@pytest.mark.anyio async def test_upload_file`.
-@test
-async def upload_file():
-    stream = io.BytesIO(b"data")
-    file = UploadFile(filename="file", file=stream, size=4)
-    expect(await file.read()).to_equal(b"data")
-    expect(file.size).to_equal(4)
-    await file.write(b" and more data!")
-    expect(await file.read()).to_equal(b"")
-    expect(file.size).to_equal(19)
-    await file.seek(0)
-    expect(await file.read()).to_equal(b"data and more data!")
-    await file.close()
+# pytest-anyio cross-products this over the [asyncio, trio] backends; the
+# tryke port does the same via @test.cases passing the runner module.
+def _run(runner: ModuleType, fn: Any) -> None:
+    # asyncio.run takes a coroutine, trio.run takes the callable itself.
+    if runner is asyncio:
+        runner.run(fn())
+    else:
+        runner.run(fn)
+
+
+@test.cases(
+    test.case("asyncio", runner=asyncio),
+    test.case("trio", runner=trio),
+)
+def upload_file(runner: ModuleType) -> None:
+    async def _body() -> None:
+        stream = io.BytesIO(b"data")
+        file = UploadFile(filename="file", file=stream, size=4)
+        expect(await file.read()).to_equal(b"data")
+        expect(file.size).to_equal(4)
+        await file.write(b" and more data!")
+        expect(await file.read()).to_equal(b"")
+        expect(file.size).to_equal(19)
+        await file.seek(0)
+        expect(await file.read()).to_equal(b"data and more data!")
+        await file.close()
+
+    _run(runner, _body)

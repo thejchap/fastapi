@@ -182,11 +182,10 @@ def router_with_params():
         expect(data).to_equal("a_query_param")
 
 
+# Verify that a websocket connection to a non-existent endpoing returns in a
+# shutdown.
 @test
 def wrong_uri():
-    """
-    Verify that a websocket connection to a non-existent endpoing returns in a shutdown
-    """
     client = TestClient(app)
     raised: WebSocketDisconnect | None = None
     try:
@@ -220,11 +219,10 @@ def websocket_middleware(middleware_func):
     return middleware_constructor
 
 
+# Verify that a validation in a dependency invokes the correct exception
+# handler.
 @test
 def depend_validation():
-    """
-    Verify that a validation in a dependency invokes the correct exception handler
-    """
     caught = []
 
     @websocket_middleware
@@ -251,12 +249,10 @@ def depend_validation():
     expect(caught).to_equal([])
 
 
+# Verify that it is possible to write custom WebSocket middleware to catch
+# errors.
 @test
 def depend_err_middleware():
-    """
-    Verify that it is possible to write custom WebSocket middleware to catch errors
-    """
-
     @websocket_middleware
     async def errorhandler(websocket: WebSocket, call_next):
         try:
@@ -277,12 +273,9 @@ def depend_err_middleware():
     expect(raised.reason).to_contain("NotImplementedError")
 
 
+# Verify that it is possible to write a custom WebSocket exception handler.
 @test
 def depend_err_handler():
-    """
-    Verify that it is possible to write custom WebSocket middleware to catch errors
-    """
-
     async def custom_handler(websocket: WebSocket, exc: CustomError) -> None:
         await websocket.close(1002, "foo")
 

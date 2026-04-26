@@ -38,7 +38,7 @@ client = TestClient(app)
 
 
 @test
-def catching_test():
+def catching():  # noqa: F811
     response = client.get("/catching")
     expect(response.status_code).to_equal(418)
     expect(response.json()).to_equal({"detail": "Session error"})
@@ -51,14 +51,12 @@ def broken_raise():
     )
 
 
+# When a dependency with yield raises after the yield (not in an except), the
+# response is already "successfully" sent back to the client, but there's still
+# an error in the server afterwards, an exception is raised and captured or
+# shown in the server logs.
 @test
 def broken_no_raise():
-    """
-    When a dependency with yield raises after the yield (not in an except), the
-    response is already "successfully" sent back to the client, but there's still
-    an error in the server afterwards, an exception is raised and captured or shown
-    in the server logs.
-    """
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/broken")
         expect(response.status_code).to_equal(200)

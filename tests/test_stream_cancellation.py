@@ -4,10 +4,14 @@ Test that async streaming endpoints can be cancelled without hanging.
 Ref: https://github.com/fastapi/fastapi/issues/14680
 """
 
+import asyncio
 import warnings
 from collections.abc import AsyncIterable
+from types import ModuleType
+from typing import Any
 
 import anyio
+import trio
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from tryke import expect, test
@@ -82,17 +86,37 @@ async def _run_asgi_and_cancel(app: FastAPI, path: str, timeout: float) -> bool:
     return cancel_scope.cancelled_caught or len(chunks) > 0
 
 
-@test
-async def raw_stream_cancellation() -> None:
-    """Raw streaming endpoint should be cancellable within a reasonable time."""
-    cancelled = await _run_asgi_and_cancel(app, "/stream-raw", timeout=3.0)
-    # The key assertion: we reached this line at all (didn't hang).
-    # cancelled will be True because the infinite generator was interrupted.
-    expect(cancelled).to_be_truthy()
+def _run(runner: ModuleType, fn: Any) -> None:
+    # asyncio.run takes a coroutine; trio.run takes the callable itself.
+    if runner is asyncio:
+        runner.run(fn())
+    else:
+        runner.run(fn)
 
 
-@test
-async def jsonl_stream_cancellation() -> None:
-    """JSONL streaming endpoint should be cancellable within a reasonable time."""
-    cancelled = await _run_asgi_and_cancel(app, "/stream-jsonl", timeout=3.0)
-    expect(cancelled).to_be_truthy()
+# Raw streaming endpoint should be cancellable within a reasonable time.
+@test.cases(
+    test.case("asyncio", runner=asyncio),
+    test.case("trio", runner=trio),
+)
+def raw_stream_cancellation(runner: ModuleType) -> None:
+    async def _body() -> None:
+        cancelled = await _run_asgi_and_cancel(app, "/stream-raw", timeout=3.0)
+        # The key assertion: we reached this line at all (didn't hang).
+        # cancelled will be True because the infinite generator was interrupted.
+        expect(cancelled).to_be_truthy()
+
+    _run(runner, _body)
+
+
+# JSONL streaming endpoint should be cancellable within a reasonable time.
+@test.cases(
+    test.case("asyncio", runner=asyncio),
+    test.case("trio", runner=trio),
+)
+def jsonl_stream_cancellation(runner: ModuleType) -> None:
+    async def _body() -> None:
+        cancelled = await _run_asgi_and_cancel(app, "/stream-jsonl", timeout=3.0)
+        expect(cancelled).to_be_truthy()
+
+    _run(runner, _body)

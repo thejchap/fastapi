@@ -5,11 +5,18 @@ from tryke import Depends, expect, fixture, test
 
 from ..._shims import expect_warning
 
+# Import the docs_src module once at module load and capture the
+# DeprecationWarning here. Doing it inside a fixture is racy because
+# Python caches imported modules — on the second test the import is a
+# no-op, no warning fires, and `expect_warning` then fails. Keeping the
+# import-warning assertion here pins the warning to the one site where
+# it is actually emitted.
+with expect_warning(DeprecationWarning):
+    from docs_src.events.tutorial001_py310 import app as _app
 
-@fixture(per="file")
+
+@fixture(per="scope")
 def app() -> FastAPI:
-    with expect_warning(DeprecationWarning):
-        from docs_src.events.tutorial001_py310 import app as _app
     return _app
 
 

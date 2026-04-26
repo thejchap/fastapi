@@ -1,53 +1,67 @@
-import os
+import importlib
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
 
 from fastapi.testclient import TestClient
-from tryke import Depends, expect, fixture, test
+from tryke import expect, test
+
+from ..._shims import monkeypatch_ctx, tmp_path_ctx
 
 
-@fixture
-def client():
-    static_dir: Path = Path(os.getcwd()) / "static"
-    created = not static_dir.exists()
-    static_dir.mkdir(exist_ok=True)
-    from docs_src.custom_docs_ui.tutorial001_py310 import app
-
-    with TestClient(app) as client:
-        yield client
-    if created and static_dir.exists():
-        static_dir.rmdir()
-
-
-@test
-def swagger_ui_html(client: TestClient = Depends(client)):
-    response = client.get("/docs")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_contain(
-        "https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"
-    )
-    expect(response.text).to_contain(
-        "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
-    )
+# The original pytest version used a module-scoped fixture with a
+# `workdir_lock` xdist marker so concurrent test files didn't race on
+# `./static`. Tryke runs files concurrently and has no equivalent
+# marker, so each test sandboxes itself in a fresh tmp_path with
+# `./static` precreated and cwd pinned. The docs_src module is reloaded
+# under the sandboxed cwd so its `StaticFiles(directory="static")`
+# binds to the sandbox.
+@contextmanager
+def _client() -> Iterator[TestClient]:
+    with tmp_path_ctx() as tmp, monkeypatch_ctx() as mp:
+        (tmp / "static").mkdir()
+        mp.chdir(tmp)
+        mod = importlib.reload(
+            importlib.import_module("docs_src.custom_docs_ui.tutorial001_py310")
+        )
+        with TestClient(mod.app) as client:
+            yield client
 
 
 @test
-def swagger_ui_oauth2_redirect_html(client: TestClient = Depends(client)):
-    response = client.get("/docs/oauth2-redirect")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_contain("window.opener.swaggerUIRedirectOauth2")
+def swagger_ui_html():
+    with _client() as client:
+        response = client.get("/docs")
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.text).to_contain(
+            "https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"
+        )
+        expect(response.text).to_contain(
+            "https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+        )
 
 
 @test
-def redoc_html(client: TestClient = Depends(client)):
-    response = client.get("/redoc")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_contain(
-        "https://unpkg.com/redoc@2/bundles/redoc.standalone.js"
-    )
+def swagger_ui_oauth2_redirect_html():
+    with _client() as client:
+        response = client.get("/docs/oauth2-redirect")
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.text).to_contain("window.opener.swaggerUIRedirectOauth2")
 
 
 @test
-def api(client: TestClient = Depends(client)):
-    response = client.get("/users/john")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()["message"]).to_equal("Hello john")
+def redoc_html():
+    with _client() as client:
+        response = client.get("/redoc")
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.text).to_contain(
+            "https://unpkg.com/redoc@2/bundles/redoc.standalone.js"
+        )
+
+
+@test
+def api():
+    with _client() as client:
+        response = client.get("/users/john")
+        expect(response.status_code).to_equal(200).fatal()
+        expect(response.json()["message"]).to_equal("Hello john")
