@@ -107,193 +107,211 @@ def client():
         yield c
 
 
-@test
+@test("Async generator with Pydantic model is streamed as SSE")
 def async_generator_with_model(client: TestClient = Depends(client)):
     response = client.get("/items/stream")
-    expect(response.status_code).to_equal(200)
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
-    expect(response.headers["cache-control"]).to_equal("no-cache")
-    expect(response.headers["x-accel-buffering"]).to_equal("no")
+    expect(response.headers["cache-control"], "cache-control header").to_equal(
+        "no-cache"
+    )
+    expect(response.headers["x-accel-buffering"], "x-accel-buffering header").to_equal(
+        "no"
+    )
 
     lines = response.text.strip().split("\n")
     data_lines = [line for line in lines if line.startswith("data: ")]
-    expect(data_lines).to_have_length(3).fatal()
+    expect(data_lines, "data lines").to_have_length(3).fatal()
     expect(
-        '"name":"Plumbus"' in data_lines[0] or '"name": "Plumbus"' in data_lines[0]
+        '"name":"Plumbus"' in data_lines[0] or '"name": "Plumbus"' in data_lines[0],
+        "first data line contains Plumbus",
     ).to_be_truthy()
     expect(
         '"name":"Portal Gun"' in data_lines[1]
-        or '"name": "Portal Gun"' in data_lines[1]
+        or '"name": "Portal Gun"' in data_lines[1],
+        "second data line contains Portal Gun",
     ).to_be_truthy()
     expect(
         '"name":"Meeseeks Box"' in data_lines[2]
-        or '"name": "Meeseeks Box"' in data_lines[2]
+        or '"name": "Meeseeks Box"' in data_lines[2],
+        "third data line contains Meeseeks Box",
     ).to_be_truthy()
 
 
-@test
+@test("Sync generator with Pydantic model is streamed as SSE")
 def sync_generator_with_model(client: TestClient = Depends(client)):
     response = client.get("/items/stream-sync")
-    expect(response.status_code).to_equal(200)
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
 
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(3)
+    expect(data_lines, "data lines").to_have_length(3)
 
 
-@test
+@test("Async generator without return annotation streams as SSE")
 def async_generator_no_annotation(client: TestClient = Depends(client)):
     response = client.get("/items/stream-no-annotation")
-    expect(response.status_code).to_equal(200)
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
 
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(3)
+    expect(data_lines, "data lines").to_have_length(3)
 
 
-@test
+@test("Sync generator without return annotation streams as SSE")
 def sync_generator_no_annotation(client: TestClient = Depends(client)):
     response = client.get("/items/stream-sync-no-annotation")
-    expect(response.status_code).to_equal(200)
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
 
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(3)
+    expect(data_lines, "data lines").to_have_length(3)
 
 
-@test
+@test("Dict items are streamed as JSON-encoded SSE data")
 def dict_items(client: TestClient = Depends(client)):
     response = client.get("/items/stream-dict")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(3).fatal()
-    expect(data_lines[0]).to_contain('"name"')
+    expect(data_lines, "data lines").to_have_length(3).fatal()
+    expect(data_lines[0], "first data line").to_contain('"name"')
 
 
-@test
+@test("SSE works on POST method (for MCP compatibility)")
 def post_method_sse(client: TestClient = Depends(client)):
     """SSE should work with POST (needed for MCP compatibility)."""
     response = client.post("/items/stream-post")
-    expect(response.status_code).to_equal(200)
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(3)
+    expect(data_lines, "data lines").to_have_length(3)
 
 
-@test
+@test("ServerSentEvent emits event/data/id/comment/retry fields")
 def sse_events_with_fields(client: TestClient = Depends(client)):
     response = client.get("/items/stream-sse-event")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     text = response.text
 
-    expect(text).to_contain("event: greeting\n")
-    expect(text).to_contain('data: "hello"\n')
-    expect(text).to_contain("id: 1\n")
+    expect(text, "response text").to_contain("event: greeting\n")
+    expect(text, "response text").to_contain('data: "hello"\n')
+    expect(text, "response text").to_contain("id: 1\n")
 
-    expect(text).to_contain("event: json-data\n")
-    expect(text).to_contain("id: 2\n")
-    expect(text).to_contain('data: {"key": "value"}\n')
+    expect(text, "response text").to_contain("event: json-data\n")
+    expect(text, "response text").to_contain("id: 2\n")
+    expect(text, "response text").to_contain('data: {"key": "value"}\n')
 
-    expect(text).to_contain(": just a comment\n")
+    expect(text, "response text").to_contain(": just a comment\n")
 
-    expect(text).to_contain("retry: 5000\n")
-    expect(text).to_contain('data: "retry-test"\n')
+    expect(text, "response text").to_contain("retry: 5000\n")
+    expect(text, "response text").to_contain('data: "retry-test"\n')
 
 
-@test
+@test("Stream can mix plain values and ServerSentEvent objects")
 def mixed_plain_and_sse_events(client: TestClient = Depends(client)):
     response = client.get("/items/stream-mixed")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     text = response.text
 
-    expect(text).to_contain("event: special\n")
-    expect(text).to_contain('data: "custom-event"\n')
-    expect(text).to_contain('"name"')
+    expect(text, "response text").to_contain("event: special\n")
+    expect(text, "response text").to_contain('data: "custom-event"\n')
+    expect(text, "response text").to_contain('"name"')
 
 
-@test
+@test("String data on SSE is JSON-encoded with quotes")
 def string_data_json_encoded(client: TestClient = Depends(client)):
     """Strings are always JSON-encoded (quoted)."""
     response = client.get("/items/stream-string")
-    expect(response.status_code).to_equal(200)
-    expect(response.text).to_contain('data: "plain text data"\n')
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.text, "response text").to_contain('data: "plain text data"\n')
 
 
-@test
+@test("ServerSentEvent rejects null byte in id")
 def server_sent_event_null_id_rejected():
-    expect(lambda: ServerSentEvent(data="test", id="has\0null")).to_raise(
-        ValueError, match="null"
-    )
+    expect(
+        lambda: ServerSentEvent(data="test", id="has\0null"),
+        "ServerSentEvent with null in id",
+    ).to_raise(ValueError, match="null")
 
 
-@test
+@test("ServerSentEvent rejects negative retry")
 def server_sent_event_negative_retry_rejected():
-    expect(lambda: ServerSentEvent(data="test", retry=-1)).to_raise(ValueError)
+    expect(
+        lambda: ServerSentEvent(data="test", retry=-1),
+        "ServerSentEvent with negative retry",
+    ).to_raise(ValueError)
 
 
-@test
+@test("ServerSentEvent rejects non-integer retry")
 def server_sent_event_float_retry_rejected():
-    expect(lambda: ServerSentEvent(data="test", retry=1.5)).to_raise(ValueError)  # type: ignore[arg-type]
+    expect(
+        lambda: ServerSentEvent(data="test", retry=1.5),
+        "ServerSentEvent with float retry",
+    ).to_raise(ValueError)  # type: ignore[arg-type]
 
 
-@test
+@test("raw_data on SSE is sent without JSON encoding")
 def raw_data_sent_without_json_encoding(client: TestClient = Depends(client)):
     """raw_data is sent as-is, not JSON-encoded."""
     response = client.get("/items/stream-raw")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     text = response.text
 
     # raw_data should appear without JSON quotes
-    expect(text).to_contain("data: plain text without quotes\n")
+    expect(text, "response text").to_contain("data: plain text without quotes\n")
     # Not JSON-quoted
-    expect('data: "plain text without quotes"' in text).to_be_falsy()
+    expect(
+        'data: "plain text without quotes"' in text,
+        "raw_data is not JSON-quoted",
+    ).to_be_falsy()
 
-    expect(text).to_contain("event: html\n")
-    expect(text).to_contain("data: <div>html fragment</div>\n")
+    expect(text, "response text").to_contain("event: html\n")
+    expect(text, "response text").to_contain("data: <div>html fragment</div>\n")
 
-    expect(text).to_contain("event: csv\n")
-    expect(text).to_contain("data: cpu,87.3,1709145600\n")
+    expect(text, "response text").to_contain("event: csv\n")
+    expect(text, "response text").to_contain("data: cpu,87.3,1709145600\n")
 
 
-@test
+@test("ServerSentEvent rejects setting both data and raw_data")
 def data_and_raw_data_mutually_exclusive():
     """Cannot set both data and raw_data."""
-    expect(lambda: ServerSentEvent(data="json", raw_data="raw")).to_raise(
-        ValueError, match="Cannot set both"
-    )
+    expect(
+        lambda: ServerSentEvent(data="json", raw_data="raw"),
+        "ServerSentEvent with data and raw_data",
+    ).to_raise(ValueError, match="Cannot set both")
 
 
-@test
+@test("SSE endpoint on included router streams correctly")
 def sse_on_router_included_in_app(client: TestClient = Depends(client)):
     response = client.get("/api/events")
-    expect(response.status_code).to_equal(200)
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(2)
+    expect(data_lines, "data lines").to_have_length(2)
 
 
 # Keepalive ping tests
@@ -318,37 +336,40 @@ def slow_sync_stream():
     yield {"n": 2}
 
 
-@test
+@test("Async SSE stream emits keepalive ping when items are slow")
 def keepalive_ping_async():
     with monkeypatch_ctx() as monkeypatch:
         monkeypatch.setattr(fastapi.routing, "_PING_INTERVAL", 0.05)
         with TestClient(keepalive_app) as c:
             response = c.get("/slow-async")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     text = response.text
     # The keepalive comment ": ping" should appear between the two data events
-    expect(text).to_contain(": ping\n")
+    expect(text, "response text").to_contain(": ping\n")
     data_lines = [line for line in text.split("\n") if line.startswith("data: ")]
-    expect(data_lines).to_have_length(2)
+    expect(data_lines, "data lines").to_have_length(2)
 
 
-@test
+@test("Sync SSE stream emits keepalive ping when items are slow")
 def keepalive_ping_sync():
     with monkeypatch_ctx() as monkeypatch:
         monkeypatch.setattr(fastapi.routing, "_PING_INTERVAL", 0.05)
         with TestClient(keepalive_app) as c:
             response = c.get("/slow-sync")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     text = response.text
-    expect(text).to_contain(": ping\n")
+    expect(text, "response text").to_contain(": ping\n")
     data_lines = [line for line in text.split("\n") if line.startswith("data: ")]
-    expect(data_lines).to_have_length(2)
+    expect(data_lines, "data lines").to_have_length(2)
 
 
-@test
+@test("Fast SSE stream does not emit keepalive comments")
 def no_keepalive_when_fast(client: TestClient = Depends(client)):
     """No keepalive comment when items arrive quickly."""
     response = client.get("/items/stream")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     # KEEPALIVE_COMMENT is ": ping\n\n".
-    expect(": ping\n" in response.text).to_be_falsy()
+    expect(
+        ": ping\n" in response.text,
+        "fast stream emits no ping",
+    ).to_be_falsy()

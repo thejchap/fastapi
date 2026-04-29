@@ -30,7 +30,10 @@ def optional_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p": {
@@ -57,8 +60,8 @@ def optional_schema(path: str):
 def optional_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -68,8 +71,8 @@ def optional_missing(path: str):
 def optional(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"file_size": 5})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"file_size": 5})
 
 
 # =====================================================================================
@@ -98,7 +101,10 @@ def optional_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_alias": {
@@ -125,8 +131,8 @@ def optional_alias_schema(path: str):
 def optional_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -136,8 +142,8 @@ def optional_alias_missing(path: str):
 def optional_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -147,8 +153,8 @@ def optional_alias_by_name(path: str):
 def optional_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello")])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": 5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": 5})
 
 
 # =====================================================================================
@@ -187,7 +193,10 @@ def optional_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_val_alias": {
@@ -219,8 +228,8 @@ def optional_validation_alias_schema(path: str):
 def optional_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -235,8 +244,8 @@ def optional_validation_alias_missing(path: str):
 def optional_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello")])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -251,8 +260,8 @@ def optional_validation_alias_by_name(path: str):
 def optional_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_val_alias", b"hello")])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": 5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": 5})
 
 
 # =====================================================================================
@@ -297,7 +306,10 @@ def optional_alias_and_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_val_alias": {
@@ -330,8 +342,8 @@ def optional_alias_and_validation_alias_schema(path: str):
 def optional_alias_and_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -347,8 +359,8 @@ def optional_alias_and_validation_alias_missing(path: str):
 def optional_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files={"p": "hello"})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -364,8 +376,8 @@ def optional_alias_and_validation_alias_by_name(path: str):
 def optional_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello")])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": None})
 
 
 @test.cases(
@@ -381,5 +393,5 @@ def optional_alias_and_validation_alias_by_alias(path: str):
 def optional_alias_and_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_val_alias", b"hello")])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": 5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": 5})

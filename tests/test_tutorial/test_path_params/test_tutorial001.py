@@ -13,15 +13,15 @@ client = TestClient(app)
 )
 def get_items(item_id, expected_response):
     response = client.get(f"/items/{item_id}")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
-@test
+@test("OpenAPI schema matches the snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -27,48 +27,48 @@ def post_union_form(data: Annotated[UserForm | CompanyForm, Form()]):
 client = TestClient(app)
 
 
-@test
+@test("Union Form body matches UserForm when fields match")
 def post_user_form():
     response = client.post(
         "/form-union/", data={"name": "John Doe", "email": "john@example.com"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"received": {"name": "John Doe", "email": "john@example.com"}}
     )
 
 
-@test
+@test("Union Form body matches CompanyForm when fields match")
 def post_company_form():
     response = client.post(
         "/form-union/", data={"company_name": "Tech Corp", "industry": "Technology"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"received": {"company_name": "Tech Corp", "industry": "Technology"}}
     )
 
 
-@test
+@test("Union Form body rejects mixed/incomplete fields")
 def invalid_form_data():
     response = client.post(
         "/form-union/",
         data={"name": "John", "company_name": "Tech Corp"},
     )
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Union Form body rejects empty submission")
 def empty_form():
     response = client.post("/form-union/")
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("OpenAPI schema represents union form body as anyOf")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

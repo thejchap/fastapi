@@ -7,18 +7,18 @@ from docs_src.path_params.tutorial002_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/ lists items")
 def get_items():
     response = client.get("/items/1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": 1})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": 1})
 
 
-@test
+@test("GET /items/{id} rejects an invalid id")
 def get_items_invalid_id():
     response = client.get("/items/item1")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -32,11 +32,11 @@ def get_items_invalid_id():
     )
 
 
-@test
+@test("OpenAPI schema matches the snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

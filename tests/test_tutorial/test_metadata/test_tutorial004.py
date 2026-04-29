@@ -7,19 +7,19 @@ from docs_src.metadata.tutorial004_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("Tagged path operations respond successfully")
 def path_operations():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     response = client.get("/users/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
 
-@test
+@test("OpenAPI schema includes tags metadata")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

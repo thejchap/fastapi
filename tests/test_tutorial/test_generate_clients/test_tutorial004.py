@@ -10,7 +10,7 @@ from docs_src.generate_clients import tutorial003_py310
 from ..._shims import tmp_path_ctx
 
 
-@test
+@test("Post-processing strips operation tags from the OpenAPI schema")
 def remove_tags():
     with tmp_path_ctx() as tmp_path:
         tmp_file = tmp_path / "openapi.json"
@@ -21,7 +21,7 @@ def remove_tags():
             importlib.import_module("docs_src.generate_clients.tutorial004_py310")
 
         modified_openapi = json.loads(tmp_file.read_text())
-        expect(modified_openapi).to_equal(
+        expect(modified_openapi, "modified openapi schema").to_equal(
             snapshot(
                 {
                     "components": {

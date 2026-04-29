@@ -18,8 +18,8 @@ def _client_for(name: str) -> TestClient:
 def post_item(name: str):
     client = _client_for(name)
     response = client.post("/items/", json={"name": "Foo", "price": 3})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "price": 3,
@@ -35,8 +35,8 @@ def post_item(name: str):
 def post_invalid_item(name: str):
     client = _client_for(name)
     response = client.post("/items/", json={"name": "Foo", "price": "invalid price"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -56,8 +56,8 @@ def post_invalid_item(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -23,28 +23,30 @@ def post_form_param_tuple(items: tuple = Form()):
 client = TestClient(app)
 
 
-@test
+@test("Form param annotated with builtin list collects values")
 def python_list_param_as_form():
     response = client.post(
         "/form/python-list", data={"items": ["first", "second", "third"]}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["first", "second", "third"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["first", "second", "third"])
 
 
-@test
+@test("Form param annotated with builtin set collects values")
 def python_set_param_as_form():
     response = client.post(
         "/form/python-set", data={"items": ["first", "second", "third"]}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(set(response.json())).to_equal({"first", "second", "third"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(set(response.json()), "response as set").to_equal(
+        {"first", "second", "third"}
+    )
 
 
-@test
+@test("Form param annotated with builtin tuple collects values")
 def python_tuple_param_as_form():
     response = client.post(
         "/form/python-tuple", data={"items": ["first", "second", "third"]}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["first", "second", "third"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["first", "second", "third"])

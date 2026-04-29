@@ -57,26 +57,29 @@ client = TestClient(app)
 )
 def get_path(path: str, expected_status: int, expected_response: dict):
     response = client.get(path)
-    expect(response.status_code).to_equal(expected_status)
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(expected_status)
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
-@test
+@test("route classes propagate through include_router prefixes")
 def route_classes():
     routes = {}
     for r in app.router.routes:
-        expect(r).to_be_instance_of(Route).fatal()
+        expect(r, "registered route").to_be_instance_of(Route).fatal()
         routes[r.path] = r
-    expect(getattr(routes["/a/"], "x_type")).to_equal("A")  # noqa: B009
-    expect(getattr(routes["/a/b/"], "x_type")).to_equal("B")  # noqa: B009
-    expect(getattr(routes["/a/b/c/"], "x_type")).to_equal("C")  # noqa: B009
+    expect(getattr(routes["/a/"], "x_type"), "x_type for /a/").to_equal("A")  # noqa: B009
+    expect(getattr(routes["/a/b/"], "x_type"), "x_type for /a/b/").to_equal("B")  # noqa: B009
+    expect(
+        getattr(routes["/a/b/c/"], "x_type"),  # noqa: B009
+        "x_type for /a/b/c/",
+    ).to_equal("C")
 
 
-@test
+@test("OpenAPI schema is generated for all custom-route subrouters")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

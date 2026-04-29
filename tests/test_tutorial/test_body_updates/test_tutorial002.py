@@ -16,8 +16,8 @@ def _client_for(name: str) -> TestClient:
 def get(name: str):
     client = _client_for(name)
     response = client.get("/items/baz")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Baz",
             "description": None,
@@ -43,7 +43,7 @@ def patch_all(name: str):
             "tags": ["tag1", "tag2"],
         },
     )
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Fooz",
             "description": "Item description",
@@ -63,7 +63,7 @@ def patch_name(name: str):
         "/items/bar",
         json={"name": "Barz"},
     )
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Barz",
             "description": "The bartenders",
@@ -80,8 +80,8 @@ def patch_name(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

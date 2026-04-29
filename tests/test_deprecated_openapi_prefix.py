@@ -14,18 +14,20 @@ def read_main(request: Request):
 client = TestClient(app)
 
 
-@test
+@test("openapi_prefix sets the root_path for the request")
 def main():
     response = client.get("/app")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"message": "Hello World", "root_path": "/api/v1"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"message": "Hello World", "root_path": "/api/v1"}
+    )
 
 
-@test
+@test("OpenAPI schema servers include the openapi_prefix")
 def openapi():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

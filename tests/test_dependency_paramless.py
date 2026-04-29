@@ -52,31 +52,37 @@ def get_parameterless_without_scopes():
 client = TestClient(app)
 
 
-@test
+@test("Security() with scopes passes credentials and scopes through")
 def get_credentials_test():
     response = client.get("/get-credentials", headers={"authorization": "Bearer token"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"token": "token", "scopes": ["a", "b"]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"token": "token", "scopes": ["a", "b"]}
+    )
 
 
-@test
+@test("parameterless Security with scopes accepts request")
 def parameterless_with_scopes():
     response = client.get(
         "/parameterless-with-scopes", headers={"authorization": "Bearer token"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"status": "ok"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"status": "ok"})
 
 
-@test
+@test("parameterless Security without scopes rejects request")
 def parameterless_without_scopes():
     response = client.get(
         "/parameterless-without-scopes", headers={"authorization": "Bearer token"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "a or b not in scopes"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "a or b not in scopes"}
+    )
 
 
-@test
+@test("calling endpoint directly returns the static body")
 def call_get_parameterless_without_scopes_for_coverage():
-    expect(get_parameterless_without_scopes()).to_equal({"status": "ok"})
+    expect(get_parameterless_without_scopes(), "endpoint return value").to_equal(
+        {"status": "ok"}
+    )

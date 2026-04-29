@@ -215,55 +215,63 @@ def create_app():
     return app
 
 
-@test
+@test("all example/examples-bearing endpoints respond OK")
 def call_api():
     app = create_app()
     client = TestClient(app)
     response = client.post("/schema_extra/", json={"data": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/schema_extra/ status").to_equal(200).fatal()
     response = client.post("/example/", json={"data": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/example/ status").to_equal(200).fatal()
     response = client.post("/examples/", json={"data": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/examples/ status").to_equal(200).fatal()
     response = client.post("/example_examples/", json={"data": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/example_examples/ status").to_equal(200).fatal()
     response = client.get("/path_example/foo")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/path_example/foo status").to_equal(200).fatal()
     response = client.get("/path_examples/foo")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/path_examples/foo status").to_equal(200).fatal()
     response = client.get("/path_example_examples/foo")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(
+        response.status_code, "/path_example_examples/foo status"
+    ).to_equal(200).fatal()
     response = client.get("/query_example/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/query_example/ status").to_equal(200).fatal()
     response = client.get("/query_examples/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/query_examples/ status").to_equal(200).fatal()
     response = client.get("/query_example_examples/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(
+        response.status_code, "/query_example_examples/ status"
+    ).to_equal(200).fatal()
     response = client.get("/header_example/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/header_example/ status").to_equal(200).fatal()
     response = client.get("/header_examples/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/header_examples/ status").to_equal(200).fatal()
     response = client.get("/header_example_examples/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(
+        response.status_code, "/header_example_examples/ status"
+    ).to_equal(200).fatal()
     response = client.get("/cookie_example/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/cookie_example/ status").to_equal(200).fatal()
     response = client.get("/cookie_examples/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "/cookie_examples/ status").to_equal(200).fatal()
     response = client.get("/cookie_example_examples/")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(
+        response.status_code, "/cookie_example_examples/ status"
+    ).to_equal(200).fatal()
 
 
 # Test that example overrides work:
 # * pydantic model schema_extra is included
 # * Body(example={}) overrides schema_extra in pydantic model
 # * Body(examples{}) overrides Body(example={}) and schema_extra in pydantic model
-@test
+@test("OpenAPI schema honours model schema_extra and Body example/examples")
 def openapi_schema():
     app = create_app()
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -22,9 +22,9 @@ def background_tasks_tutorial002(name: str):
     if log.is_file():
         os.remove(log)  # pragma: no cover
     response = client.post("/send-notification/foo@example.com?q=some-query")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Message sent"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Message sent"})
     with open("./log.txt") as f:
-        expect(f.read()).to_contain(
+        expect(f.read(), "log file contents").to_contain(
             "found query: some-query\nmessage to foo@example.com"
         )

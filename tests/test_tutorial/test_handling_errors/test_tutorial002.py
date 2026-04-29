@@ -7,26 +7,26 @@ from docs_src.handling_errors.tutorial002_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items-header/foo returns the item")
 def get_item_header():
     response = client.get("/items-header/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": "The Foo Wrestlers"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item": "The Foo Wrestlers"})
 
 
-@test
+@test("404 from /items-header/bar includes the X-Error header")
 def get_item_not_found_header():
     response = client.get("/items-header/bar")
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.headers.get("x-error")).to_equal("There goes my error")
-    expect(response.json()).to_equal({"detail": "Item not found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.headers.get("x-error"), "x-error header").to_equal("There goes my error")
+    expect(response.json(), "response body").to_equal({"detail": "Item not found"})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -22,20 +22,25 @@ def get_deps(dep1: str = Depends(get_header), dep2: str = Depends(get_something_
 client = TestClient(app)
 
 
-@test
+@test("repeated dependency receives header once")
 def response():
     response = client.get("/", headers={"someheader": "hello"})
-    expect(response.status_code).to_equal(status.HTTP_200_OK).fatal()
-    expect(response.json()).to_equal({"dep1": "hello", "dep2": "hello123"})
+    expect(response.status_code, "status code").to_equal(status.HTTP_200_OK).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"dep1": "hello", "dep2": "hello123"}
+    )
 
 
-@test
+@test("OpenAPI schema declares header parameter only once")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(status.HTTP_200_OK).fatal()
+    expect(response.status_code, "status code").to_equal(status.HTTP_200_OK).fatal()
     actual_schema = response.json()
-    expect(len(actual_schema["paths"]["/"]["get"]["parameters"])).to_equal(1)
-    expect(actual_schema).to_equal(
+    expect(
+        len(actual_schema["paths"]["/"]["get"]["parameters"]),
+        "parameter count",
+    ).to_equal(1)
+    expect(actual_schema, "openapi schema").to_equal(
         snapshot(
             {
                 "components": {

@@ -19,15 +19,15 @@ def stream_chat(name: str):
         "/chat/stream",
         json={"text": "hello world"},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
 
     lines = response.text.strip().split("\n")
 
     event_lines = [line for line in lines if line.startswith("event: ")]
-    expect(event_lines).to_equal(
+    expect(event_lines, "event lines").to_equal(
         [
             "event: token",
             "event: token",
@@ -36,7 +36,7 @@ def stream_chat(name: str):
     )
 
     data_lines = [line for line in lines if line.startswith("data: ")]
-    expect(data_lines).to_equal(
+    expect(data_lines, "data lines").to_equal(
         [
             'data: "hello"',
             'data: "world"',
@@ -51,8 +51,8 @@ def stream_chat(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

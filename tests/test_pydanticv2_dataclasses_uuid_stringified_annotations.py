@@ -37,11 +37,11 @@ async def read_item():
 client = TestClient(app)
 
 
-@test
+@test("Stringified annotations on a dataclass with UUID resolve correctly")
 def annotations():
     response = client.get("/item")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "id": IsUUID(),

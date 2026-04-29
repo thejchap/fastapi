@@ -20,8 +20,8 @@ def _client_for(name: str) -> TestClient:
 def security_http_basic(name: str):
     client = _client_for(name)
     response = client.get("/users/me", auth=("stanleyjobson", "swordfish"))
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "stanleyjobson"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "stanleyjobson"})
 
 
 @test.cases(
@@ -31,9 +31,11 @@ def security_http_basic(name: str):
 def security_http_basic_no_credentials(name: str):
     client = _client_for(name)
     response = client.get("/users/me")
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Basic"
+    )
 
 
 @test.cases(
@@ -45,9 +47,11 @@ def security_http_basic_invalid_credentials(name: str):
     response = client.get(
         "/users/me", headers={"Authorization": "Basic notabase64token"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Basic"
+    )
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
 @test.cases(
@@ -59,9 +63,11 @@ def security_http_basic_non_basic_credentials(name: str):
     payload = b64encode(b"johnsecret").decode("ascii")
     auth_header = f"Basic {payload}"
     response = client.get("/users/me", headers={"Authorization": auth_header})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Basic"
+    )
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
 @test.cases(
@@ -71,9 +77,13 @@ def security_http_basic_non_basic_credentials(name: str):
 def security_http_basic_invalid_username(name: str):
     client = _client_for(name)
     response = client.get("/users/me", auth=("alice", "swordfish"))
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "error body").to_equal(
+        {"detail": "Incorrect username or password"}
+    )
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Basic"
+    )
 
 
 @test.cases(
@@ -83,9 +93,13 @@ def security_http_basic_invalid_username(name: str):
 def security_http_basic_invalid_password(name: str):
     client = _client_for(name)
     response = client.get("/users/me", auth=("stanleyjobson", "wrongpassword"))
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "error body").to_equal(
+        {"detail": "Incorrect username or password"}
+    )
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Basic"
+    )
 
 
 @test.cases(
@@ -95,8 +109,8 @@ def security_http_basic_invalid_password(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

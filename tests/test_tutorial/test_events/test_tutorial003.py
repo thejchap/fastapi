@@ -9,25 +9,25 @@ from docs_src.events.tutorial003_py310 import (
 )
 
 
-@test
+@test("Lifespan loads ml_models on startup and clears them on shutdown")
 def events():
-    expect(ml_models).to_be_falsy()
+    expect(ml_models, "ml_models state").to_be_falsy()
     with TestClient(app) as client:
-        expect(ml_models["answer_to_everything"]).to_equal(
+        expect(ml_models["answer_to_everything"], "ml_models entry").to_equal(
             fake_answer_to_everything_ml_model
         )
         response = client.get("/predict", params={"x": 2})
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"result": 84.0})
-    expect(ml_models).to_be_falsy()
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"result": 84.0})
+    expect(ml_models, "ml_models state").to_be_falsy()
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     with TestClient(app) as client:
         response = client.get("/openapi.json")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal(
             snapshot(
                 {
                     "openapi": "3.1.0",

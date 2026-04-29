@@ -36,16 +36,25 @@ def get_invalidlist():
 client = TestClient(app)
 
 
-@test
+@test("Dataclass response_model raises on invalid scalar field")
 def invalid():
-    expect(lambda: client.get("/items/invalid")).to_raise(ResponseValidationError)
+    expect(
+        lambda: client.get("/items/invalid"),
+        "GET to invalid item",
+    ).to_raise(ResponseValidationError)
 
 
-@test
+@test("Dataclass response_model raises on invalid nested field")
 def double_invalid():
-    expect(lambda: client.get("/items/innerinvalid")).to_raise(ResponseValidationError)
+    expect(
+        lambda: client.get("/items/innerinvalid"),
+        "GET to nested-invalid item",
+    ).to_raise(ResponseValidationError)
 
 
-@test
+@test("Dataclass response_model raises on invalid list element")
 def invalid_list():
-    expect(lambda: client.get("/items/invalidlist")).to_raise(ResponseValidationError)
+    expect(
+        lambda: client.get("/items/invalidlist"),
+        "GET to invalid list of items",
+    ).to_raise(ResponseValidationError)

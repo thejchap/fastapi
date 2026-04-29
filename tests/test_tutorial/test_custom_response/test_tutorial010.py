@@ -16,8 +16,8 @@ def _client_for(name: str) -> TestClient:
 def get_custom_response(name: str):
     client = _client_for(name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.text, "response text").to_equal(
         snapshot("<h1>Items</h1><p>This is a list of items.</p>")
     )
 
@@ -28,8 +28,8 @@ def get_custom_response(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -21,32 +21,38 @@ def read_current_user(
 client = TestClient(app)
 
 
-@test
+@test("optional HTTPBearer authenticates with valid Bearer token")
 def security_http_bearer():
     response = client.get("/users/me", headers={"Authorization": "Bearer foobar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"scheme": "Bearer", "credentials": "foobar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"scheme": "Bearer", "credentials": "foobar"}
+    )
 
 
-@test
+@test("optional HTTPBearer passes None when credentials missing")
 def security_http_bearer_no_credentials():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("optional HTTPBearer passes None for non-Bearer scheme")
 def security_http_bearer_incorrect_scheme_credentials():
     response = client.get("/users/me", headers={"Authorization": "Basic notreally"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("OpenAPI schema for optional HTTPBearer")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

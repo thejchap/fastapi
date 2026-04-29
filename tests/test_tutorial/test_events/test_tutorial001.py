@@ -20,20 +20,20 @@ def app() -> FastAPI:
     return _app
 
 
-@test
+@test("Startup/shutdown events fire and GET /items/foo returns the item")
 def events(app: FastAPI = Depends(app)):
     with TestClient(app) as client:
         response = client.get("/items/foo")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"name": "Fighters"})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"name": "Fighters"})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema(app: FastAPI = Depends(app)):
     with TestClient(app) as client:
         response = client.get("/openapi.json")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal(
             snapshot(
                 {
                     "openapi": "3.1.0",

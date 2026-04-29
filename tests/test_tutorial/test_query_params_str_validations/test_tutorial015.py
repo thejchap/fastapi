@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def get_random_item(name: str):
     client = _client_for(name)
     response = client.get("/items")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"id": IsStr(), "name": IsStr()})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"id": IsStr(), "name": IsStr()})
 
 
 @test.cases(
@@ -27,8 +27,8 @@ def get_random_item(name: str):
 def get_item(name: str):
     client = _client_for(name)
     response = client.get("/items?id=isbn-9781529046137")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "id": "isbn-9781529046137",
             "name": "The Hitchhiker's Guide to the Galaxy",
@@ -42,8 +42,8 @@ def get_item(name: str):
 def get_item_does_not_exist(name: str):
     client = _client_for(name)
     response = client.get("/items?id=isbn-nope")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"id": "isbn-nope", "name": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"id": "isbn-nope", "name": None})
 
 
 @test.cases(
@@ -52,8 +52,8 @@ def get_item_does_not_exist(name: str):
 def get_invalid_item(name: str):
     client = _client_for(name)
     response = client.get("/items?id=wtf-yes")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "detail": [
@@ -76,8 +76,8 @@ def get_invalid_item(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

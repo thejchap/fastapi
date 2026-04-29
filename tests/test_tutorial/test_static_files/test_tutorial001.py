@@ -21,7 +21,7 @@ def _build_client(static_dir: Path) -> TestClient:
     return TestClient(tutorial001_py310.app)
 
 
-@test
+@test("StaticFiles serves files mounted under /static")
 def static_files():
     with tmp_path_ctx() as tmp_path, monkeypatch_ctx() as mp:
         mp.chdir(tmp_path)
@@ -29,11 +29,13 @@ def static_files():
         static_dir.mkdir()
         with _build_client(static_dir) as client:
             response = client.get("/static/sample.txt")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.text).to_equal("This is a sample static file.")
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.text, "file contents").to_equal(
+                "This is a sample static file."
+            )
 
 
-@test
+@test("StaticFiles returns 404 for missing files")
 def static_files_not_found():
     with tmp_path_ctx() as tmp_path, monkeypatch_ctx() as mp:
         mp.chdir(tmp_path)
@@ -41,10 +43,10 @@ def static_files_not_found():
         static_dir.mkdir()
         with _build_client(static_dir) as client:
             response = client.get("/static/non_existent_file.txt")
-            expect(response.status_code).to_equal(404).fatal()
+            expect(response.status_code, "status code").to_equal(404).fatal()
 
 
-@test
+@test("OpenAPI schema for static_files tutorial")
 def openapi_schema():
     with tmp_path_ctx() as tmp_path, monkeypatch_ctx() as mp:
         mp.chdir(tmp_path)
@@ -52,8 +54,8 @@ def openapi_schema():
         static_dir.mkdir()
         with _build_client(static_dir) as client:
             response = client.get("/openapi.json")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal(
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "OpenAPI schema").to_equal(
                 snapshot(
                     {
                         "openapi": "3.1.0",

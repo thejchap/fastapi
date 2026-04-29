@@ -7,18 +7,18 @@ from docs_src.custom_response.tutorial006b_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /fastapi redirects to fastapi.tiangolo.com via response_class")
 def redirect_response_class():
     response = client.get("/fastapi", follow_redirects=False)
-    expect(response.status_code).to_equal(307)
-    expect(response.headers["location"]).to_equal("https://fastapi.tiangolo.com")
+    expect(response.status_code, "status code").to_equal(307)
+    expect(response.headers["location"], "location header").to_equal("https://fastapi.tiangolo.com")
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

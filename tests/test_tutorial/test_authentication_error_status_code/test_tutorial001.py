@@ -16,8 +16,8 @@ def _client_for(name: str) -> TestClient:
 def get_me(name: str):
     client = _client_for(name)
     response = client.get("/me", headers={"Authorization": "Bearer secrettoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "message": "You are authenticated",
             "token": "secrettoken",
@@ -31,8 +31,8 @@ def get_me(name: str):
 def get_me_no_credentials(name: str):
     client = _client_for(name)
     response = client.get("/me")
-    expect(response.status_code).to_equal(403).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(403).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
 @test.cases(
@@ -41,8 +41,8 @@ def get_me_no_credentials(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

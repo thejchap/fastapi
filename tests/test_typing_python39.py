@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from tryke import expect, test
 
 
-@test
+@test("PEP 585 generic types work as request/response_model")
 def typing():
     types = {
         list[int]: [1, 2, 3],
@@ -19,5 +19,5 @@ def typing():
             return input
 
         res = TestClient(app).post("/", json=expected)
-        expect(res.status_code).to_equal(200).fatal()
-        expect(res.json()).to_equal(expected)
+        expect(res.status_code, "status code").to_equal(200).fatal()
+        expect(res.json(), "response body").to_equal(expected)

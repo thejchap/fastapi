@@ -51,25 +51,27 @@ def reset_state_and_db() -> None:
 client = TestClient(app)
 
 
-@test
+@test("HTTPException raised in endpoint reaches dependency's except clause")
 def dependency_gets_exception(_=TrykeDepends(reset_state_and_db)):
-    expect(state["except"]).to_be(False)
-    expect(state["finally"]).to_be(False)
+    expect(state["except"], "except flag before request").to_be(False)
+    expect(state["finally"], "finally flag before request").to_be(False)
     response = client.put("/invalid-user/rick", json="Morty")
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Invalid user"})
-    expect(state["except"]).to_be(True)
-    expect(state["finally"]).to_be(True)
-    expect(fake_database["rick"]).to_equal("Rick Sanchez")
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Invalid user"})
+    expect(state["except"], "except flag after request").to_be(True)
+    expect(state["finally"], "finally flag after request").to_be(True)
+    expect(fake_database["rick"], "rick row should not be updated").to_equal(
+        "Rick Sanchez"
+    )
 
 
-@test
+@test("successful request runs only finally, not except")
 def dependency_no_exception(_=TrykeDepends(reset_state_and_db)):
-    expect(state["except"]).to_be(False)
-    expect(state["finally"]).to_be(False)
+    expect(state["except"], "except flag before request").to_be(False)
+    expect(state["finally"], "finally flag before request").to_be(False)
     response = client.put("/user/rick", json="Morty")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "OK"})
-    expect(state["except"]).to_be(False)
-    expect(state["finally"]).to_be(True)
-    expect(fake_database["rick"]).to_equal("Morty")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "OK"})
+    expect(state["except"], "except flag after request").to_be(False)
+    expect(state["finally"], "finally flag after request").to_be(True)
+    expect(fake_database["rick"], "rick row should be updated").to_equal("Morty")

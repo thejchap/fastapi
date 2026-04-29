@@ -39,8 +39,8 @@ async def hidden_query(
 def hidden_cookie(path: str, cookies: dict, expected_status: int, expected_response: dict):
     client = TestClient(app, cookies=cookies)
     response = client.get(path)
-    expect(response.status_code).to_equal(expected_status).fatal()
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(expected_status).fatal()
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
 @test.cases(
@@ -50,16 +50,16 @@ def hidden_cookie(path: str, cookies: dict, expected_status: int, expected_respo
 def hidden_header(path: str, headers: dict, expected_status: int, expected_response: dict):
     client = TestClient(app)
     response = client.get(path, headers=headers)
-    expect(response.status_code).to_equal(expected_status).fatal()
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(expected_status).fatal()
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
-@test
+@test("Path param with include_in_schema=False is still routed")
 def hidden_path():
     client = TestClient(app)
     response = client.get("/hidden_path/hidden_path")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"hidden_path": "hidden_path"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"hidden_path": "hidden_path"})
 
 
 @test.cases(
@@ -69,16 +69,16 @@ def hidden_path():
 def hidden_query(path: str, expected_status: int, expected_response: dict):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(expected_status).fatal()
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(expected_status).fatal()
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
-@test
+@test("Params with include_in_schema=False are absent from the OpenAPI schema")
 def openapi_schema():
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(snapshot(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},

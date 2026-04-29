@@ -7,18 +7,20 @@ from docs_src.behind_a_proxy.tutorial003_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /app returns the configured root_path")
 def main():
     response = client.get("/app")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello World", "root_path": "/api/v1"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"message": "Hello World", "root_path": "/api/v1"}
+    )
 
 
-@test
+@test("OpenAPI schema lists all configured servers")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

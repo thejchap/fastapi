@@ -14,6 +14,7 @@ if TYPE_CHECKING:  # pragma: no cover
 _NEEDS_PY314 = needs_py314()
 
 
+@test("Forward-reference Depends works under PEP 649 (3.14)")
 @test.skip_if(_NEEDS_PY314 is not None, reason=_NEEDS_PY314 or "")
 def stringified_annotation():
     # python3.14: Use forward reference without "from __future__ import annotations"
@@ -31,4 +32,4 @@ def stringified_annotation():
         return "hello world"
 
     response = client.get("/")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)

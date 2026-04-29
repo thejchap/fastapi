@@ -30,7 +30,7 @@ class Message(BaseModel):
     description: str
 
 
-@test
+@test("App-level generate_unique_id_function customizes operation ids")
 def top_level_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter()
@@ -48,7 +48,7 @@ def top_level_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -249,7 +249,7 @@ def top_level_generate_unique_id():
     )
 
 
-@test
+@test("Router-level generate_unique_id_function overrides the app-level one")
 def router_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
@@ -267,7 +267,7 @@ def router_overrides_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -468,7 +468,7 @@ def router_overrides_generate_unique_id():
     )
 
 
-@test
+@test("include_router generate_unique_id_function overrides router-level setting")
 def router_include_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
@@ -486,7 +486,7 @@ def router_include_overrides_generate_unique_id():
     app.include_router(router, generate_unique_id_function=custom_generate_unique_id3)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -687,7 +687,7 @@ def router_include_overrides_generate_unique_id():
     )
 
 
-@test
+@test("Top-level include_router override does not propagate into sub-routers")
 def subrouter_top_level_include_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter()
@@ -715,7 +715,7 @@ def subrouter_top_level_include_overrides_generate_unique_id():
     app.include_router(router, generate_unique_id_function=custom_generate_unique_id3)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -981,7 +981,7 @@ def subrouter_top_level_include_overrides_generate_unique_id():
     )
 
 
-@test
+@test("Per-route generate_unique_id_function overrides router-level setting")
 def router_path_operation_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
@@ -1002,7 +1002,7 @@ def router_path_operation_overrides_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -1203,7 +1203,7 @@ def router_path_operation_overrides_generate_unique_id():
     )
 
 
-@test
+@test("Per-route generate_unique_id_function overrides app-level setting")
 def app_path_operation_overrides_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
@@ -1228,7 +1228,7 @@ def app_path_operation_overrides_generate_unique_id():
     app.include_router(router)
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -1429,7 +1429,7 @@ def app_path_operation_overrides_generate_unique_id():
     )
 
 
-@test
+@test("Callback router can override generate_unique_id_function")
 def callback_override_generate_unique_id():
     app = FastAPI(generate_unique_id_function=custom_generate_unique_id)
     callback_router = APIRouter(generate_unique_id_function=custom_generate_unique_id2)
@@ -1463,7 +1463,7 @@ def callback_override_generate_unique_id():
 
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -1733,7 +1733,7 @@ def callback_override_generate_unique_id():
     )
 
 
-@test
+@test("Duplicate operation ids emit a warning when generating the OpenAPI schema")
 def warn_duplicate_operation_id():
     def broken_operation_id(route: APIRoute):
         return "foo"
@@ -1756,9 +1756,13 @@ def warn_duplicate_operation_id():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         client.get("/openapi.json")
-        expect(len(w)).to_be_greater_than(1)
+        expect(len(w), "warning count").to_be_greater_than(1)
         duplicate_warnings = [
             warning for warning in w if issubclass(warning.category, UserWarning)
         ]
-        expect(len(duplicate_warnings)).to_be_greater_than(0).fatal()
-        expect(str(duplicate_warnings[0].message)).to_contain("Duplicate Operation ID")
+        expect(
+            len(duplicate_warnings), "duplicate-id warning count"
+        ).to_be_greater_than(0).fatal()
+        expect(
+            str(duplicate_warnings[0].message), "first warning message"
+        ).to_contain("Duplicate Operation ID")

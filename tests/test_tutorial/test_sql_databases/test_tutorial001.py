@@ -55,8 +55,8 @@ def crud_app(name: str):
             warnings.simplefilter("always")
             # No heroes before creating.
             response = client.get("heroes/")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal([])
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "initial heroes list").to_equal([])
 
             # Create a hero.
             response = client.post(
@@ -68,8 +68,8 @@ def crud_app(name: str):
                     "secret_name": "Dive Wilson",
                 },
             )
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal(
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "created hero").to_equal(
                 snapshot(
                     {
                         "age": 30,
@@ -83,8 +83,8 @@ def crud_app(name: str):
             # Read a hero.
             hero_id = response.json()["id"]
             response = client.get(f"/heroes/{hero_id}")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal(
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "fetched hero").to_equal(
                 snapshot(
                     {
                         "name": "Dead Pond",
@@ -104,15 +104,15 @@ def crud_app(name: str):
                     "secret_name": "Pedro Parqueador",
                 },
             )
-            expect(response.status_code).to_equal(200).fatal()
+            expect(response.status_code, "status code").to_equal(200).fatal()
             response = client.post(
                 "/heroes/", json={"name": "Rusty-Man", "secret_name": "Tommy Sharp"}
             )
-            expect(response.status_code).to_equal(200).fatal()
+            expect(response.status_code, "status code").to_equal(200).fatal()
 
             response = client.get("/heroes/")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal(
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "all heroes").to_equal(
                 snapshot(
                     [
                         {
@@ -138,8 +138,8 @@ def crud_app(name: str):
             )
 
             response = client.get("/heroes/?offset=1&limit=1")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal(
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "paged heroes").to_equal(
                 snapshot(
                     [
                         {
@@ -154,15 +154,17 @@ def crud_app(name: str):
 
             # Delete a hero.
             response = client.delete(f"/heroes/{hero_id}")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal(snapshot({"ok": True}))
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "delete response").to_equal(snapshot({"ok": True}))
 
             response = client.get(f"/heroes/{hero_id}")
-            expect(response.status_code).to_equal(404).fatal()
+            expect(response.status_code, "status code").to_equal(404).fatal()
 
             response = client.delete(f"/heroes/{hero_id}")
-            expect(response.status_code).to_equal(404).fatal()
-            expect(response.json()).to_equal(snapshot({"detail": "Hero not found"}))
+            expect(response.status_code, "status code").to_equal(404).fatal()
+            expect(response.json(), "not found body").to_equal(
+                snapshot({"detail": "Hero not found"})
+            )
 
 
 @test.cases(
@@ -172,8 +174,8 @@ def crud_app(name: str):
 def openapi_schema(name: str):
     with _client_for(name) as client:
         response = client.get("/openapi.json")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "OpenAPI schema").to_equal(
             snapshot(
                 {
                     "openapi": "3.1.0",

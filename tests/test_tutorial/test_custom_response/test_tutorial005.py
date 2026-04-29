@@ -7,18 +7,18 @@ from docs_src.custom_response.tutorial005_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET / returns plain text Hello World")
 def get():
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_equal("Hello World")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.text, "response text").to_equal("Hello World")
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

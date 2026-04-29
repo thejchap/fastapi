@@ -31,15 +31,15 @@ def client() -> TestClient:
 )
 def get(url: str, data: dict, client: TestClient = Depends(client)):
     response = client.get(url)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(data)
 
 
-@test
+@test("OpenAPI schema for tutorial004")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

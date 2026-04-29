@@ -27,7 +27,7 @@ async def cookies_model_with_extra(data: Model = Cookie()):
     return data
 
 
-@test
+@test("Query model with extra='allow' captures repeated values as a list")
 def query_pass_extra_list():
     client = TestClient(app)
     resp = client.get(
@@ -37,8 +37,8 @@ def query_pass_extra_list():
             "param2": ["456", "789"],  # Pass a list of values as extra parameter
         },
     )
-    expect(resp.status_code).to_equal(200)
-    expect(resp.json()).to_equal(
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.json(), "response body").to_equal(
         {
             "param": "123",
             "param2": ["456", "789"],
@@ -46,7 +46,7 @@ def query_pass_extra_list():
     )
 
 
-@test
+@test("Query model with extra='allow' captures a single extra value")
 def query_pass_extra_single():
     client = TestClient(app)
     resp = client.get(
@@ -56,8 +56,8 @@ def query_pass_extra_single():
             "param2": "456",
         },
     )
-    expect(resp.status_code).to_equal(200)
-    expect(resp.json()).to_equal(
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.json(), "response body").to_equal(
         {
             "param": "123",
             "param2": "456",
@@ -65,7 +65,7 @@ def query_pass_extra_single():
     )
 
 
-@test
+@test("Header model with extra='allow' captures repeated values as a list")
 def header_pass_extra_list():
     client = TestClient(app)
 
@@ -77,13 +77,13 @@ def header_pass_extra_list():
             ("param2", "789"),
         ],
     )
-    expect(resp.status_code).to_equal(200)
+    expect(resp.status_code, "status code").to_equal(200)
     resp_json = resp.json()
-    expect(resp_json).to_contain("param2")
-    expect(resp_json["param2"]).to_equal(["456", "789"])
+    expect(resp_json, "response body").to_contain("param2")
+    expect(resp_json["param2"], "extra param2 value").to_equal(["456", "789"])
 
 
-@test
+@test("Header model with extra='allow' captures a single extra value")
 def header_pass_extra_single():
     client = TestClient(app)
 
@@ -94,13 +94,13 @@ def header_pass_extra_single():
             ("param2", "456"),
         ],
     )
-    expect(resp.status_code).to_equal(200)
+    expect(resp.status_code, "status code").to_equal(200)
     resp_json = resp.json()
-    expect(resp_json).to_contain("param2")
-    expect(resp_json["param2"]).to_equal("456")
+    expect(resp_json, "response body").to_contain("param2")
+    expect(resp_json["param2"], "extra param2 value").to_equal("456")
 
 
-@test
+@test("Cookie model with extra='allow' keeps only the last repeated value")
 def cookie_pass_extra_list():
     client = TestClient(app)
     client.cookies = [
@@ -109,7 +109,7 @@ def cookie_pass_extra_list():
         ("param2", "789"),
     ]
     resp = client.get("/cookie")
-    expect(resp.status_code).to_equal(200)
+    expect(resp.status_code, "status code").to_equal(200)
     resp_json = resp.json()
-    expect(resp_json).to_contain("param2")
-    expect(resp_json["param2"]).to_equal("789")
+    expect(resp_json, "response body").to_contain("param2")
+    expect(resp_json["param2"], "extra param2 value").to_equal("789")

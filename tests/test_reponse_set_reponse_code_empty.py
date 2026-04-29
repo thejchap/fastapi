@@ -24,18 +24,23 @@ async def delete_deployment(
 client = TestClient(app)
 
 
-@test
+@test("handler can override declared 204 status with body")
 def dependency_set_status_code():
     response = client.delete("/1")
-    expect(response.status_code == 400 and response.content).to_be_truthy()
-    expect(response.json()).to_equal({"msg": "Status overwritten", "id": 1})
+    expect(
+        response.status_code == 400 and response.content,
+        "overridden status with body",
+    ).to_be_truthy()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Status overwritten", "id": 1}
+    )
 
 
-@test
+@test("OpenAPI schema reflects declared 204 status")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

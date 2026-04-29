@@ -30,18 +30,18 @@ async def read_admin():
 client = TestClient(app)
 
 
-@test
+@test("Admin endpoint accepts Bearer token with required scopes")
 def read_admin():
     response = client.get("/admin", headers={"Authorization": "Bearer faketoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Admin Access"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Admin Access"})
 
 
-@test
+@test("OpenAPI schema reflects scoped OAuth2 security requirements")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

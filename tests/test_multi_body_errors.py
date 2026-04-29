@@ -23,11 +23,11 @@ def save_item_no_body(item: list[Item]):
 client = TestClient(app)
 
 
-@test
+@test("List body of valid items is accepted")
 def put_correct_body():
     response = client.post("/items/", json=[{"name": "Foo", "age": 5}])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "item": [
@@ -41,11 +41,11 @@ def put_correct_body():
     )
 
 
-@test
+@test("Out-of-range decimal field returns a 422 with greater-than error")
 def jsonable_encoder_requiring_error():
     response = client.post("/items/", json=[{"name": "Foo", "age": -1.0}])
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -60,11 +60,11 @@ def jsonable_encoder_requiring_error():
     )
 
 
-@test
+@test("Multiple invalid items report errors for each list element")
 def put_incorrect_body_multiple():
     response = client.post("/items/", json=[{"age": "five"}, {"age": "six"}])
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -96,11 +96,11 @@ def put_incorrect_body_multiple():
     )
 
 
-@test
+@test("List body endpoint produces the expected OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

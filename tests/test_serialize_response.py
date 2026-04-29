@@ -34,27 +34,29 @@ def get_validlist():
 client = TestClient(app)
 
 
-@test
+@test("Dict response is serialised through response_model")
 def valid():
     response = client.get("/items/valid")
     response.raise_for_status()
-    expect(response.json()).to_equal({"name": "valid", "price": 1.0, "owner_ids": None})
+    expect(response.json(), "response body").to_equal(
+        {"name": "valid", "price": 1.0, "owner_ids": None}
+    )
 
 
-@test
+@test("response_model coerces string price to float")
 def coerce():
     response = client.get("/items/coerce")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {"name": "coerce", "price": 1.0, "owner_ids": None}
     )
 
 
-@test
+@test("List response is serialised through list[Model] response_model")
 def validlist():
     response = client.get("/items/validlist")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "foo", "price": None, "owner_ids": None},
             {"name": "bar", "price": 1.0, "owner_ids": None},

@@ -16,17 +16,17 @@ def _client_for(name: str) -> TestClient:
 def stream_all_items(name: str):
     client = _client_for(name)
     response = client.get("/items/stream")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(3)
+    expect(data_lines, "data lines").to_have_length(3)
 
     id_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("id: ")
     ]
-    expect(id_lines).to_equal(["id: 0", "id: 1", "id: 2"])
+    expect(id_lines, "id lines").to_equal(["id: 0", "id: 1", "id: 2"])
 
 
 @test.cases(
@@ -38,17 +38,17 @@ def resume_from_last_event_id(name: str):
         "/items/stream",
         headers={"last-event-id": "0"},
     )
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(2)
+    expect(data_lines, "data lines").to_have_length(2)
 
     id_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("id: ")
     ]
-    expect(id_lines).to_equal(["id: 1", "id: 2"])
+    expect(id_lines, "id lines").to_equal(["id: 1", "id: 2"])
 
 
 @test.cases(
@@ -60,17 +60,17 @@ def resume_from_last_item(name: str):
         "/items/stream",
         headers={"last-event-id": "1"},
     )
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(1)
+    expect(data_lines, "data lines").to_have_length(1)
 
     id_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("id: ")
     ]
-    expect(id_lines).to_equal(["id: 2"])
+    expect(id_lines, "id lines").to_equal(["id: 2"])
 
 
 @test.cases(
@@ -79,8 +79,8 @@ def resume_from_last_item(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

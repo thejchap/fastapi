@@ -15,17 +15,17 @@ async def read_items():
 client = TestClient(app)
 
 
-@test
+@test("Swagger UI HTML embeds initOAuth with configured values")
 def swagger_ui():
     response = client.get("/docs")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     print(response.text)
-    expect(response.text).to_contain("ui.initOAuth")
-    expect(response.text).to_contain('"appName": "The Predendapp"')
-    expect(response.text).to_contain('"clientId": "the-foo-clients"')
+    expect(response.text, "Swagger UI body").to_contain("ui.initOAuth")
+    expect(response.text, "Swagger UI body").to_contain('"appName": "The Predendapp"')
+    expect(response.text, "Swagger UI body").to_contain('"clientId": "the-foo-clients"')
 
 
-@test
+@test("Endpoint still works alongside Swagger UI initOAuth config")
 def response():
     response = client.get("/items/")
-    expect(response.json()).to_equal({"id": "foo"})
+    expect(response.json(), "response body").to_equal({"id": "foo"})

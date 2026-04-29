@@ -7,7 +7,7 @@ from tryke import expect, test
 from docs_src.dependencies.tutorial007_py310 import get_db
 
 
-@test
+@test("get_db async generator closes the DB session")
 def get_db_coverage():
     # Just for coverage.
     async def test_async_gen():
@@ -24,5 +24,5 @@ def get_db_coverage():
     ):
         value = asyncio.run(test_async_gen())
 
-    expect(value).to_be(dbsession_moock)
+    expect(value, "value").to_be(dbsession_moock)
     dbsession_moock.close.assert_called_once()

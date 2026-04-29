@@ -6,53 +6,53 @@ from .main import app
 client = TestClient(app)
 
 
-@test
+@test("GET /text returns Hello World")
 def text_get():
     response = client.get("/text")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("Hello World")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("Hello World")
 
 
-@test
+@test("Nonexistent path returns 404")
 def nonexistent():
     response = client.get("/nonexistent")
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.json()).to_equal({"detail": "Not Found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not Found"})
 
 
-@test
+@test("/path/foobar returns the path string")
 def path_foobar():
     response = client.get("/path/foobar")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foobar")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foobar")
 
 
-@test
+@test('/path/str/foobar returns "foobar"')
 def path_str_foobar():
     response = client.get("/path/str/foobar")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foobar")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foobar")
 
 
-@test
+@test('/path/str/42 returns "42"')
 def path_str_42():
     response = client.get("/path/str/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("42")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("42")
 
 
-@test
+@test('/path/str/True returns "True"')
 def path_str_True():
     response = client.get("/path/str/True")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("True")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("True")
 
 
-@test
+@test("/path/int/foobar rejects non-int with 422")
 def path_int_foobar():
     response = client.get("/path/int/foobar")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -66,11 +66,11 @@ def path_int_foobar():
     )
 
 
-@test
+@test('/path/int/True rejects "True" with 422')
 def path_int_True():
     response = client.get("/path/int/True")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -84,18 +84,18 @@ def path_int_True():
     )
 
 
-@test
+@test("/path/int/42 returns 42")
 def path_int_42():
     response = client.get("/path/int/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42)
 
 
-@test
+@test("/path/int/42.5 rejects float with 422")
 def path_int_42_5():
     response = client.get("/path/int/42.5")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -109,11 +109,11 @@ def path_int_42_5():
     )
 
 
-@test
+@test("/path/float/foobar rejects non-number with 422")
 def path_float_foobar():
     response = client.get("/path/float/foobar")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -127,11 +127,11 @@ def path_float_foobar():
     )
 
 
-@test
+@test('/path/float/True rejects "True" with 422')
 def path_float_True():
     response = client.get("/path/float/True")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -145,25 +145,25 @@ def path_float_True():
     )
 
 
-@test
+@test("/path/float/42 returns 42")
 def path_float_42():
     response = client.get("/path/float/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42)
 
 
-@test
+@test("/path/float/42.5 returns 42.5")
 def path_float_42_5():
     response = client.get("/path/float/42.5")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42.5)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42.5)
 
 
-@test
+@test("/path/bool/foobar rejects non-bool with 422")
 def path_bool_foobar():
     response = client.get("/path/bool/foobar")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -177,18 +177,18 @@ def path_bool_foobar():
     )
 
 
-@test
+@test("/path/bool/True returns True")
 def path_bool_True():
     response = client.get("/path/bool/True")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_be(True)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_be(True)
 
 
-@test
+@test('/path/bool/42 rejects "42" with 422')
 def path_bool_42():
     response = client.get("/path/bool/42")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -202,11 +202,11 @@ def path_bool_42():
     )
 
 
-@test
+@test('/path/bool/42.5 rejects "42.5" with 422')
 def path_bool_42_5():
     response = client.get("/path/bool/42.5")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -220,60 +220,60 @@ def path_bool_42_5():
     )
 
 
-@test
+@test("/path/bool/1 returns True")
 def path_bool_1():
     response = client.get("/path/bool/1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_be(True)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_be(True)
 
 
-@test
+@test("/path/bool/0 returns False")
 def path_bool_0():
     response = client.get("/path/bool/0")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_be(False)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_be(False)
 
 
-@test
+@test("/path/bool/true returns True")
 def path_bool_true():
     response = client.get("/path/bool/true")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_be(True)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_be(True)
 
 
-@test
+@test("/path/bool/False returns False")
 def path_bool_False():
     response = client.get("/path/bool/False")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_be(False)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_be(False)
 
 
-@test
+@test("/path/bool/false returns False")
 def path_bool_false():
     response = client.get("/path/bool/false")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_be(False)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_be(False)
 
 
-@test
+@test('/path/param/foo returns "foo"')
 def path_param_foo():
     response = client.get("/path/param/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo")
 
 
-@test
+@test("min_length path param accepts a string of the right length")
 def path_param_minlength_foo():
     response = client.get("/path/param-minlength/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo")
 
 
-@test
+@test("min_length path param rejects a too-short string")
 def path_param_minlength_fo():
     response = client.get("/path/param-minlength/fo")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -288,18 +288,18 @@ def path_param_minlength_fo():
     )
 
 
-@test
+@test("max_length path param accepts a string of the right length")
 def path_param_maxlength_foo():
     response = client.get("/path/param-maxlength/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo")
 
 
-@test
+@test("max_length path param rejects a too-long string")
 def path_param_maxlength_foobar():
     response = client.get("/path/param-maxlength/foobar")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -314,18 +314,18 @@ def path_param_maxlength_foobar():
     )
 
 
-@test
+@test("min/max-length path param accepts a string in range")
 def path_param_min_maxlength_foo():
     response = client.get("/path/param-min_maxlength/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo")
 
 
-@test
+@test("min/max-length path param rejects too-long string")
 def path_param_min_maxlength_foobar():
     response = client.get("/path/param-min_maxlength/foobar")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -340,11 +340,11 @@ def path_param_min_maxlength_foobar():
     )
 
 
-@test
+@test("min/max-length path param rejects too-short string")
 def path_param_min_maxlength_f():
     response = client.get("/path/param-min_maxlength/f")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -359,18 +359,18 @@ def path_param_min_maxlength_f():
     )
 
 
-@test
+@test("gt-constrained path param accepts a value above the bound")
 def path_param_gt_42():
     response = client.get("/path/param-gt/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42)
 
 
-@test
+@test("gt-constrained path param rejects a value at the bound")
 def path_param_gt_2():
     response = client.get("/path/param-gt/2")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -385,18 +385,18 @@ def path_param_gt_2():
     )
 
 
-@test
+@test("gt=0 path param accepts a small positive number")
 def path_param_gt0_0_05():
     response = client.get("/path/param-gt0/0.05")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(0.05)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(0.05)
 
 
-@test
+@test("gt=0 path param rejects zero")
 def path_param_gt0_0():
     response = client.get("/path/param-gt0/0")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -411,25 +411,25 @@ def path_param_gt0_0():
     )
 
 
-@test
+@test("ge-constrained path param accepts a value above the bound")
 def path_param_ge_42():
     response = client.get("/path/param-ge/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42)
 
 
-@test
+@test("ge-constrained path param accepts the boundary value")
 def path_param_ge_3():
     response = client.get("/path/param-ge/3")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(3)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(3)
 
 
-@test
+@test("ge-constrained path param rejects a value below the bound")
 def path_param_ge_2():
     response = client.get("/path/param-ge/2")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -444,11 +444,11 @@ def path_param_ge_2():
     )
 
 
-@test
+@test("lt-constrained path param rejects a value above the bound")
 def path_param_lt_42():
     response = client.get("/path/param-lt/42")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -463,25 +463,25 @@ def path_param_lt_42():
     )
 
 
-@test
+@test("lt-constrained path param accepts a value below the bound")
 def path_param_lt_2():
     response = client.get("/path/param-lt/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("lt=0 path param accepts a negative number")
 def path_param_lt0__1():
     response = client.get("/path/param-lt0/-1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(-1)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(-1)
 
 
-@test
+@test("lt=0 path param rejects zero")
 def path_param_lt0_0():
     response = client.get("/path/param-lt0/0")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -496,11 +496,11 @@ def path_param_lt0_0():
     )
 
 
-@test
+@test("le-constrained path param rejects a value above the bound")
 def path_param_le_42():
     response = client.get("/path/param-le/42")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -515,32 +515,32 @@ def path_param_le_42():
     )
 
 
-@test
+@test("le-constrained path param accepts the boundary value")
 def path_param_le_3():
     response = client.get("/path/param-le/3")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(3)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(3)
 
 
-@test
+@test("le-constrained path param accepts a value below the bound")
 def path_param_le_2():
     response = client.get("/path/param-le/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("lt+gt path param accepts a value strictly inside the range")
 def path_param_lt_gt_2():
     response = client.get("/path/param-lt-gt/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("lt+gt path param rejects a value above the upper bound")
 def path_param_lt_gt_4():
     response = client.get("/path/param-lt-gt/4")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -555,11 +555,11 @@ def path_param_lt_gt_4():
     )
 
 
-@test
+@test("lt+gt path param rejects a value below the lower bound")
 def path_param_lt_gt_0():
     response = client.get("/path/param-lt-gt/0")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -574,31 +574,31 @@ def path_param_lt_gt_0():
     )
 
 
-@test
+@test("le+ge path param accepts a value inside the range")
 def path_param_le_ge_2():
     response = client.get("/path/param-le-ge/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("le+ge path param accepts the lower boundary value")
 def path_param_le_ge_1():
     response = client.get("/path/param-le-ge/1")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
 
-@test
+@test("le+ge path param accepts the upper boundary value")
 def path_param_le_ge_3():
     response = client.get("/path/param-le-ge/3")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(3)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(3)
 
 
-@test
+@test("le+ge path param rejects a value above the upper bound")
 def path_param_le_ge_4():
     response = client.get("/path/param-le-ge/4")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -613,18 +613,18 @@ def path_param_le_ge_4():
     )
 
 
-@test
+@test("lt int path param accepts a value below the bound")
 def path_param_lt_int_2():
     response = client.get("/path/param-lt-int/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("lt int path param rejects a value above the bound")
 def path_param_lt_int_42():
     response = client.get("/path/param-lt-int/42")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -639,11 +639,11 @@ def path_param_lt_int_42():
     )
 
 
-@test
+@test("lt int path param rejects a non-integer string")
 def path_param_lt_int_2_7():
     response = client.get("/path/param-lt-int/2.7")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -657,18 +657,18 @@ def path_param_lt_int_2_7():
     )
 
 
-@test
+@test("gt int path param accepts a value above the bound")
 def path_param_gt_int_42():
     response = client.get("/path/param-gt-int/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42)
 
 
-@test
+@test("gt int path param rejects a value at the bound")
 def path_param_gt_int_2():
     response = client.get("/path/param-gt-int/2")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -683,11 +683,11 @@ def path_param_gt_int_2():
     )
 
 
-@test
+@test("gt int path param rejects a non-integer string")
 def path_param_gt_int_2_7():
     response = client.get("/path/param-gt-int/2.7")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -701,11 +701,11 @@ def path_param_gt_int_2_7():
     )
 
 
-@test
+@test("le int path param rejects a value above the bound")
 def path_param_le_int_42():
     response = client.get("/path/param-le-int/42")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -720,25 +720,25 @@ def path_param_le_int_42():
     )
 
 
-@test
+@test("le int path param accepts the boundary value")
 def path_param_le_int_3():
     response = client.get("/path/param-le-int/3")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(3)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(3)
 
 
-@test
+@test("le int path param accepts a value below the bound")
 def path_param_le_int_2():
     response = client.get("/path/param-le-int/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("le int path param rejects a non-integer string")
 def path_param_le_int_2_7():
     response = client.get("/path/param-le-int/2.7")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -752,25 +752,25 @@ def path_param_le_int_2_7():
     )
 
 
-@test
+@test("ge int path param accepts a value above the bound")
 def path_param_ge_int_42():
     response = client.get("/path/param-ge-int/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42)
 
 
-@test
+@test("ge int path param accepts the boundary value")
 def path_param_ge_int_3():
     response = client.get("/path/param-ge-int/3")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(3)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(3)
 
 
-@test
+@test("ge int path param rejects a value below the bound")
 def path_param_ge_int_2():
     response = client.get("/path/param-ge-int/2")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -785,11 +785,11 @@ def path_param_ge_int_2():
     )
 
 
-@test
+@test("ge int path param rejects a non-integer string")
 def path_param_ge_int_2_7():
     response = client.get("/path/param-ge-int/2.7")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -803,18 +803,18 @@ def path_param_ge_int_2_7():
     )
 
 
-@test
+@test("lt+gt int path param accepts a value inside the range")
 def path_param_lt_gt_int_2():
     response = client.get("/path/param-lt-gt-int/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("lt+gt int path param rejects a value above the bound")
 def path_param_lt_gt_int_4():
     response = client.get("/path/param-lt-gt-int/4")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -829,11 +829,11 @@ def path_param_lt_gt_int_4():
     )
 
 
-@test
+@test("lt+gt int path param rejects a value below the bound")
 def path_param_lt_gt_int_0():
     response = client.get("/path/param-lt-gt-int/0")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -848,11 +848,11 @@ def path_param_lt_gt_int_0():
     )
 
 
-@test
+@test("lt+gt int path param rejects a non-integer string")
 def path_param_lt_gt_int_2_7():
     response = client.get("/path/param-lt-gt-int/2.7")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -866,32 +866,32 @@ def path_param_lt_gt_int_2_7():
     )
 
 
-@test
+@test("le+ge int path param accepts a value inside the range")
 def path_param_le_ge_int_2():
     response = client.get("/path/param-le-ge-int/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(2)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(2)
 
 
-@test
+@test("le+ge int path param accepts the lower boundary value")
 def path_param_le_ge_int_1():
     response = client.get("/path/param-le-ge-int/1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(1)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(1)
 
 
-@test
+@test("le+ge int path param accepts the upper boundary value")
 def path_param_le_ge_int_3():
     response = client.get("/path/param-le-ge-int/3")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(3)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(3)
 
 
-@test
+@test("le+ge int path param rejects a value above the bound")
 def path_param_le_ge_int_4():
     response = client.get("/path/param-le-ge-int/4")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -906,11 +906,11 @@ def path_param_le_ge_int_4():
     )
 
 
-@test
+@test("le+ge int path param rejects a non-integer string")
 def path_param_le_ge_int_2_7():
     response = client.get("/path/param-le-ge-int/2.7")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {

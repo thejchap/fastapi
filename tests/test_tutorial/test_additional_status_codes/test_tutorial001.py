@@ -16,8 +16,8 @@ def _client_for(name: str) -> TestClient:
 def update(name: str):
     client = _client_for(name)
     response = client.put("/items/foo", json={"name": "Wrestlers"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Wrestlers", "size": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Wrestlers", "size": None})
 
 
 @test.cases(
@@ -27,5 +27,5 @@ def update(name: str):
 def create(name: str):
     client = _client_for(name)
     response = client.put("/items/red", json={"name": "Chillies"})
-    expect(response.status_code).to_equal(201).fatal()
-    expect(response.json()).to_equal({"name": "Chillies", "size": None})
+    expect(response.status_code, "status code").to_equal(201).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Chillies", "size": None})

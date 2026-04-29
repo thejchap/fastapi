@@ -7,24 +7,24 @@ from docs_src.metadata.tutorial002_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/ returns the items list")
 def items():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"name": "Foo"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([{"name": "Foo"}])
 
 
-@test
+@test("Default /openapi.json URL returns 404 when relocated")
 def get_openapi_json_default_url():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(404)
+    expect(response.status_code, "status code").to_equal(404)
 
 
-@test
+@test("OpenAPI schema is served at the custom /api/v1/openapi.json URL")
 def openapi_schema():
     response = client.get("/api/v1/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -114,13 +114,13 @@ def mixed_dict():
 client = TestClient(app)
 
 
-@test
+@test("response_model_include trims nested model")
 def nested_include_simple():
     response = client.get("/simple_include")
 
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "baz": "simple_include model2 baz",
             "ref": {"foo": "simple_include model foo"},
@@ -128,13 +128,13 @@ def nested_include_simple():
     )
 
 
-@test
+@test("response_model_include trims nested dict")
 def nested_include_simple_dict():
     response = client.get("/simple_include_dict")
 
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "baz": "simple_include_dict model2 baz",
             "ref": {"foo": "simple_include_dict model foo"},
@@ -142,11 +142,11 @@ def nested_include_simple_dict():
     )
 
 
-@test
+@test("response_model_exclude trims nested model")
 def nested_exclude_simple():
     response = client.get("/simple_exclude")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "baz": "simple_exclude model2 baz",
             "ref": {"foo": "simple_exclude model foo"},
@@ -154,11 +154,11 @@ def nested_exclude_simple():
     )
 
 
-@test
+@test("response_model_exclude trims nested dict")
 def nested_exclude_simple_dict():
     response = client.get("/simple_exclude_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "baz": "simple_exclude_dict model2 baz",
             "ref": {"foo": "simple_exclude_dict model foo"},
@@ -166,11 +166,11 @@ def nested_exclude_simple_dict():
     )
 
 
-@test
+@test("response_model_include + exclude on a model")
 def nested_include_mixed():
     response = client.get("/mixed")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "mixed model3 name",
             "ref2": {
@@ -180,11 +180,11 @@ def nested_include_mixed():
     )
 
 
-@test
+@test("response_model_include + exclude on a dict")
 def nested_include_mixed_dict():
     response = client.get("/mixed_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "mixed_dict model3 name",
             "ref2": {

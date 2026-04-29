@@ -38,8 +38,8 @@ def _client_for(name: str) -> TestClient:
 def read_user_item(name: str, path: str, expected_json: list):
     client = _client_for(name)
     response = client.get(path)
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(expected_json)
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(expected_json)
 
 
 @test.cases(
@@ -48,8 +48,8 @@ def read_user_item(name: str, path: str, expected_json: list):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

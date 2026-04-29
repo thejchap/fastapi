@@ -35,11 +35,11 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("GET /facilities/{id} returns the nested Address model")
 def get(client: TestClient = Depends(client)):
     response = client.get("/facilities/42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "id": "42",
             "address": {
@@ -52,11 +52,11 @@ def get(client: TestClient = Depends(client)):
 
 
 # Sanity check to ensure our app's openapi schema renders as we expect
-@test
+@test("OpenAPI schema trims model description at form-feed character")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "components": {

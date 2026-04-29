@@ -18,21 +18,21 @@ _SKIP_ORJSON = needs_orjson()
 
 if not _SKIP_ORJSON:
 
-    @test
+    @test("GET /items/ returns ORJSONResponse")
     def get_custom_response():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", FastAPIDeprecationWarning)
             response = client.get("/items/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal([{"item_id": "Foo"}])
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal([{"item_id": "Foo"}])
 
-    @test
+    @test("OpenAPI schema matches snapshot")
     def openapi_schema():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", FastAPIDeprecationWarning)
             response = client.get("/openapi.json")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "openapi schema").to_equal(
             snapshot(
                 {
                     "openapi": "3.1.0",

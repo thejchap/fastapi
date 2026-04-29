@@ -117,11 +117,11 @@ foo_is_short = {
 )
 def get(path: str, expected_status: int, expected_response: dict):
     response = client.get(path)
-    expect(response.status_code).to_equal(expected_status)
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(expected_status)
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
-@test
+@test("Annotated query parameter works on stacked path operations")
 def multiple_path():
     app = FastAPI()
 
@@ -132,23 +132,23 @@ def multiple_path():
 
     client = TestClient(app)
     response = client.get("/test1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"foo": "bar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"foo": "bar"})
 
     response = client.get("/test1", params={"var": "baz"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"foo": "baz"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"foo": "baz"})
 
     response = client.get("/test2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"foo": "bar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"foo": "bar"})
 
     response = client.get("/test2", params={"var": "baz"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"foo": "baz"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"foo": "baz"})
 
 
-@test
+@test("Annotated query parameter works through a nested router")
 def nested_router():
     app = FastAPI()
 
@@ -163,15 +163,15 @@ def nested_router():
     client = TestClient(app)
 
     response = client.get("/nested/test")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"foo": "bar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"foo": "bar"})
 
 
-@test
+@test("OpenAPI schema reflects Annotated query parameters")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -25,9 +25,9 @@ def put(name: str):
             "description": "An optional description",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(fake_db).to_contain("123")
-    expect(fake_db["123"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(fake_db, "fake_db state").to_contain("123")
+    expect(fake_db["123"], "fake_db['123'] entry").to_equal(
         {
             "title": "Foo",
             "timestamp": "2023-01-01T12:00:00",
@@ -50,8 +50,8 @@ def put_invalid_data(name: str):
             "timestamp": "not a date",
         },
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -64,7 +64,7 @@ def put_invalid_data(name: str):
             ]
         }
     )
-    expect(fake_db).not_.to_contain("345")
+    expect(fake_db, "fake_db state").not_.to_contain("345")
 
 
 @test.cases(
@@ -73,8 +73,8 @@ def put_invalid_data(name: str):
 def openapi_schema(name: str):
     client, _ = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

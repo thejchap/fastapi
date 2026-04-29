@@ -47,8 +47,8 @@ def override_in_users(name: str):
     test_module = _module_for(name)
     client = test_module.client
     response = client.get("/users/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "message": "Hello Users!",
             "params": {"q": None, "skip": 5, "limit": 10},
@@ -64,8 +64,8 @@ def override_in_users_with_q(name: str):
     test_module = _module_for(name)
     client = test_module.client
     response = client.get("/users/?q=foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "message": "Hello Users!",
             "params": {"q": "foo", "skip": 5, "limit": 10},
@@ -81,8 +81,8 @@ def override_in_users_with_params(name: str):
     test_module = _module_for(name)
     client = test_module.client
     response = client.get("/users/?q=foo&skip=100&limit=200")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "message": "Hello Users!",
             "params": {"q": "foo", "skip": 5, "limit": 10},
@@ -100,8 +100,8 @@ def normal_app(name: str):
     client = test_module.client
     app.dependency_overrides = None
     response = client.get("/items/?q=foo&skip=100&limit=200")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "message": "Hello Items!",
             "params": {"q": "foo", "skip": 100, "limit": 200},

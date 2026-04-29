@@ -25,8 +25,8 @@ def put_all(name: str):
         },
         params={"q": "somequery"},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "importance": 2,
@@ -56,8 +56,8 @@ def put_only_required(name: str):
             "user": {"username": "Dave"},
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "importance": 2,
@@ -79,8 +79,8 @@ def put_only_required(name: str):
 def put_missing_body(name: str):
     client = _client_for(name)
     response = client.put("/items/5")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -113,8 +113,8 @@ def put_missing_body(name: str):
 def put_empty_body(name: str):
     client = _client_for(name)
     response = client.put("/items/5", json={})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -154,8 +154,8 @@ def put_invalid_importance(name: str):
             "user": {"username": "Dave"},
         },
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -177,8 +177,8 @@ def put_invalid_importance(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

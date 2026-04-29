@@ -29,33 +29,35 @@ def read_current_user(current_user: User = Depends(get_current_user)):
 client = TestClient(app)
 
 
-@test
+@test("OpenIdConnect with description reads Bearer header")
 def security_oauth2():
     response = client.get("/users/me", headers={"Authorization": "Bearer footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Bearer footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Bearer footokenbar"})
 
 
-@test
+@test("OpenIdConnect with description reads non-Bearer header")
 def security_oauth2_password_other_header():
     response = client.get("/users/me", headers={"Authorization": "Other footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Other footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Other footokenbar"})
 
 
-@test
+@test("OpenIdConnect with description rejects missing header")
 def security_oauth2_password_bearer_no_header():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
-@test
+@test("OpenAPI schema includes OpenIdConnect description")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

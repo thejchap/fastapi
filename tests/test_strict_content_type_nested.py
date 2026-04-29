@@ -27,29 +27,29 @@ app_nested.include_router(outer_router)
 client_nested = TestClient(app_nested)
 
 
-@test
+@test("Strict inner router on lax app rejects missing content-type")
 def strict_inner_on_lax_app_rejects_no_content_type():
     response = client_nested.post("/outer/strict/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Default inner router inherits lax content-type from app")
 def default_inner_inherits_lax_from_app():
     response = client_nested.post("/outer/default/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"key": "value"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"key": "value"})
 
 
-@test
+@test("Strict inner router still accepts JSON content-type")
 def strict_inner_accepts_json_content_type():
     response = client_nested.post("/outer/strict/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("Default inner router accepts JSON content-type")
 def default_inner_accepts_json_content_type():
     response = client_nested.post("/outer/default/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
 # Strict app -> lax outer router -> strict inner router
@@ -75,26 +75,26 @@ app_mixed.include_router(mixed_outer)
 client_mixed = TestClient(app_mixed)
 
 
-@test
+@test("Lax outer router on strict app accepts missing content-type")
 def lax_outer_on_strict_app_accepts_no_content_type():
     response = client_mixed.post("/outer/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"key": "value"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"key": "value"})
 
 
-@test
+@test("Strict inner router on lax outer rejects missing content-type")
 def strict_inner_on_lax_outer_rejects_no_content_type():
     response = client_mixed.post("/outer/inner/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Lax outer router accepts JSON content-type")
 def lax_outer_accepts_json_content_type():
     response = client_mixed.post("/outer/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("Strict inner router on lax outer accepts JSON content-type")
 def strict_inner_on_lax_outer_accepts_json_content_type():
     response = client_mixed.post("/outer/inner/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)

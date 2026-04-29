@@ -30,7 +30,7 @@ client = TestClient(app)
 )
 def allow_inf_nan_param_true(value: str, code: int):
     response = client.post(f"/?x={value}")
-    expect(response.status_code).to_equal(code)
+    expect(response.status_code, "status code").to_equal(code)
 
 
 @test.cases(
@@ -43,7 +43,7 @@ def allow_inf_nan_param_true(value: str, code: int):
 )
 def allow_inf_nan_param_false(value: str, code: int):
     response = client.post(f"/?y={value}")
-    expect(response.status_code).to_equal(code)
+    expect(response.status_code, "status code").to_equal(code)
 
 
 @test.cases(
@@ -56,7 +56,7 @@ def allow_inf_nan_param_false(value: str, code: int):
 )
 def allow_inf_nan_param_default(value: str, code: int):
     response = client.post(f"/?z={value}")
-    expect(response.status_code).to_equal(code)
+    expect(response.status_code, "status code").to_equal(code)
 
 
 @test.cases(
@@ -69,4 +69,4 @@ def allow_inf_nan_param_default(value: str, code: int):
 )
 def allow_inf_nan_body(value: str, code: int):
     response = client.post("/", json=value)
-    expect(response.status_code).to_equal(code)
+    expect(response.status_code, "status code").to_equal(code)

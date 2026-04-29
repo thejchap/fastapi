@@ -69,31 +69,31 @@ def get_exclude_unset_none() -> ModelDefaults:
 client = TestClient(app)
 
 
-@test
+@test("response_model_exclude_unset omits unset fields including subclass extras")
 def return_defaults():
     response = client.get("/")
-    expect(response.json()).to_equal({"sub": {}})
+    expect(response.json(), "response body").to_equal({"sub": {}})
 
 
-@test
+@test("response_model_exclude_unset keeps explicitly set fields")
 def return_exclude_unset():
     response = client.get("/exclude_unset")
-    expect(response.json()).to_equal({"x": None, "y": "y"})
+    expect(response.json(), "response body").to_equal({"x": None, "y": "y"})
 
 
-@test
+@test("response_model_exclude_defaults drops fields equal to defaults")
 def return_exclude_defaults():
     response = client.get("/exclude_defaults")
-    expect(response.json()).to_equal({})
+    expect(response.json(), "response body").to_equal({})
 
 
-@test
+@test("response_model_exclude_none drops only None-valued fields")
 def return_exclude_none():
     response = client.get("/exclude_none")
-    expect(response.json()).to_equal({"y": "y", "z": "z"})
+    expect(response.json(), "response body").to_equal({"y": "y", "z": "z"})
 
 
-@test
+@test("Combining exclude_unset and exclude_none drops both")
 def return_exclude_unset_none():
     response = client.get("/exclude_unset_none")
-    expect(response.json()).to_equal({"y": "y"})
+    expect(response.json(), "response body").to_equal({"y": "y"})

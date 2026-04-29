@@ -18,8 +18,8 @@ def post_body(name: str):
     client = _client_for(name)
     data = {"2": 2.2, "3": 3.3}
     response = client.post("/index-weights/", json=data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(data)
 
 
 @test.cases(
@@ -29,8 +29,8 @@ def post_invalid_body(name: str):
     client = _client_for(name)
     data = {"foo": 2.2, "3": 3.3}
     response = client.post("/index-weights/", json=data)
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -50,8 +50,8 @@ def post_invalid_body(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

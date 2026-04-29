@@ -14,18 +14,18 @@ def read_items(q: list[int] = Query(default=None)):
 client = TestClient(app)
 
 
-@test
+@test("Repeated int query params are parsed into a list")
 def multi_query():
     response = client.get("/items/?q=5&q=6")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"q": [5, 6]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"q": [5, 6]})
 
 
-@test
+@test("Repeated invalid query params return one 422 error per entry")
 def multi_query_incorrect():
     response = client.get("/items/?q=five&q=six")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -45,11 +45,11 @@ def multi_query_incorrect():
     )
 
 
-@test
+@test("List query param produces the expected OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

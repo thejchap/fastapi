@@ -46,11 +46,11 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("response_model filters sub-model fields under pydantic v2")
 def filter_sub_model(client: TestClient = TDepends(client)):
     response = client.get("/model/modelA")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "modelA",
             "description": "model-a-desc",
@@ -60,15 +60,15 @@ def filter_sub_model(client: TestClient = TDepends(client)):
     )
 
 
-@test
+@test("response_model validators run against the filtered response")
 def validator_is_cloned(client: TestClient = TDepends(client)):
     captured: ResponseValidationError | None = None
     try:
         client.get("/model/modelX")
     except ResponseValidationError as exc:
         captured = exc
-    expect(captured).not_.to_be_none().fatal()
-    expect(captured.errors()).to_equal(
+    expect(captured, "captured ResponseValidationError").not_.to_be_none().fatal()
+    expect(captured.errors(), "validation errors").to_equal(
         [
             {
                 "type": "value_error",
@@ -81,11 +81,11 @@ def validator_is_cloned(client: TestClient = TDepends(client)):
     )
 
 
-@test
+@test("Filtered sub-model produces the expected OpenAPI schema")
 def openapi_schema(client: TestClient = TDepends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

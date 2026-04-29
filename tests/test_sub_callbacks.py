@@ -75,20 +75,20 @@ app.include_router(subrouter, callbacks=events_callback_router.routes)
 client = TestClient(app)
 
 
-@test
+@test("Endpoint with sub-router callbacks accepts invoice POST")
 def get():
     response = client.post(
         "/invoices/", json={"id": "fooinvoice", "customer": "John", "total": 5.3}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Invoice received"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"msg": "Invoice received"})
 
 
-@test
+@test("OpenAPI schema includes both router-level and app-level callbacks")
 def openapi_schema():
     with client:
         response = client.get("/openapi.json")
-        expect(response.json()).to_equal(
+        expect(response.json(), "openapi schema").to_equal(
             snapshot(
                 {
                     "openapi": "3.1.0",

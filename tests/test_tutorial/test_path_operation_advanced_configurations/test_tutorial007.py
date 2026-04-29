@@ -23,8 +23,8 @@ def post(name: str):
         - x-avengers
         """
     response = client.post("/items/", content=yaml_data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Deadpoolio",
             "tags": ["x-force", "x-men", "x-avengers"],
@@ -45,8 +45,8 @@ def post_broken_yaml(name: str):
         x - x-avengers
         """
     response = client.post("/items/", content=yaml_data)
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal({"detail": "Invalid YAML"})
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Invalid YAML"})
 
 
 @test.cases(
@@ -63,8 +63,8 @@ def post_invalid(name: str):
         - sneaky: object
         """
     response = client.post("/items/", content=yaml_data)
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -84,8 +84,8 @@ def post_invalid(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -60,19 +60,23 @@ def get_app_client(separate_input_output_schemas: bool = True) -> TestClient:
     return client
 
 
-@test
+@test("Item endpoint accepts a minimal payload regardless of schema mode")
 def create_item():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     response = client.post("/items/", json={"name": "Plumbus"})
     response2 = client_no.post("/items/", json={"name": "Plumbus"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response2.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Plumbus", "description": None, "sub": None})
-    expect(response2.json()).to_equal({"name": "Plumbus", "description": None, "sub": None})
+    expect(response.status_code, "separate-schemas status code").to_equal(200).fatal()
+    expect(response2.status_code, "shared-schemas status code").to_equal(200).fatal()
+    expect(response.json(), "separate-schemas response body").to_equal(
+        {"name": "Plumbus", "description": None, "sub": None}
+    )
+    expect(response2.json(), "shared-schemas response body").to_equal(
+        {"name": "Plumbus", "description": None, "sub": None}
+    )
 
 
-@test
+@test("Item endpoint accepts a payload with a sub-item regardless of schema mode")
 def create_item_with_sub():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
@@ -82,18 +86,18 @@ def create_item_with_sub():
     }
     response = client.post("/items/", json=data)
     response2 = client_no.post("/items/", json=data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response2.status_code).to_equal(200).fatal()
+    expect(response.status_code, "separate-schemas status code").to_equal(200).fatal()
+    expect(response2.status_code, "shared-schemas status code").to_equal(200).fatal()
     expected = {
         "name": "Plumbus",
         "description": None,
         "sub": {"subname": "SubPlumbus", "sub_description": "Sub WTF", "tags": []},
     }
-    expect(response.json()).to_equal(expected)
-    expect(response2.json()).to_equal(expected)
+    expect(response.json(), "separate-schemas response body").to_equal(expected)
+    expect(response2.json(), "shared-schemas response body").to_equal(expected)
 
 
-@test
+@test("List body endpoint accepts payloads regardless of schema mode")
 def create_item_list():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
@@ -106,8 +110,8 @@ def create_item_list():
     ]
     response = client.post("/items-list/", json=data)
     response2 = client_no.post("/items-list/", json=data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response2.status_code).to_equal(200).fatal()
+    expect(response.status_code, "separate-schemas status code").to_equal(200).fatal()
+    expect(response2.status_code, "shared-schemas status code").to_equal(200).fatal()
     expected = [
         {"name": "Plumbus", "description": None, "sub": None},
         {
@@ -116,18 +120,18 @@ def create_item_list():
             "sub": None,
         },
     ]
-    expect(response.json()).to_equal(expected)
-    expect(response2.json()).to_equal(expected)
+    expect(response.json(), "separate-schemas response body").to_equal(expected)
+    expect(response2.json(), "shared-schemas response body").to_equal(expected)
 
 
-@test
+@test("GET /items returns the same body regardless of schema mode")
 def read_items():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     response = client.get("/items/")
     response2 = client_no.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response2.status_code).to_equal(200).fatal()
+    expect(response.status_code, "separate-schemas status code").to_equal(200).fatal()
+    expect(response2.status_code, "shared-schemas status code").to_equal(200).fatal()
     expected = [
         {
             "name": "Portal Gun",
@@ -136,32 +140,32 @@ def read_items():
         },
         {"name": "Plumbus", "description": None, "sub": None},
     ]
-    expect(response.json()).to_equal(expected)
-    expect(response2.json()).to_equal(expected)
+    expect(response.json(), "separate-schemas response body").to_equal(expected)
+    expect(response2.json(), "shared-schemas response body").to_equal(expected)
 
 
-@test
+@test("Computed fields are included in the response regardless of schema mode")
 def with_computed_field():
     client = get_app_client()
     client_no = get_app_client(separate_input_output_schemas=False)
     response = client.post("/with-computed-field/", json={"name": "example"})
     response2 = client_no.post("/with-computed-field/", json={"name": "example"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response2.status_code).to_equal(200).fatal()
+    expect(response.status_code, "separate-schemas status code").to_equal(200).fatal()
+    expect(response2.status_code, "shared-schemas status code").to_equal(200).fatal()
     expected = {
         "name": "example",
         "computed_field": "computed example",
     }
-    expect(response.json()).to_equal(expected)
-    expect(response2.json()).to_equal(expected)
+    expect(response.json(), "separate-schemas response body").to_equal(expected)
+    expect(response2.json(), "shared-schemas response body").to_equal(expected)
 
 
-@test
+@test("separate_input_output_schemas=True splits input/output models in the schema")
 def openapi_schema():
     client = get_app_client()
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(snapshot(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},
@@ -439,12 +443,12 @@ def openapi_schema():
     ))
 
 
-@test
+@test("separate_input_output_schemas=False keeps a single shared model in the schema")
 def openapi_schema_no_separate():
     client = get_app_client(separate_input_output_schemas=False)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(snapshot(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},

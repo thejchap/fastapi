@@ -12,11 +12,11 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("POST /items/ with name and price succeeds")
 def body_float(client: TestClient = Depends(client)):
     response = client.post("/items/", json={"name": "Foo", "price": 50.5})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "price": 50.5,
@@ -26,11 +26,11 @@ def body_float(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST coerces string price to float")
 def post_with_str_float(client: TestClient = Depends(client)):
     response = client.post("/items/", json={"name": "Foo", "price": "50.5"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "price": 50.5,
@@ -40,13 +40,13 @@ def post_with_str_float(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with description field succeeds")
 def post_with_str_float_description(client: TestClient = Depends(client)):
     response = client.post(
         "/items/", json={"name": "Foo", "price": "50.5", "description": "Some Foo"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "price": 50.5,
@@ -56,14 +56,14 @@ def post_with_str_float_description(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with description and tax fields succeeds")
 def post_with_str_float_description_tax(client: TestClient = Depends(client)):
     response = client.post(
         "/items/",
         json={"name": "Foo", "price": "50.5", "description": "Some Foo", "tax": 0.3},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "price": 50.5,
@@ -73,11 +73,11 @@ def post_with_str_float_description_tax(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST without price returns missing-field error")
 def post_with_only_name(client: TestClient = Depends(client)):
     response = client.post("/items/", json={"name": "Foo"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -91,11 +91,11 @@ def post_with_only_name(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with non-numeric price returns parsing error")
 def post_with_only_name_price(client: TestClient = Depends(client)):
     response = client.post("/items/", json={"name": "Foo", "price": "twenty"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -109,11 +109,11 @@ def post_with_only_name_price(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with empty body returns missing-field errors")
 def post_with_no_data(client: TestClient = Depends(client)):
     response = client.post("/items/", json={})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -133,11 +133,11 @@ def post_with_no_data(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with null body returns missing-field error")
 def post_with_none(client: TestClient = Depends(client)):
     response = client.post("/items/", json=None)
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -151,15 +151,15 @@ def post_with_none(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with malformed JSON returns json_invalid error")
 def post_broken_body(client: TestClient = Depends(client)):
     response = client.post(
         "/items/",
         headers={"content-type": "application/json"},
         content="{some broken json}",
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -176,11 +176,11 @@ def post_broken_body(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST form data for JSON endpoint returns validation error")
 def post_form_for_json(client: TestClient = Depends(client)):
     response = client.post("/items/", data={"name": "Foo", "price": 50.5})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -194,43 +194,43 @@ def post_form_for_json(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with explicit application/json content-type succeeds")
 def explicit_content_type(client: TestClient = Depends(client)):
     response = client.post(
         "/items/",
         content='{"name": "Foo", "price": 50.5}',
         headers={"Content-Type": "application/json"},
     )
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("POST with application/geo+json content-type succeeds")
 def geo_json(client: TestClient = Depends(client)):
     response = client.post(
         "/items/",
         content='{"name": "Foo", "price": 50.5}',
         headers={"Content-Type": "application/geo+json"},
     )
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("POST without content-type returns validation error")
 def no_content_type_json(client: TestClient = Depends(client)):
     response = client.post(
         "/items/",
         content='{"name": "Foo", "price": 50.5}',
     )
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("POST with non-JSON content-types returns validation errors")
 def wrong_headers(client: TestClient = Depends(client)):
     data = '{"name": "Foo", "price": 50.5}'
     response = client.post(
         "/items/", content=data, headers={"Content-Type": "text/plain"}
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -246,8 +246,8 @@ def wrong_headers(client: TestClient = Depends(client)):
     response = client.post(
         "/items/", content=data, headers={"Content-Type": "application/geo+json-seq"}
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -263,8 +263,8 @@ def wrong_headers(client: TestClient = Depends(client)):
     response = client.post(
         "/items/", content=data, headers={"Content-Type": "application/not-really-json"}
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -278,18 +278,18 @@ def wrong_headers(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("Unexpected json.loads exception surfaces as 400")
 def other_exceptions(client: TestClient = Depends(client)):
     with patch("json.loads", side_effect=Exception):
         response = client.post("/items/", json={"test": "test2"})
-        expect(response.status_code).to_equal(400)
+        expect(response.status_code, "status code").to_equal(400)
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

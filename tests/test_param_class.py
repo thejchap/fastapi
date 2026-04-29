@@ -14,15 +14,15 @@ def read_items(q: str | None = Param(default=None)):  # type: ignore
 client = TestClient(app)
 
 
-@test
+@test("Param query param defaults to None when omitted")
 def default_param_query_none():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"q": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"q": None})
 
 
-@test
+@test("Param query param accepts a supplied value")
 def default_param_query():
     response = client.get("/items/?q=foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"q": "foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"q": "foo"})

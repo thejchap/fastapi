@@ -251,141 +251,145 @@ def no_response_model_annotation_json_response_class() -> JSONResponse:
 client = TestClient(app)
 
 
-@test
+@test("no response_model and no annotation: model passes through")
 def no_response_model_no_annotation_return_model():  # noqa: F811
     response = client.get("/no_response_model-no_annotation-return_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("no response_model and no annotation: dict passes through")
 def no_response_model_no_annotation_return_dict():  # noqa: F811
     response = client.get("/no_response_model-no_annotation-return_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model serialises matching model")
 def response_model_no_annotation_return_same_model():  # noqa: F811
     response = client.get("/response_model-no_annotation-return_same_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model serialises matching dict")
 def response_model_no_annotation_return_exact_dict():  # noqa: F811
     response = client.get("/response_model-no_annotation-return_exact_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model rejects dict missing required fields")
 def response_model_no_annotation_return_invalid_dict():  # noqa: F811
     expect(
-        lambda: client.get("/response_model-no_annotation-return_invalid_dict")
+        lambda: client.get("/response_model-no_annotation-return_invalid_dict"),
+        "request with invalid dict",
     ).to_raise(ResponseValidationError, match="missing")
 
 
-@test
+@test("response_model rejects model missing required fields")
 def response_model_no_annotation_return_invalid_model():  # noqa: F811
     expect(
-        lambda: client.get("/response_model-no_annotation-return_invalid_model")
+        lambda: client.get("/response_model-no_annotation-return_invalid_model"),
+        "request with invalid model",
     ).to_raise(ResponseValidationError, match="missing")
 
 
-@test
+@test("response_model filters extra dict keys")
 def response_model_no_annotation_return_dict_with_extra_data():  # noqa: F811
     response = client.get("/response_model-no_annotation-return_dict_with_extra_data")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model filters submodel extra fields")
 def response_model_no_annotation_return_submodel_with_extra_data():  # noqa: F811
     response = client.get(
         "/response_model-no_annotation-return_submodel_with_extra_data"
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("annotation-as-response_model serialises matching model")
 def no_response_model_annotation_return_same_model():  # noqa: F811
     response = client.get("/no_response_model-annotation-return_same_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("annotation-as-response_model serialises matching dict")
 def no_response_model_annotation_return_exact_dict():  # noqa: F811
     response = client.get("/no_response_model-annotation-return_exact_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("annotation-as-response_model rejects invalid dict")
 def no_response_model_annotation_return_invalid_dict():  # noqa: F811
     expect(
-        lambda: client.get("/no_response_model-annotation-return_invalid_dict")
+        lambda: client.get("/no_response_model-annotation-return_invalid_dict"),
+        "request with invalid dict",
     ).to_raise(ResponseValidationError, match="missing")
 
 
-@test
+@test("annotation-as-response_model rejects invalid model")
 def no_response_model_annotation_return_invalid_model():  # noqa: F811
     expect(
-        lambda: client.get("/no_response_model-annotation-return_invalid_model")
+        lambda: client.get("/no_response_model-annotation-return_invalid_model"),
+        "request with invalid model",
     ).to_raise(ResponseValidationError, match="missing")
 
 
-@test
+@test("annotation-as-response_model filters extra dict keys")
 def no_response_model_annotation_return_dict_with_extra_data():  # noqa: F811
     response = client.get("/no_response_model-annotation-return_dict_with_extra_data")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("annotation-as-response_model filters submodel extra fields")
 def no_response_model_annotation_return_submodel_with_extra_data():  # noqa: F811
     response = client.get(
         "/no_response_model-annotation-return_submodel_with_extra_data"
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model=None disables annotation: returns model raw")
 def response_model_none_annotation_return_same_model():  # noqa: F811
     response = client.get("/response_model_none-annotation-return_same_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model=None disables annotation: returns dict raw")
 def response_model_none_annotation_return_exact_dict():  # noqa: F811
     response = client.get("/response_model_none-annotation-return_exact_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model=None skips validation of invalid dict")
 def response_model_none_annotation_return_invalid_dict():  # noqa: F811
     response = client.get("/response_model_none-annotation-return_invalid_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John"})
 
 
-@test
+@test("response_model=None skips validation of mismatched model")
 def response_model_none_annotation_return_invalid_model():  # noqa: F811
     response = client.get("/response_model_none-annotation-return_invalid_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo", "price": 42.0})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo", "price": 42.0})
 
 
-@test
+@test("response_model=None preserves extra dict keys")
 def response_model_none_annotation_return_dict_with_extra_data():  # noqa: F811
     response = client.get("/response_model_none-annotation-return_dict_with_extra_data")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "John",
             "surname": "Doe",
@@ -394,13 +398,13 @@ def response_model_none_annotation_return_dict_with_extra_data():  # noqa: F811
     )
 
 
-@test
+@test("response_model=None preserves submodel extra fields")
 def response_model_none_annotation_return_submodel_with_extra_data():  # noqa: F811
     response = client.get(
         "/response_model_none-annotation-return_submodel_with_extra_data"
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "John",
             "surname": "Doe",
@@ -409,70 +413,72 @@ def response_model_none_annotation_return_submodel_with_extra_data():  # noqa: F
     )
 
 
-@test
+@test("response_model wins over annotation for matching model")
 def response_model_model1_annotation_model2_return_same_model():  # noqa: F811
     response = client.get("/response_model_model1-annotation_model2-return_same_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model wins over annotation for matching dict")
 def response_model_model1_annotation_model2_return_exact_dict():  # noqa: F811
     response = client.get("/response_model_model1-annotation_model2-return_exact_dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model wins over annotation: invalid dict raises")
 def response_model_model1_annotation_model2_return_invalid_dict():  # noqa: F811
     expect(
         lambda: client.get(
             "/response_model_model1-annotation_model2-return_invalid_dict"
-        )
+        ),
+        "request with invalid dict",
     ).to_raise(ResponseValidationError, match="missing")
 
 
-@test
+@test("response_model wins over annotation: invalid model raises")
 def response_model_model1_annotation_model2_return_invalid_model():  # noqa: F811
     expect(
         lambda: client.get(
             "/response_model_model1-annotation_model2-return_invalid_model"
-        )
+        ),
+        "request with invalid model",
     ).to_raise(ResponseValidationError, match="missing")
 
 
-@test
+@test("response_model wins over annotation: extra dict keys filtered")
 def response_model_model1_annotation_model2_return_dict_with_extra_data():  # noqa: F811
     response = client.get(
         "/response_model_model1-annotation_model2-return_dict_with_extra_data"
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model wins over annotation: submodel filtered")
 def response_model_model1_annotation_model2_return_submodel_with_extra_data():  # noqa: F811
     response = client.get(
         "/response_model_model1-annotation_model2-return_submodel_with_extra_data"
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model filters subclass annotation extras")
 def response_model_filtering_model_annotation_submodel_return_submodel():  # noqa: F811
     response = client.get(
         "/response_model_filtering_model-annotation_submodel-return_submodel"
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model=list[User] filters list of submodels")
 def response_model_list_of_model_no_annotation():  # noqa: F811
     response = client.get("/response_model_list_of_model-no_annotation")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "John", "surname": "Doe"},
             {"name": "Jane", "surname": "Does"},
@@ -480,11 +486,11 @@ def response_model_list_of_model_no_annotation():  # noqa: F811
     )
 
 
-@test
+@test("annotation list[User] filters list of submodels")
 def no_response_model_annotation_list_of_model():  # noqa: F811
     response = client.get("/no_response_model-annotation_list_of_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "John", "surname": "Doe"},
             {"name": "Jane", "surname": "Does"},
@@ -492,11 +498,11 @@ def no_response_model_annotation_list_of_model():  # noqa: F811
     )
 
 
-@test
+@test("forward-ref list[User] annotation filters list of submodels")
 def no_response_model_annotation_forward_ref_list_of_model():  # noqa: F811
     response = client.get("/no_response_model-annotation_forward_ref_list_of_model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "John", "surname": "Doe"},
             {"name": "Jane", "surname": "Does"},
@@ -504,49 +510,49 @@ def no_response_model_annotation_forward_ref_list_of_model():  # noqa: F811
     )
 
 
-@test
+@test("response_model=User|Item serialises returned User")
 def response_model_union_no_annotation_return_model1():  # noqa: F811
     response = client.get("/response_model_union-no_annotation-return_model1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("response_model=User|Item serialises returned Item")
 def response_model_union_no_annotation_return_model2():  # noqa: F811
     response = client.get("/response_model_union-no_annotation-return_model2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo", "price": 42.0})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo", "price": 42.0})
 
 
-@test
+@test("annotation User|Item serialises returned User")
 def no_response_model_annotation_union_return_model1():  # noqa: F811
     response = client.get("/no_response_model-annotation_union-return_model1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "John", "surname": "Doe"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "John", "surname": "Doe"})
 
 
-@test
+@test("annotation User|Item serialises returned Item")
 def no_response_model_annotation_union_return_model2():  # noqa: F811
     response = client.get("/no_response_model-annotation_union-return_model2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo", "price": 42.0})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo", "price": 42.0})
 
 
-@test
+@test("Response annotation passes raw response through")
 def no_response_model_annotation_return_class():
     response = client.get("/no_response_model-annotation_response_class")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_equal("Foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.text, "response text").to_equal("Foo")
 
 
-@test
+@test("JSONResponse annotation passes JSON through")
 def no_response_model_annotation_json_response_class():  # noqa: F811
     response = client.get("/no_response_model-annotation_json_response_class")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"foo": "bar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"foo": "bar"})
 
 
-@test
+@test("annotation that is not a valid Pydantic field raises FastAPIError")
 def invalid_response_model_field():
     app = FastAPI()
 
@@ -560,16 +566,18 @@ def invalid_response_model_field():
         _body()
     except FastAPIError as exc:
         captured.append(exc)
-    expect(captured).to_have_length(1).fatal()
-    expect(captured[0].args[0]).to_contain("valid Pydantic field type")
-    expect(captured[0].args[0]).to_contain("parameter response_model=None")
+    expect(captured, "captured FastAPIError").to_have_length(1).fatal()
+    expect(captured[0].args[0], "error message").to_contain("valid Pydantic field type")
+    expect(captured[0].args[0], "error message").to_contain(
+        "parameter response_model=None"
+    )
 
 
-@test
+@test("OpenAPI schema reflects all response_model/annotation combinations")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

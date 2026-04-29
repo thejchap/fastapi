@@ -23,25 +23,27 @@ def save_union_different_body(item: ExtendedItem | Item):
 client = TestClient(app)
 
 
-@test
+@test("Union of subclass+base body matches subclass when subclass field present")
 def post_extended_item():
     response = client.post("/items/", json={"name": "Foo", "age": 5})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": {"name": "Foo", "age": 5}})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"item": {"name": "Foo", "age": 5}}
+    )
 
 
-@test
+@test("Union of subclass+base body falls back to base class")
 def post_item():
     response = client.post("/items/", json={"name": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": {"name": "Foo"}})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item": {"name": "Foo"}})
 
 
-@test
+@test("OpenAPI schema represents subclass+base union as anyOf")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

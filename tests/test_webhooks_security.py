@@ -32,17 +32,17 @@ def new_subscription(
 client = TestClient(app)
 
 
-@test
+@test("Webhook function can be invoked directly (coverage)")
 def dummy_webhook():
     # Just for coverage
     new_subscription(body={}, token="Bearer 123")
 
 
-@test
+@test("OpenAPI schema includes webhooks with security requirements")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

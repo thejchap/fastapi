@@ -40,8 +40,8 @@ def _client_for(name: str) -> TestClient:
 def read_items(name: str, path: str, expected_response: dict):
     client = _client_for(name)
     response = client.get(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
 @test.cases(
@@ -51,8 +51,8 @@ def read_items(name: str, path: str, expected_response: dict):
 def read_items_invalid_item_id(name: str):
     client = _client_for(name)
     response = client.get("/items/invalid_id")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -73,8 +73,8 @@ def read_items_invalid_item_id(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

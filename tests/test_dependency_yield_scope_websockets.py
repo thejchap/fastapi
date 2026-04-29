@@ -127,50 +127,53 @@ async def get_regular_function_scope(
 client = TestClient(app)
 
 
-@test
+@test("function-scoped websocket dependency closes session on completion")
 def function_scope_test() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/function-scope") as websocket:
         data = websocket.receive_json()
-    expect(data["is_open"]).to_be(True)
-    expect(global_state["session_closed"]).to_be(True)
+    expect(data["is_open"], "session was open during request").to_be(True)
+    expect(global_state["session_closed"], "session_closed flag").to_be(True)
 
 
-@test
+@test("request-scoped websocket dependency closes session on completion")
 def request_scope_test() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/request-scope") as websocket:
         data = websocket.receive_json()
-    expect(data["is_open"]).to_be(True)
-    expect(global_state["session_closed"]).to_be(True)
+    expect(data["is_open"], "session was open during request").to_be(True)
+    expect(global_state["session_closed"], "session_closed flag").to_be(True)
 
 
-@test
+@test("two scopes share session lifecycle properly")
 def two_scopes() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/two-scopes") as websocket:
         data = websocket.receive_json()
-    expect(data["func_is_open"]).to_be(True)
-    expect(data["req_is_open"]).to_be(True)
-    expect(global_state["session_closed"]).to_be(True)
+    expect(data["func_is_open"], "function-scoped session open").to_be(True)
+    expect(data["req_is_open"], "request-scoped session open").to_be(True)
+    expect(global_state["session_closed"], "session_closed flag").to_be(True)
 
 
-@test
+@test("nested dependency closes both session and named session")
 def sub() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/sub") as websocket:
         data = websocket.receive_json()
-    expect(data["named_session_open"]).to_be(True)
-    expect(data["session_open"]).to_be(True)
-    expect(global_state["session_closed"]).to_be(True)
-    expect(global_state["named_session_closed"]).to_be(True)
+    expect(data["named_session_open"], "named session was open").to_be(True)
+    expect(data["session_open"], "underlying session was open").to_be(True)
+    expect(global_state["session_closed"], "session_closed flag").to_be(True)
+    expect(
+        global_state["named_session_closed"],
+        "named_session_closed flag",
+    ).to_be(True)
 
 
-@test
+@test("request-scoped dep cannot depend on function-scoped dep")
 def broken_scope() -> None:
     def _body():
         @app.websocket("/broken-scope")
@@ -179,30 +182,33 @@ def broken_scope() -> None:
         ) -> Any:  # pragma: no cover
             pass
 
-    expect(_body).to_raise(
+    expect(_body, "registering broken-scope websocket").to_raise(
         FastAPIError,
         match='The dependency "get_named_func_session" has a scope of "request", it cannot depend on dependencies with scope "function"',
     )
 
 
-@test
+@test("named function-scoped dependency closes both sessions")
 def named_function_scope() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/named-function-scope") as websocket:
         data = websocket.receive_json()
-    expect(data["named_session_open"]).to_be(True)
-    expect(data["session_open"]).to_be(True)
-    expect(global_state["session_closed"]).to_be(True)
-    expect(global_state["named_func_session_closed"]).to_be(True)
+    expect(data["named_session_open"], "named session was open").to_be(True)
+    expect(data["session_open"], "underlying session was open").to_be(True)
+    expect(global_state["session_closed"], "session_closed flag").to_be(True)
+    expect(
+        global_state["named_func_session_closed"],
+        "named_func_session_closed flag",
+    ).to_be(True)
 
 
-@test
+@test("regular (non-yield) function-scoped dependency works")
 def regular_function_scope() -> None:
     global_context.set({})
     global_state = global_context.get()
     with client.websocket_connect("/regular-function-scope") as websocket:
         data = websocket.receive_json()
-    expect(data["named_session_open"]).to_be(True)
-    expect(data["session_open"]).to_be(True)
-    expect(global_state["session_closed"]).to_be(True)
+    expect(data["named_session_open"], "named session was open").to_be(True)
+    expect(data["session_open"], "underlying session was open").to_be(True)
+    expect(global_state["session_closed"], "session_closed flag").to_be(True)

@@ -35,7 +35,10 @@ async def read_model_optional_list_str(
     test.case("model-optional-list-str", path="/model-optional-list-str"),
 )
 def optional_list_str_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -62,8 +65,8 @@ def optional_list_str_schema(path: str):
 def optional_list_str_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -73,8 +76,8 @@ def optional_list_str_missing(path: str):
 def optional_list_str(path: str):
     client = TestClient(app)
     response = client.get(path, headers=[("p", "hello"), ("p", "world")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})
 
 
 # =====================================================================================
@@ -104,7 +107,10 @@ async def read_model_optional_list_alias(
     test.case("model-optional-list-alias", path="/model-optional-list-alias"),
 )
 def optional_list_str_alias_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -131,8 +137,8 @@ def optional_list_str_alias_schema(path: str):
 def optional_list_alias_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -142,8 +148,8 @@ def optional_list_alias_missing(path: str):
 def optional_list_alias_by_name(path: str):
     client = TestClient(app)
     response = client.get(path, headers=[("p", "hello"), ("p", "world")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -153,8 +159,8 @@ def optional_list_alias_by_name(path: str):
 def optional_list_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.get(path, headers=[("p_alias", "hello"), ("p_alias", "world")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})
 
 
 # =====================================================================================
@@ -187,7 +193,10 @@ def read_model_optional_list_validation_alias(
     ),
 )
 def optional_list_validation_alias_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -217,8 +226,8 @@ def optional_list_validation_alias_schema(path: str):
 def optional_list_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -231,8 +240,8 @@ def optional_list_validation_alias_missing(path: str):
 def optional_list_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.get(path, headers=[("p", "hello"), ("p", "world")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -247,8 +256,8 @@ def optional_list_validation_alias_by_validation_alias(path: str):
     response = client.get(
         path, headers=[("p_val_alias", "hello"), ("p_val_alias", "world")]
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})
 
 
 # =====================================================================================
@@ -286,7 +295,10 @@ def read_model_optional_list_alias_and_validation_alias(
     ),
 )
 def optional_list_alias_and_validation_alias_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -319,8 +331,8 @@ def optional_list_alias_and_validation_alias_schema(path: str):
 def optional_list_alias_and_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -336,8 +348,8 @@ def optional_list_alias_and_validation_alias_missing(path: str):
 def optional_list_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.get(path, headers=[("p", "hello"), ("p", "world")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -353,8 +365,8 @@ def optional_list_alias_and_validation_alias_by_name(path: str):
 def optional_list_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.get(path, headers=[("p_alias", "hello"), ("p_alias", "world")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -372,5 +384,5 @@ def optional_list_alias_and_validation_alias_by_validation_alias(path: str):
     response = client.get(
         path, headers=[("p_val_alias", "hello"), ("p_val_alias", "world")]
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})

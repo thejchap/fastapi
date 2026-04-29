@@ -10,18 +10,20 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("GET /users with valid token returns user list")
 def users_token_jessica(client: TestClient = Depends(client)):
     response = client.get("/users?token=jessica")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"username": "Rick"}, {"username": "Morty"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        [{"username": "Rick"}, {"username": "Morty"}]
+    )
 
 
-@test
+@test("GET /users without token returns validation error")
 def users_with_no_token(client: TestClient = Depends(client)):
     response = client.get("/users")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -35,18 +37,18 @@ def users_with_no_token(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("GET /users/foo with valid token returns the user")
 def users_foo_token_jessica(client: TestClient = Depends(client)):
     response = client.get("/users/foo?token=jessica")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "foo"})
 
 
-@test
+@test("GET /users/foo without token returns validation error")
 def users_foo_with_no_token(client: TestClient = Depends(client)):
     response = client.get("/users/foo")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -60,18 +62,18 @@ def users_foo_with_no_token(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("GET /users/me with valid token returns current user")
 def users_me_token_jessica(client: TestClient = Depends(client)):
     response = client.get("/users/me?token=jessica")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "fakecurrentuser"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "fakecurrentuser"})
 
 
-@test
+@test("GET /users/me without token returns validation error")
 def users_me_with_no_token(client: TestClient = Depends(client)):
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -85,20 +87,22 @@ def users_me_with_no_token(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("GET /users with non-jessica token rejects request")
 def users_token_monica_with_no_jessica(client: TestClient = Depends(client)):
     response = client.get("/users?token=monica")
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "No Jessica token provided"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "No Jessica token provided"}
+    )
 
 
-@test
+@test("GET /items with valid token returns item dict")
 def items_token_jessica(client: TestClient = Depends(client)):
     response = client.get(
         "/items?token=jessica", headers={"X-Token": "fake-super-secret-token"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "plumbus": {"name": "Plumbus"},
             "gun": {"name": "Portal Gun"},
@@ -106,11 +110,11 @@ def items_token_jessica(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("GET /items without query token returns validation error")
 def items_with_no_token_jessica(client: TestClient = Depends(client)):
     response = client.get("/items", headers={"X-Token": "fake-super-secret-token"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -124,31 +128,33 @@ def items_with_no_token_jessica(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("GET /items/plumbus with valid token returns the item")
 def items_plumbus_token_jessica(client: TestClient = Depends(client)):
     response = client.get(
         "/items/plumbus?token=jessica", headers={"X-Token": "fake-super-secret-token"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Plumbus", "item_id": "plumbus"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"name": "Plumbus", "item_id": "plumbus"}
+    )
 
 
-@test
+@test("GET /items/bar with valid token returns 404")
 def items_bar_token_jessica(client: TestClient = Depends(client)):
     response = client.get(
         "/items/bar?token=jessica", headers={"X-Token": "fake-super-secret-token"}
     )
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.json()).to_equal({"detail": "Item not found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Item not found"})
 
 
-@test
+@test("GET /items/plumbus without query token returns validation error")
 def items_plumbus_with_no_token(client: TestClient = Depends(client)):
     response = client.get(
         "/items/plumbus", headers={"X-Token": "fake-super-secret-token"}
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -162,25 +168,25 @@ def items_plumbus_with_no_token(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("GET /items with invalid X-Token header rejects request")
 def items_with_invalid_token(client: TestClient = Depends(client)):
     response = client.get("/items?token=jessica", headers={"X-Token": "invalid"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Token header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Token header invalid"})
 
 
-@test
+@test("GET /items/bar with invalid X-Token header rejects request")
 def items_bar_with_invalid_token(client: TestClient = Depends(client)):
     response = client.get("/items/bar?token=jessica", headers={"X-Token": "invalid"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Token header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Token header invalid"})
 
 
-@test
+@test("GET /items without X-Token header returns validation error")
 def items_with_missing_x_token_header(client: TestClient = Depends(client)):
     response = client.get("/items?token=jessica")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -194,11 +200,11 @@ def items_with_missing_x_token_header(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("GET /items/plumbus without X-Token header returns validation error")
 def items_plumbus_with_missing_x_token_header(client: TestClient = Depends(client)):
     response = client.get("/items/plumbus?token=jessica")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -212,18 +218,20 @@ def items_plumbus_with_missing_x_token_header(client: TestClient = Depends(clien
     )
 
 
-@test
+@test("GET / with valid token returns greeting")
 def root_token_jessica(client: TestClient = Depends(client)):
     response = client.get("/?token=jessica")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello Bigger Applications!"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"message": "Hello Bigger Applications!"}
+    )
 
 
-@test
+@test("GET / without token returns validation error")
 def root_with_no_token(client: TestClient = Depends(client)):
     response = client.get("/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -237,11 +245,11 @@ def root_with_no_token(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("PUT /items/foo without headers returns validation error")
 def put_no_header(client: TestClient = Depends(client)):
     response = client.put("/items/foo")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -261,56 +269,58 @@ def put_no_header(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("PUT /items/foo with invalid X-Token rejects request")
 def put_invalid_header(client: TestClient = Depends(client)):
     response = client.put("/items/foo", headers={"X-Token": "invalid"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Token header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Token header invalid"})
 
 
-@test
+@test("PUT /items/plumbus updates the item")
 def put(client: TestClient = Depends(client)):
     response = client.put(
         "/items/plumbus?token=jessica", headers={"X-Token": "fake-super-secret-token"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"item_id": "plumbus", "name": "The great Plumbus"}
     )
 
 
-@test
+@test("PUT /items/bar returns 403 forbidden")
 def put_forbidden(client: TestClient = Depends(client)):
     response = client.put(
         "/items/bar?token=jessica", headers={"X-Token": "fake-super-secret-token"}
     )
-    expect(response.status_code).to_equal(403).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(403).fatal()
+    expect(response.json(), "response body").to_equal(
         {"detail": "You can only update the item: plumbus"}
     )
 
 
-@test
+@test("POST /admin/ with valid headers returns greeting")
 def admin(client: TestClient = Depends(client)):
     response = client.post(
         "/admin/?token=jessica", headers={"X-Token": "fake-super-secret-token"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Admin getting schwifty"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"message": "Admin getting schwifty"}
+    )
 
 
-@test
+@test("POST /admin/ with invalid X-Token rejects request")
 def admin_invalid_header(client: TestClient = Depends(client)):
     response = client.post("/admin/", headers={"X-Token": "invalid"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Token header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Token header invalid"})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

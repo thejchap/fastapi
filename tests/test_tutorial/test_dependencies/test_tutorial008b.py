@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def get_no_item(name: str):
     client = _client_for(name)
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.json()).to_equal({"detail": "Item not found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Item not found"})
 
 
 @test.cases(
@@ -28,8 +28,8 @@ def get_no_item(name: str):
 def owner_error(name: str):
     client = _client_for(name)
     response = client.get("/items/plumbus")
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Owner error: Rick"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Owner error: Rick"})
 
 
 @test.cases(
@@ -39,7 +39,7 @@ def owner_error(name: str):
 def get_item(name: str):
     client = _client_for(name)
     response = client.get("/items/portal-gun")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"description": "Gun to create portals", "owner": "Rick"}
     )

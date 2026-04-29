@@ -7,18 +7,20 @@ from docs_src.behind_a_proxy.tutorial001_py310 import app
 client = TestClient(app, root_path="/api/v1")
 
 
-@test
+@test("GET /app returns root_path from request")
 def main():
     response = client.get("/app")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello World", "root_path": "/api/v1"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"message": "Hello World", "root_path": "/api/v1"}
+    )
 
 
-@test
+@test("OpenAPI schema includes the root_path server")
 def openapi():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

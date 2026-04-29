@@ -18,16 +18,16 @@ async def read_users(user_id: int):
 client = TestClient(app)
 
 
-@test
+@test("Path param shared with a dependency is accepted")
 def read_users():
     response = client.get("/users/42")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("Path-and-dependency param appears once in the OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(snapshot(
+    expect(response.json(), "openapi schema").to_equal(snapshot(
         {
             "openapi": "3.1.0",
             "info": {"title": "FastAPI", "version": "0.1.0"},

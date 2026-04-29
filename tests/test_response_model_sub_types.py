@@ -35,23 +35,23 @@ def valid4():
 client = TestClient(app)
 
 
-@test
+@test("responses[].model accepts int, list[int], BaseModel, list[BaseModel]")
 def path_operations():
     response = client.get("/valid1")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "valid1 status code").to_equal(200).fatal()
     response = client.get("/valid2")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "valid2 status code").to_equal(200).fatal()
     response = client.get("/valid3")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "valid3 status code").to_equal(200).fatal()
     response = client.get("/valid4")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "valid4 status code").to_equal(200).fatal()
 
 
-@test
+@test("OpenAPI schema reflects responses[].model sub-types")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

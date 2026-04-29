@@ -35,7 +35,7 @@ def post_form_extra_allow(params: Annotated[FormModelExtraAllow, Form()]):
 client = TestClient(app)
 
 
-@test
+@test("Form model populated from a complete form payload")
 def send_all_data():
     response = client.post(
         "/form/",
@@ -47,8 +47,8 @@ def send_all_data():
             "with": "something",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "username": "Rick",
             "lastname": "Sanchez",
@@ -59,11 +59,11 @@ def send_all_data():
     )
 
 
-@test
+@test("Form model uses defaults when optional fields are omitted")
 def defaults():
     response = client.post("/form/", data={"username": "Rick", "lastname": "Sanchez"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "username": "Rick",
             "lastname": "Sanchez",
@@ -74,7 +74,7 @@ def defaults():
     )
 
 
-@test
+@test("Form model returns 422 with field-level errors on invalid data")
 def invalid_data():
     response = client.post(
         "/form/",
@@ -85,8 +85,8 @@ def invalid_data():
             "tags": ["plumbus", "citadel"],
         },
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -100,11 +100,11 @@ def invalid_data():
     )
 
 
-@test
+@test("Form model returns 422 with missing-field errors when no data is sent")
 def no_data():
     response = client.post("/form/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -124,7 +124,7 @@ def no_data():
     )
 
 
-@test
+@test("Form model with extra=allow keeps a single unknown field")
 def extra_param_single():
     response = client.post(
         "/form-extra-allow/",
@@ -133,8 +133,8 @@ def extra_param_single():
             "extra_param": "456",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "param": "123",
             "extra_param": "456",
@@ -142,7 +142,7 @@ def extra_param_single():
     )
 
 
-@test
+@test("Form model with extra=allow keeps a list of unknown values")
 def extra_param_list():
     response = client.post(
         "/form-extra-allow/",
@@ -151,8 +151,8 @@ def extra_param_list():
             "extra_params": ["456", "789"],
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "param": "123",
             "extra_params": ["456", "789"],

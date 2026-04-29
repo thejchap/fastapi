@@ -10,7 +10,7 @@ def dep():
     pass
 
 
-@test
+@test("Depends and Security hash consistently per (dep, scope)")
 def depends_hashable():
     dep()  # just for coverage
     d1 = Depends(dep)
@@ -21,7 +21,7 @@ def depends_hashable():
     s1 = Security(dep)
     s2 = Security(dep)
 
-    expect(hash(d1)).to_equal(hash(d2))
-    expect(hash(s1)).to_equal(hash(s2))
-    expect(hash(d1)).not_.to_equal(hash(d3))
-    expect(hash(d3)).to_equal(hash(d4))
+    expect(hash(d1), "hash of equivalent Depends").to_equal(hash(d2))
+    expect(hash(s1), "hash of equivalent Security").to_equal(hash(s2))
+    expect(hash(d1), "hash differs by scope").not_.to_equal(hash(d3))
+    expect(hash(d3), "hash of equivalent function-scoped Depends").to_equal(hash(d4))

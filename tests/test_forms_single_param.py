@@ -16,18 +16,18 @@ def post_form(username: Annotated[str, Form()]):
 client = TestClient(app)
 
 
-@test
+@test("Single Form-annotated parameter receives the form value")
 def single_form_field():
     response = client.post("/form/", data={"username": "Rick"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("Rick")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("Rick")
 
 
-@test
+@test("Single Form parameter produces the expected OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

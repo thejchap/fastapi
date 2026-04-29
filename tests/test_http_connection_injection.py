@@ -29,14 +29,14 @@ async def get_value_by_ws(
 client = TestClient(app)
 
 
-@test
+@test("HTTPConnection can be injected into HTTP route dependencies")
 def value_extracting_by_http():
     response = client.get("/http")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(42)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(42)
 
 
-@test
+@test("HTTPConnection can be injected into WebSocket route dependencies")
 def value_extracting_by_ws():
     with client.websocket_connect("/ws") as websocket:
-        expect(websocket.receive_json()).to_equal(42)
+        expect(websocket.receive_json(), "received message").to_equal(42)

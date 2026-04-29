@@ -7,24 +7,24 @@ from docs_src.openapi_webhooks.tutorial001_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /users/ returns the user list")
 def get():
     response = client.get("/users/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["Rick", "Morty"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["Rick", "Morty"])
 
 
-@test
+@test("Registered webhook endpoint can be invoked directly")
 def dummy_webhook():
     # Just for coverage.
     app.webhooks.routes[0].endpoint({})
 
 
-@test
+@test("OpenAPI schema includes the registered webhooks")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

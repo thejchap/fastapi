@@ -7,7 +7,7 @@ class NonPydanticModel:
     pass
 
 
-@test
+@test("non-Pydantic response_model raises FastAPIError")
 def invalid_response_model_raises():
     def _body() -> None:
         app = FastAPI()
@@ -16,10 +16,12 @@ def invalid_response_model_raises():
         def read_root():
             pass  # pragma: nocover
 
-    expect(_body).to_raise(FastAPIError)
+    expect(_body, "registering route with non-Pydantic response_model").to_raise(
+        FastAPIError
+    )
 
 
-@test
+@test("non-Pydantic sub-type response_model raises FastAPIError")
 def invalid_response_model_sub_type_raises():
     def _body() -> None:
         app = FastAPI()
@@ -28,10 +30,12 @@ def invalid_response_model_sub_type_raises():
         def read_root():
             pass  # pragma: nocover
 
-    expect(_body).to_raise(FastAPIError)
+    expect(
+        _body, "registering route with non-Pydantic response_model sub-type"
+    ).to_raise(FastAPIError)
 
 
-@test
+@test("non-Pydantic responses[].model raises FastAPIError")
 def invalid_response_model_in_responses_raises():
     def _body() -> None:
         app = FastAPI()
@@ -40,10 +44,12 @@ def invalid_response_model_in_responses_raises():
         def read_root():
             pass  # pragma: nocover
 
-    expect(_body).to_raise(FastAPIError)
+    expect(
+        _body, "registering route with non-Pydantic responses[].model"
+    ).to_raise(FastAPIError)
 
 
-@test
+@test("non-Pydantic sub-type responses[].model raises FastAPIError")
 def invalid_response_model_sub_type_in_responses_raises():
     def _body() -> None:
         app = FastAPI()
@@ -52,4 +58,6 @@ def invalid_response_model_sub_type_in_responses_raises():
         def read_root():
             pass  # pragma: nocover
 
-    expect(_body).to_raise(FastAPIError)
+    expect(
+        _body, "registering route with non-Pydantic responses[].model sub-type"
+    ).to_raise(FastAPIError)

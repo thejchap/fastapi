@@ -6,11 +6,11 @@ from .main import app
 client = TestClient(app)
 
 
-@test
+@test("missing required query param returns 422")
 def query():
     response = client.get("/query")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -24,18 +24,18 @@ def query():
     )
 
 
-@test
+@test("required query param accepts value")
 def query_query_baz():
     response = client.get("/query?query=baz")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar baz")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar baz")
 
 
-@test
+@test("undeclared query params do not satisfy required")
 def query_not_declared_baz():
     response = client.get("/query?not_declared=baz")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -49,32 +49,32 @@ def query_not_declared_baz():
     )
 
 
-@test
+@test("optional query param can be omitted")
 def query_optional():
     response = client.get("/query/optional")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar")
 
 
-@test
+@test("optional query param accepts value")
 def query_optional_query_baz():
     response = client.get("/query/optional?query=baz")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar baz")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar baz")
 
 
-@test
+@test("optional query ignores undeclared params")
 def query_optional_not_declared_baz():
     response = client.get("/query/optional?not_declared=baz")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar")
 
 
-@test
+@test("missing required int query param returns 422")
 def query_int():
     response = client.get("/query/int")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -88,18 +88,18 @@ def query_int():
     )
 
 
-@test
+@test("int query param accepts integer value")
 def query_int_query_42():
     response = client.get("/query/int?query=42")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar 42")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar 42")
 
 
-@test
+@test("int query param rejects float value")
 def query_int_query_42_5():
     response = client.get("/query/int?query=42.5")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -113,11 +113,11 @@ def query_int_query_42_5():
     )
 
 
-@test
+@test("int query param rejects non-numeric value")
 def query_int_query_baz():
     response = client.get("/query/int?query=baz")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -131,11 +131,11 @@ def query_int_query_baz():
     )
 
 
-@test
+@test("int query undeclared params do not satisfy required")
 def query_int_not_declared_baz():
     response = client.get("/query/int?not_declared=baz")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -149,25 +149,25 @@ def query_int_not_declared_baz():
     )
 
 
-@test
+@test("optional int query can be omitted")
 def query_int_optional():
     response = client.get("/query/int/optional")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar")
 
 
-@test
+@test("optional int query accepts integer value")
 def query_int_optional_query_50():
     response = client.get("/query/int/optional?query=50")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar 50")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar 50")
 
 
-@test
+@test("optional int query rejects non-numeric")
 def query_int_optional_query_foo():
     response = client.get("/query/int/optional?query=foo")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -181,25 +181,25 @@ def query_int_optional_query_foo():
     )
 
 
-@test
+@test("int query default is used when omitted")
 def query_int_default():
     response = client.get("/query/int/default")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar 10")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar 10")
 
 
-@test
+@test("int query default is overridden by value")
 def query_int_default_query_50():
     response = client.get("/query/int/default?query=50")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar 50")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar 50")
 
 
-@test
+@test("int query default rejects non-numeric value")
 def query_int_default_query_foo():
     response = client.get("/query/int/default?query=foo")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -213,25 +213,25 @@ def query_int_default_query_foo():
     )
 
 
-@test
+@test("Query() param can be omitted")
 def query_param():
     response = client.get("/query/param")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar")
 
 
-@test
+@test("Query() param accepts value")
 def query_param_query_50():
     response = client.get("/query/param?query=50")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar 50")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar 50")
 
 
-@test
+@test("required Query() param missing returns 422")
 def query_param_required():
     response = client.get("/query/param-required")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -245,18 +245,18 @@ def query_param_required():
     )
 
 
-@test
+@test("required Query() param accepts value")
 def query_param_required_query_50():
     response = client.get("/query/param-required?query=50")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar 50")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar 50")
 
 
-@test
+@test("required int Query() param missing returns 422")
 def query_param_required_int():
     response = client.get("/query/param-required/int")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -270,18 +270,18 @@ def query_param_required_int():
     )
 
 
-@test
+@test("required int Query() accepts integer")
 def query_param_required_int_query_50():
     response = client.get("/query/param-required/int?query=50")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo bar 50")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo bar 50")
 
 
-@test
+@test("required int Query() rejects non-numeric")
 def query_param_required_int_query_foo():
     response = client.get("/query/param-required/int?query=foo")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -295,35 +295,35 @@ def query_param_required_int_query_foo():
     )
 
 
-@test
+@test("frozenset query dedupes repeated values")
 def query_frozenset_query_1_query_1_query_2():
     response = client.get("/query/frozenset/?query=1&query=1&query=2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("1,2")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("1,2")
 
 
-@test
+@test("list query collects repeated values")
 def query_list():
     response = client.get("/query/list/?device_ids=1&device_ids=2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([1, 2])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([1, 2])
 
 
-@test
+@test("required list query missing returns 422")
 def query_list_empty():
     response = client.get("/query/list/")
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
 
-@test
+@test("list-default query collects repeated values")
 def query_list_default():
     response = client.get("/query/list-default/?device_ids=1&device_ids=2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([1, 2])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([1, 2])
 
 
-@test
+@test("list-default query returns empty when omitted")
 def query_list_default_empty():
     response = client.get("/query/list-default/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([])

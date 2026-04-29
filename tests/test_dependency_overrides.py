@@ -48,11 +48,11 @@ async def overrider_dependency_with_sub(msg: dict = Depends(overrider_sub_depend
     return msg
 
 
-@test
+@test("missing q on /main-depends/ returns 422")
 def main_depends_test():
     response = client.get("/main-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -66,11 +66,11 @@ def main_depends_test():
     )
 
 
-@test
+@test("/main-depends/ with q uses default skip and limit")
 def main_depends_q_foo():
     response = client.get("/main-depends/?q=foo")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "in": "main-depends",
             "params": {"q": "foo", "skip": 0, "limit": 100},
@@ -78,11 +78,11 @@ def main_depends_q_foo():
     )
 
 
-@test
+@test("/main-depends/ accepts q, skip, and limit query params")
 def main_depends_q_foo_skip_100_limit_200():
     response = client.get("/main-depends/?q=foo&skip=100&limit=200")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "in": "main-depends",
             "params": {"q": "foo", "skip": 100, "limit": 200},
@@ -90,11 +90,11 @@ def main_depends_q_foo_skip_100_limit_200():
     )
 
 
-@test
+@test("missing q on /decorator-depends/ returns 422")
 def decorator_depends_test():
     response = client.get("/decorator-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -108,25 +108,25 @@ def decorator_depends_test():
     )
 
 
-@test
+@test("/decorator-depends/ with q returns 200")
 def decorator_depends_q_foo():
     response = client.get("/decorator-depends/?q=foo")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "decorator-depends"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"in": "decorator-depends"})
 
 
-@test
+@test("/decorator-depends/ ignores extra params")
 def decorator_depends_q_foo_skip_100_limit_200():
     response = client.get("/decorator-depends/?q=foo&skip=100&limit=200")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "decorator-depends"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"in": "decorator-depends"})
 
 
-@test
+@test("missing q on /router-depends/ returns 422")
 def router_depends_test():
     response = client.get("/router-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -140,11 +140,11 @@ def router_depends_test():
     )
 
 
-@test
+@test("/router-depends/ with q uses default skip and limit")
 def router_depends_q_foo():
     response = client.get("/router-depends/?q=foo")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "in": "router-depends",
             "params": {"q": "foo", "skip": 0, "limit": 100},
@@ -152,11 +152,11 @@ def router_depends_q_foo():
     )
 
 
-@test
+@test("/router-depends/ accepts q, skip, and limit")
 def router_depends_q_foo_skip_100_limit_200():
     response = client.get("/router-depends/?q=foo&skip=100&limit=200")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "in": "router-depends",
             "params": {"q": "foo", "skip": 100, "limit": 200},
@@ -164,11 +164,11 @@ def router_depends_q_foo_skip_100_limit_200():
     )
 
 
-@test
+@test("missing q on /router-decorator-depends/ returns 422")
 def router_decorator_depends_test():
     response = client.get("/router-decorator-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -182,18 +182,22 @@ def router_decorator_depends_test():
     )
 
 
-@test
+@test("/router-decorator-depends/ with q returns 200")
 def router_decorator_depends_q_foo():
     response = client.get("/router-decorator-depends/?q=foo")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "router-decorator-depends"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"in": "router-decorator-depends"}
+    )
 
 
-@test
+@test("/router-decorator-depends/ ignores extra params")
 def router_decorator_depends_q_foo_skip_100_limit_200():
     response = client.get("/router-decorator-depends/?q=foo&skip=100&limit=200")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "router-decorator-depends"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"in": "router-decorator-depends"}
+    )
 
 
 @test.cases(
@@ -258,17 +262,17 @@ def router_decorator_depends_q_foo_skip_100_limit_200():
 def override_simple(url: str, status_code: int, expected: dict):
     app.dependency_overrides[common_parameters] = overrider_dependency_simple
     response = client.get(url)
-    expect(response.status_code).to_equal(status_code)
-    expect(response.json()).to_equal(expected)
+    expect(response.status_code, "status code").to_equal(status_code)
+    expect(response.json(), "response body").to_equal(expected)
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /main-depends/ requires k query param")
 def override_with_sub_main_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/main-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -284,12 +288,12 @@ def override_with_sub_main_depends():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /main-depends/?q=foo still demands k")
 def override_with_sub__main_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/main-depends/?q=foo")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -305,21 +309,23 @@ def override_with_sub__main_depends_q_foo():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /main-depends/?k=bar succeeds")
 def override_with_sub_main_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/main-depends/?k=bar")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "main-depends", "params": {"k": "bar"}})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"in": "main-depends", "params": {"k": "bar"}}
+    )
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /decorator-depends/ requires k")
 def override_with_sub_decorator_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/decorator-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -335,12 +341,12 @@ def override_with_sub_decorator_depends():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /decorator-depends/?q=foo still demands k")
 def override_with_sub_decorator_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/decorator-depends/?q=foo")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -356,21 +362,21 @@ def override_with_sub_decorator_depends_q_foo():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /decorator-depends/?k=bar succeeds")
 def override_with_sub_decorator_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/decorator-depends/?k=bar")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "decorator-depends"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"in": "decorator-depends"})
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /router-depends/ requires k")
 def override_with_sub_router_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -386,12 +392,12 @@ def override_with_sub_router_depends():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /router-depends/?q=foo still demands k")
 def override_with_sub_router_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-depends/?q=foo")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -407,21 +413,23 @@ def override_with_sub_router_depends_q_foo():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /router-depends/?k=bar succeeds")
 def override_with_sub_router_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-depends/?k=bar")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "router-depends", "params": {"k": "bar"}})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"in": "router-depends", "params": {"k": "bar"}}
+    )
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /router-decorator-depends/ requires k")
 def override_with_sub_router_decorator_depends():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-decorator-depends/")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -437,12 +445,12 @@ def override_with_sub_router_decorator_depends():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /router-decorator-depends/?q=foo still demands k")
 def override_with_sub_router_decorator_depends_q_foo():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-decorator-depends/?q=foo")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -458,10 +466,12 @@ def override_with_sub_router_decorator_depends_q_foo():
     app.dependency_overrides = {}
 
 
-@test
+@test("override with sub-dep on /router-decorator-depends/?k=bar succeeds")
 def override_with_sub_router_decorator_depends_k_bar():
     app.dependency_overrides[common_parameters] = overrider_dependency_with_sub
     response = client.get("/router-decorator-depends/?k=bar")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"in": "router-decorator-depends"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"in": "router-decorator-depends"}
+    )
     app.dependency_overrides = {}

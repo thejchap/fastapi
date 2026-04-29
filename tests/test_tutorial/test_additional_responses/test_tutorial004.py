@@ -21,8 +21,10 @@ def _client_for(name: str) -> TestClient:
 def path_operation(name: str):
     client = _client_for(name)
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"id": "foo", "value": "there goes my hero"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"id": "foo", "value": "there goes my hero"}
+    )
 
 
 @test.cases(
@@ -32,9 +34,11 @@ def path_operation_img(name: str):
     client = _client_for(name)
     shutil.copy("./docs/en/docs/img/favicon.png", "./image.png")
     response = client.get("/items/foo?img=1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["Content-Type"]).to_equal("image/png")
-    expect(len(response.content)).to_be_truthy()
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["Content-Type"], "content-type header").to_equal(
+        "image/png"
+    )
+    expect(len(response.content), "content length").to_be_truthy()
     os.remove("./image.png")
 
 
@@ -44,8 +48,8 @@ def path_operation_img(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

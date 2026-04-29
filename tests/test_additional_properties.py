@@ -19,18 +19,18 @@ def foo(items: Items):
 client = TestClient(app)
 
 
-@test
+@test("posting a dict[str, int] returns the unwrapped mapping")
 def additional_properties_post():
     response = client.post("/foo", json={"items": {"foo": 1, "bar": 2}})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"foo": 1, "bar": 2})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"foo": 1, "bar": 2})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

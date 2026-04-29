@@ -40,55 +40,57 @@ async def read_starlette_item(item_id: str):
 client = TestClient(app)
 
 
-@test
+@test("Existing item returns 200 with body")
 def get_item():
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": "The Foo Wrestlers"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item": "The Foo Wrestlers"})
 
 
-@test
+@test("HTTPException with custom headers reaches the response")
 def get_item_not_found():
     response = client.get("/items/bar")
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.headers.get("x-error")).to_equal("Some custom header")
-    expect(response.json()).to_equal({"detail": "Item not found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.headers.get("x-error"), "X-Error header").to_equal(
+        "Some custom header"
+    )
+    expect(response.json(), "response body").to_equal({"detail": "Item not found"})
 
 
-@test
+@test("Starlette HTTPException returns expected body")
 def get_starlette_item():
     response = client.get("/starlette-items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": "The Foo Wrestlers"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item": "The Foo Wrestlers"})
 
 
-@test
+@test("Starlette HTTPException returns 404 without custom headers")
 def get_starlette_item_not_found():
     response = client.get("/starlette-items/bar")
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.headers.get("x-error")).to_be_none()
-    expect(response.json()).to_equal({"detail": "Item not found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.headers.get("x-error"), "X-Error header").to_be_none()
+    expect(response.json(), "response body").to_equal({"detail": "Item not found"})
 
 
-@test
+@test("HTTPException with no-body status code returns empty body")
 def no_body_status_code_exception_handlers():
     response = client.get("/http-no-body-statuscode-exception")
-    expect(response.status_code).to_equal(204)
-    expect(response.content).to_be_falsy()
+    expect(response.status_code, "status code").to_equal(204)
+    expect(response.content, "response content").to_be_falsy()
 
 
-@test
+@test("HTTPException with no-body status code drops the detail")
 def no_body_status_code_with_detail_exception_handlers():
     response = client.get("/http-no-body-statuscode-with-detail-exception")
-    expect(response.status_code).to_equal(204)
-    expect(response.content).to_be_falsy()
+    expect(response.status_code, "status code").to_equal(204)
+    expect(response.content, "response content").to_be_falsy()
 
 
-@test
+@test("OpenAPI schema reflects starlette exception routes")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

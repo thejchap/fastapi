@@ -28,18 +28,18 @@ def f():
 client = TestClient(app)
 
 
-@test
+@test("nested models with duplicates serialise correctly")
 def get_api_route():
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"c": {}, "d": {"a": {}}})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"c": {}, "d": {"a": {}}})
 
 
-@test
+@test("OpenAPI schema deduplicates shared model components")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

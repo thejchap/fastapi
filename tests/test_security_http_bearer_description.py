@@ -17,34 +17,40 @@ def read_current_user(credentials: HTTPAuthorizationCredentials = Security(secur
 client = TestClient(app)
 
 
-@test
+@test("HTTPBearer with description authenticates with valid Bearer token")
 def security_http_bearer():
     response = client.get("/users/me", headers={"Authorization": "Bearer foobar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"scheme": "Bearer", "credentials": "foobar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"scheme": "Bearer", "credentials": "foobar"}
+    )
 
 
-@test
+@test("HTTPBearer without credentials returns 401")
 def security_http_bearer_no_credentials():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
-@test
+@test("HTTPBearer rejects non-Bearer scheme credentials")
 def security_http_bearer_incorrect_scheme_credentials():
     response = client.get("/users/me", headers={"Authorization": "Basic notreally"})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
-@test
+@test("OpenAPI schema includes HTTPBearer description")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

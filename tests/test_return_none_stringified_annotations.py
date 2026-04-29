@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from tryke import expect, test
 
 
-@test
+@test("stringified -> 'None' annotation returns no body")
 def no_content():
     app = FastAPI()
 
@@ -15,5 +15,7 @@ def no_content():
 
     client = TestClient(app)
     response = client.get("/no-content")
-    expect(response.status_code).to_equal(http.HTTPStatus.NO_CONTENT).fatal()
-    expect(response.content).to_be_falsy()
+    expect(response.status_code, "status code").to_equal(
+        http.HTTPStatus.NO_CONTENT
+    ).fatal()
+    expect(response.content, "response content").to_be_falsy()

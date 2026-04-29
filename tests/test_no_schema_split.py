@@ -45,11 +45,11 @@ async def create_message(input_message: str) -> Message:
 client = TestClient(app)
 
 
-@test
+@test("POST /messages returns the nested MessageOutput")
 def create_message():
     response = client.post("/messages", params={"input_message": "Hello"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "input": "Hello",
             "output": {"body": "Processed: Hello", "events": []},
@@ -57,11 +57,11 @@ def create_message():
     )
 
 
-@test
+@test("OpenAPI schema does not split the nested Message models")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

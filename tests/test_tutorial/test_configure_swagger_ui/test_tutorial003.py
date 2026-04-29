@@ -6,24 +6,24 @@ from docs_src.configure_swagger_ui.tutorial003_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("Swagger UI HTML overrides defaults like deepLinking")
 def swagger_ui():
     response = client.get("/docs")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_contain('"deepLinking": false,')
-    expect(response.text).not_.to_contain('"deepLinking": true')
-    expect(response.text).not_.to_contain('"syntaxHighlight": false')
-    expect(response.text).to_contain('"dom_id": "#swagger-ui"')
-    expect(response.text).to_contain("presets: [")
-    expect(response.text).to_contain("SwaggerUIBundle.presets.apis,")
-    expect(response.text).to_contain("SwaggerUIBundle.SwaggerUIStandalonePreset")
-    expect(response.text).to_contain('"layout": "BaseLayout",')
-    expect(response.text).to_contain('"showExtensions": true,')
-    expect(response.text).to_contain('"showCommonExtensions": true,')
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.text, "response text").to_contain('"deepLinking": false,')
+    expect(response.text, "response text").not_.to_contain('"deepLinking": true')
+    expect(response.text, "response text").not_.to_contain('"syntaxHighlight": false')
+    expect(response.text, "response text").to_contain('"dom_id": "#swagger-ui"')
+    expect(response.text, "response text").to_contain("presets: [")
+    expect(response.text, "response text").to_contain("SwaggerUIBundle.presets.apis,")
+    expect(response.text, "response text").to_contain("SwaggerUIBundle.SwaggerUIStandalonePreset")
+    expect(response.text, "response text").to_contain('"layout": "BaseLayout",')
+    expect(response.text, "response text").to_contain('"showExtensions": true,')
+    expect(response.text, "response text").to_contain('"showCommonExtensions": true,')
 
 
-@test
+@test("GET /users/foo returns greeting")
 def get_users():
     response = client.get("/users/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Hello foo"})

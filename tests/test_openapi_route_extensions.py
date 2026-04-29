@@ -14,18 +14,18 @@ def route_with_extras():
 client = TestClient(app)
 
 
-@test
+@test("Routes with openapi_extra still serve their handler")
 def get_route():
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({})
 
 
-@test
+@test("Per-route openapi_extra ends up in the OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

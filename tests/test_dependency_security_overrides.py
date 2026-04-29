@@ -33,10 +33,10 @@ def read_user(
 client = TestClient(app)
 
 
-@test
+@test("default Security and Depends both resolve normally")
 def normal():
     response = client.get("/user")
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "user": "john",
             "scopes": ["foo", "bar"],
@@ -45,11 +45,11 @@ def normal():
     )
 
 
-@test
+@test("overriding Depends replaces only the data dependency")
 def override_data():
     app.dependency_overrides[get_data] = get_data_override
     response = client.get("/user")
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "user": "john",
             "scopes": ["foo", "bar"],
@@ -59,11 +59,11 @@ def override_data():
     app.dependency_overrides = {}
 
 
-@test
+@test("overriding Security replaces only the user dependency")
 def override_security():
     app.dependency_overrides[get_user] = get_user_override
     response = client.get("/user")
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "user": "alice",
             "scopes": ["foo", "bar"],

@@ -62,8 +62,10 @@ def file_form_order(endpoint_path: str):
             data={"city": "Thimphou"},
             files={"file": (tmp_file_1.name, tmp_file_1.read_bytes())},
         )
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"file_content": "foo", "city": "Thimphou"})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal(
+            {"file_content": "foo", "city": "Thimphou"}
+        )
 
 
 @test.cases(
@@ -84,7 +86,7 @@ def file_list_form_order(endpoint_path: str):
                 ("files", (tmp_file_2.name, tmp_file_2.read_bytes())),
             ),
         )
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal(
             {"file_contents": ["foo", "bar"], "city": "Thimphou"}
         )

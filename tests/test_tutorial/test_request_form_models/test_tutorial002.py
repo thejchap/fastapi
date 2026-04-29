@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def post_body_form(name: str):
     client = _client_for(name)
     response = client.post("/login/", data={"username": "Foo", "password": "secret"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Foo", "password": "secret"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Foo", "password": "secret"})
 
 
 @test.cases(
@@ -30,8 +30,8 @@ def post_body_extra_form(name: str):
     response = client.post(
         "/login/", data={"username": "Foo", "password": "secret", "extra": "extra"}
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -52,8 +52,8 @@ def post_body_extra_form(name: str):
 def post_body_form_no_password(name: str):
     client = _client_for(name)
     response = client.post("/login/", data={"username": "Foo"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -74,8 +74,8 @@ def post_body_form_no_password(name: str):
 def post_body_form_no_username(name: str):
     client = _client_for(name)
     response = client.post("/login/", data={"password": "secret"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -96,8 +96,8 @@ def post_body_form_no_username(name: str):
 def post_body_form_no_data(name: str):
     client = _client_for(name)
     response = client.post("/login/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -124,8 +124,8 @@ def post_body_form_no_data(name: str):
 def post_body_json(name: str):
     client = _client_for(name)
     response = client.post("/login/", json={"username": "Foo", "password": "secret"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -152,8 +152,8 @@ def post_body_json(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

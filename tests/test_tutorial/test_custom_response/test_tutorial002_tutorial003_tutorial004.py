@@ -30,8 +30,8 @@ html_contents = """
 def get_custom_response(mod_name: str):
     client = _client_for(mod_name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_equal(html_contents)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.text, "response text").to_equal(html_contents)
 
 
 @test.cases(
@@ -47,8 +47,8 @@ def openapi_schema(mod_name: str):
         response_content = {"text/html": {"schema": {"type": "string"}}}
 
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

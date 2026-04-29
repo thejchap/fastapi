@@ -14,11 +14,11 @@ async def a(id):
 client = TestClient(app)
 
 
-@test
+@test("OpenAPI schema includes default 422 ValidationError")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

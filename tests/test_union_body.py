@@ -23,25 +23,25 @@ def save_union_body(item: OtherItem | Item):
 client = TestClient(app)
 
 
-@test
+@test("Union body matches OtherItem when payload has price")
 def post_other_item():
     response = client.post("/items/", json={"price": 100})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": {"price": 100}})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item": {"price": 100}})
 
 
-@test
+@test("Union body matches Item when payload has name")
 def post_item():
     response = client.post("/items/", json={"name": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": {"name": "Foo"}})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item": {"name": "Foo"}})
 
 
-@test
+@test("OpenAPI schema represents union body as anyOf")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

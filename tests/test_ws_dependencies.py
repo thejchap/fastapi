@@ -52,27 +52,29 @@ app.include_router(
 )
 
 
-@test
+@test("WebSocket / sees app and route dependencies in order")
 def index_ws():
     client = TestClient(app)
     with client.websocket_connect("/") as websocket:
         data = json.loads(websocket.receive_text())
-        expect(data).to_equal(["app", "index"])
+        expect(data, "received dependency list").to_equal(["app", "index"])
 
 
-@test
+@test("WebSocket /router sees app, include_router, router and route deps")
 def routerindex_ws():
     client = TestClient(app)
     with client.websocket_connect("/router") as websocket:
         data = json.loads(websocket.receive_text())
-        expect(data).to_equal(["app", "router2", "router", "routerindex"])
+        expect(data, "received dependency list").to_equal(
+            ["app", "router2", "router", "routerindex"]
+        )
 
 
-@test
+@test("WebSocket /prefix/ sees prefix-router include_router and route deps")
 def routerprefixindex_ws():
     client = TestClient(app)
     with client.websocket_connect("/prefix/") as websocket:
         data = json.loads(websocket.receive_text())
-        expect(data).to_equal(
+        expect(data, "received dependency list").to_equal(
             ["app", "prefix_router2", "prefix_router", "routerprefixindex"]
         )

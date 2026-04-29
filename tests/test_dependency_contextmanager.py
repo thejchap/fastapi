@@ -213,199 +213,275 @@ async def middleware(request, call_next):
 client = TestClient(app)
 
 
-@test
+@test("async generator dependency runs both setup and teardown")
 def async_state():
-    expect(state["/async"]).to_equal("asyncgen not started")
+    expect(state["/async"], "/async state").to_equal("asyncgen not started")
     response = client.get("/async")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("asyncgen started")
-    expect(state["/async"]).to_equal("asyncgen completed")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("asyncgen started")
+    expect(state["/async"], "/async state").to_equal("asyncgen completed")
 
 
-@test
+@test("sync generator dependency runs both setup and teardown")
 def sync_state():
-    expect(state["/sync"]).to_equal("generator not started")
+    expect(state["/sync"], "/sync state").to_equal("generator not started")
     response = client.get("/sync")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("generator started")
-    expect(state["/sync"]).to_equal("generator completed")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("generator started")
+    expect(state["/sync"], "/sync state").to_equal("generator completed")
 
 
-@test
+@test("uncaught error reaches finalize but not the except clause (async)")
 def async_raise_other():
-    expect(state["/async_raise"]).to_equal("asyncgen raise not started")
-    expect(lambda: client.get("/async_raise_other")).to_raise(OtherDependencyError)
-    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
-    expect(errors).not_.to_contain("/async_raise")
+    expect(state["/async_raise"], "/async_raise state").to_equal(
+        "asyncgen raise not started"
+    )
+    expect(
+        lambda: client.get("/async_raise_other"),
+        "GET /async_raise_other",
+    ).to_raise(OtherDependencyError)
+    expect(state["/async_raise"], "/async_raise state").to_equal(
+        "asyncgen raise finalized"
+    )
+    expect(errors, "captured errors").not_.to_contain("/async_raise")
 
 
-@test
+@test("uncaught error reaches finalize but not the except clause (sync)")
 def sync_raise_other():
-    expect(state["/sync_raise"]).to_equal("generator raise not started")
-    expect(lambda: client.get("/sync_raise_other")).to_raise(OtherDependencyError)
-    expect(state["/sync_raise"]).to_equal("generator raise finalized")
-    expect(errors).not_.to_contain("/sync_raise")
+    expect(state["/sync_raise"], "/sync_raise state").to_equal(
+        "generator raise not started"
+    )
+    expect(
+        lambda: client.get("/sync_raise_other"),
+        "GET /sync_raise_other",
+    ).to_raise(OtherDependencyError)
+    expect(state["/sync_raise"], "/sync_raise state").to_equal(
+        "generator raise finalized"
+    )
+    expect(errors, "captured errors").not_.to_contain("/sync_raise")
 
 
-@test
+@test("matching error type triggers the except clause (async)")
 def async_raise_raises():
-    expect(lambda: client.get("/async_raise")).to_raise(AsyncDependencyError)
-    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
-    expect(errors).to_contain("/async_raise")
+    expect(
+        lambda: client.get("/async_raise"),
+        "GET /async_raise",
+    ).to_raise(AsyncDependencyError)
+    expect(state["/async_raise"], "/async_raise state").to_equal(
+        "asyncgen raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/async_raise")
     errors.clear()
 
 
-@test
+@test("server-error suppression returns 500 when async dep raises")
 def async_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/async_raise")
-    expect(response.status_code).to_equal(500).fatal()
-    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
-    expect(errors).to_contain("/async_raise")
+    expect(response.status_code, "status code").to_equal(500).fatal()
+    expect(state["/async_raise"], "/async_raise state").to_equal(
+        "asyncgen raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/async_raise")
     errors.clear()
 
 
-@test
+@test("nested context dependencies run setup and teardown in order")
 def context_b_test():
     response = client.get("/context_b")
     data = response.json()
-    expect(data["context_b"]).to_equal("started b")
-    expect(data["context_a"]).to_equal("started a")
-    expect(state["context_b"]).to_equal("finished b with a: started a")
-    expect(state["context_a"]).to_equal("finished a")
+    expect(data["context_b"], "context_b in body").to_equal("started b")
+    expect(data["context_a"], "context_a in body").to_equal("started a")
+    expect(state["context_b"], "context_b state").to_equal(
+        "finished b with a: started a"
+    )
+    expect(state["context_a"], "context_a state").to_equal("finished a")
 
 
-@test
+@test("error in endpoint still finalizes nested context dependencies")
 def context_b_raise():
-    expect(lambda: client.get("/context_b_raise")).to_raise(OtherDependencyError)
-    expect(state["context_b"]).to_equal("finished b with a: started a")
-    expect(state["context_a"]).to_equal("finished a")
+    expect(
+        lambda: client.get("/context_b_raise"),
+        "GET /context_b_raise",
+    ).to_raise(OtherDependencyError)
+    expect(state["context_b"], "context_b state").to_equal(
+        "finished b with a: started a"
+    )
+    expect(state["context_a"], "context_a state").to_equal("finished a")
 
 
-@test
+@test("background tasks see finalized context state via middleware")
 def background_tasks():
     response = client.get("/context_b_bg")
     data = response.json()
-    expect(data["context_b"]).to_equal("started b")
-    expect(data["context_a"]).to_equal("started a")
-    expect(data["bg"]).to_equal("not set")
+    expect(data["context_b"], "context_b in body").to_equal("started b")
+    expect(data["context_a"], "context_a in body").to_equal("started a")
+    expect(data["bg"], "bg in body").to_equal("not set")
     middleware_state = json.loads(response.headers["x-state"])
-    expect(middleware_state["context_b"]).to_equal("started b")
-    expect(middleware_state["context_a"]).to_equal("started a")
-    expect(middleware_state["bg"]).to_equal("not set")
-    expect(state["context_b"]).to_equal("finished b with a: started a")
-    expect(state["context_a"]).to_equal("finished a")
-    expect(state["bg"]).to_equal("bg set - b: started b - a: started a")
+    expect(middleware_state["context_b"], "middleware context_b").to_equal(
+        "started b"
+    )
+    expect(middleware_state["context_a"], "middleware context_a").to_equal(
+        "started a"
+    )
+    expect(middleware_state["bg"], "middleware bg").to_equal("not set")
+    expect(state["context_b"], "context_b state").to_equal(
+        "finished b with a: started a"
+    )
+    expect(state["context_a"], "context_a state").to_equal("finished a")
+    expect(state["bg"], "bg state").to_equal("bg set - b: started b - a: started a")
 
 
-@test
+@test("matching error type triggers the except clause (sync)")
 def sync_raise_raises():
-    expect(lambda: client.get("/sync_raise")).to_raise(SyncDependencyError)
-    expect(state["/sync_raise"]).to_equal("generator raise finalized")
-    expect(errors).to_contain("/sync_raise")
+    expect(
+        lambda: client.get("/sync_raise"),
+        "GET /sync_raise",
+    ).to_raise(SyncDependencyError)
+    expect(state["/sync_raise"], "/sync_raise state").to_equal(
+        "generator raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/sync_raise")
     errors.clear()
 
 
-@test
+@test("server-error suppression returns 500 when sync dep raises")
 def sync_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/sync_raise")
-    expect(response.status_code).to_equal(500).fatal()
-    expect(state["/sync_raise"]).to_equal("generator raise finalized")
-    expect(errors).to_contain("/sync_raise")
+    expect(response.status_code, "status code").to_equal(500).fatal()
+    expect(state["/sync_raise"], "/sync_raise state").to_equal(
+        "generator raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/sync_raise")
     errors.clear()
 
 
-@test
+@test("sync endpoint with async generator dependency works end-to-end")
 def sync_async_state():
     response = client.get("/sync_async")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("asyncgen started")
-    expect(state["/async"]).to_equal("asyncgen completed")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("asyncgen started")
+    expect(state["/async"], "/async state").to_equal("asyncgen completed")
 
 
-@test
+@test("sync endpoint with sync generator dependency works end-to-end")
 def sync_sync_state():
     response = client.get("/sync_sync")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("generator started")
-    expect(state["/sync"]).to_equal("generator completed")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("generator started")
+    expect(state["/sync"], "/sync state").to_equal("generator completed")
 
 
-@test
+@test("sync endpoint: uncaught error skips except, runs finalize (async dep)")
 def sync_async_raise_other():
-    expect(lambda: client.get("/sync_async_raise_other")).to_raise(OtherDependencyError)
-    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
-    expect(errors).not_.to_contain("/async_raise")
+    expect(
+        lambda: client.get("/sync_async_raise_other"),
+        "GET /sync_async_raise_other",
+    ).to_raise(OtherDependencyError)
+    expect(state["/async_raise"], "/async_raise state").to_equal(
+        "asyncgen raise finalized"
+    )
+    expect(errors, "captured errors").not_.to_contain("/async_raise")
 
 
-@test
+@test("sync endpoint: uncaught error skips except, runs finalize (sync dep)")
 def sync_sync_raise_other():
-    expect(lambda: client.get("/sync_sync_raise_other")).to_raise(OtherDependencyError)
-    expect(state["/sync_raise"]).to_equal("generator raise finalized")
-    expect(errors).not_.to_contain("/sync_raise")
+    expect(
+        lambda: client.get("/sync_sync_raise_other"),
+        "GET /sync_sync_raise_other",
+    ).to_raise(OtherDependencyError)
+    expect(state["/sync_raise"], "/sync_raise state").to_equal(
+        "generator raise finalized"
+    )
+    expect(errors, "captured errors").not_.to_contain("/sync_raise")
 
 
-@test
+@test("sync endpoint: matching error type triggers async dep except")
 def sync_async_raise_raises():
-    expect(lambda: client.get("/sync_async_raise")).to_raise(AsyncDependencyError)
-    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
-    expect(errors).to_contain("/async_raise")
+    expect(
+        lambda: client.get("/sync_async_raise"),
+        "GET /sync_async_raise",
+    ).to_raise(AsyncDependencyError)
+    expect(state["/async_raise"], "/async_raise state").to_equal(
+        "asyncgen raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/async_raise")
     errors.clear()
 
 
-@test
+@test("sync endpoint with async dep returns 500 when suppressed")
 def sync_async_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/sync_async_raise")
-    expect(response.status_code).to_equal(500).fatal()
-    expect(state["/async_raise"]).to_equal("asyncgen raise finalized")
-    expect(errors).to_contain("/async_raise")
+    expect(response.status_code, "status code").to_equal(500).fatal()
+    expect(state["/async_raise"], "/async_raise state").to_equal(
+        "asyncgen raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/async_raise")
     errors.clear()
 
 
-@test
+@test("sync endpoint: matching error type triggers sync dep except")
 def sync_sync_raise_raises():
-    expect(lambda: client.get("/sync_sync_raise")).to_raise(SyncDependencyError)
-    expect(state["/sync_raise"]).to_equal("generator raise finalized")
-    expect(errors).to_contain("/sync_raise")
+    expect(
+        lambda: client.get("/sync_sync_raise"),
+        "GET /sync_sync_raise",
+    ).to_raise(SyncDependencyError)
+    expect(state["/sync_raise"], "/sync_raise state").to_equal(
+        "generator raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/sync_raise")
     errors.clear()
 
 
-@test
+@test("sync endpoint with sync dep returns 500 when suppressed")
 def sync_sync_raise_server_error():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/sync_sync_raise")
-    expect(response.status_code).to_equal(500).fatal()
-    expect(state["/sync_raise"]).to_equal("generator raise finalized")
-    expect(errors).to_contain("/sync_raise")
+    expect(response.status_code, "status code").to_equal(500).fatal()
+    expect(state["/sync_raise"], "/sync_raise state").to_equal(
+        "generator raise finalized"
+    )
+    expect(errors, "captured errors").to_contain("/sync_raise")
     errors.clear()
 
 
-@test
+@test("sync endpoint with nested context dependencies finalises in order")
 def sync_context_b():
     response = client.get("/sync_context_b")
     data = response.json()
-    expect(data["context_b"]).to_equal("started b")
-    expect(data["context_a"]).to_equal("started a")
-    expect(state["context_b"]).to_equal("finished b with a: started a")
-    expect(state["context_a"]).to_equal("finished a")
+    expect(data["context_b"], "context_b in body").to_equal("started b")
+    expect(data["context_a"], "context_a in body").to_equal("started a")
+    expect(state["context_b"], "context_b state").to_equal(
+        "finished b with a: started a"
+    )
+    expect(state["context_a"], "context_a state").to_equal("finished a")
 
 
-@test
+@test("sync endpoint: error still finalises nested context dependencies")
 def sync_context_b_raise():
-    expect(lambda: client.get("/sync_context_b_raise")).to_raise(OtherDependencyError)
-    expect(state["context_b"]).to_equal("finished b with a: started a")
-    expect(state["context_a"]).to_equal("finished a")
+    expect(
+        lambda: client.get("/sync_context_b_raise"),
+        "GET /sync_context_b_raise",
+    ).to_raise(OtherDependencyError)
+    expect(state["context_b"], "context_b state").to_equal(
+        "finished b with a: started a"
+    )
+    expect(state["context_a"], "context_a state").to_equal("finished a")
 
 
-@test
+@test("sync endpoint background tasks see finalised context state")
 def sync_background_tasks():
     response = client.get("/sync_context_b_bg")
     data = response.json()
-    expect(data["context_b"]).to_equal("started b")
-    expect(data["context_a"]).to_equal("started a")
-    expect(data["sync_bg"]).to_equal("not set")
-    expect(state["context_b"]).to_equal("finished b with a: started a")
-    expect(state["context_a"]).to_equal("finished a")
-    expect(state["sync_bg"]).to_equal("sync_bg set - b: started b - a: started a")
+    expect(data["context_b"], "context_b in body").to_equal("started b")
+    expect(data["context_a"], "context_a in body").to_equal("started a")
+    expect(data["sync_bg"], "sync_bg in body").to_equal("not set")
+    expect(state["context_b"], "context_b state").to_equal(
+        "finished b with a: started a"
+    )
+    expect(state["context_a"], "context_a state").to_equal("finished a")
+    expect(state["sync_bg"], "sync_bg state").to_equal(
+        "sync_bg set - b: started b - a: started a"
+    )

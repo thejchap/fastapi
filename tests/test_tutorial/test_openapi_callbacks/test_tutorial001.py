@@ -12,26 +12,26 @@ def client() -> TestClient:
     return client
 
 
-@test
+@test("POST /invoices/ accepts an invoice")
 def get(client: TestClient = Depends(client)):
     response = client.post(
         "/invoices/", json={"id": "fooinvoice", "customer": "John", "total": 5.3}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Invoice received"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"msg": "Invoice received"})
 
 
-@test
+@test("invoice_notification callback can be invoked directly")
 def dummy_callback():
     # Just for coverage.
     mod.invoice_notification({})
 
 
-@test
+@test("OpenAPI schema includes the registered callbacks")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

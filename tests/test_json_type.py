@@ -32,37 +32,37 @@ def cookie_json_list(items: Annotated[Json[list[str]], Cookie()]) -> list[str]:
 client = TestClient(app)
 
 
-@test
+@test("Json[list[str]] form field decodes JSON-encoded values")
 def form_json_list():
     response = client.post(
         "/form-json-list", data={"items": json.dumps(["abc", "def"])}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["abc", "def"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["abc", "def"])
 
 
-@test
+@test("Json[list[str]] query param decodes JSON-encoded values")
 def query_json_list():
     response = client.get(
         "/query-json-list", params={"items": json.dumps(["abc", "def"])}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["abc", "def"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["abc", "def"])
 
 
-@test
+@test("Json[list[str]] header decodes JSON-encoded values")
 def header_json_list():
     response = client.get(
         "/header-json-list", headers={"x-items": json.dumps(["abc", "def"])}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["abc", "def"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["abc", "def"])
 
 
-@test
+@test("Json[list[str]] cookie decodes JSON-encoded values")
 def cookie_json_list():
     client.cookies.set("items", json.dumps(["abc", "def"]))
     response = client.get("/cookie-json-list")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["abc", "def"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["abc", "def"])
     client.cookies.clear()

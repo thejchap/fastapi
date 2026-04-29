@@ -40,18 +40,18 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("Stringified Annotated dependency resolves correctly")
 def get(client: TestClient = TrykeDepends(client)):
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["John Doe", "Jane Doe"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["John Doe", "Jane Doe"])
 
 
-@test
+@test("OpenAPI schema for endpoint with stringified Annotated dependency")
 def openapi_schema(client: TestClient = TrykeDepends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -42,8 +42,8 @@ def post_items(mod_name: str):
             "tags": ["bar", "baz"],
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "description": "Item description",
@@ -63,8 +63,8 @@ def openapi_schema(mod_name: str):
     short_name = mod_name[:11]
 
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

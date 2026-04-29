@@ -7,25 +7,27 @@ from docs_src.additional_responses.tutorial003_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/foo returns the item")
 def path_operation():
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"id": "foo", "value": "there goes my hero"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"id": "foo", "value": "there goes my hero"}
+    )
 
 
-@test
+@test("GET /items/bar returns the 404 message")
 def path_operation_not_found():
     response = client.get("/items/bar")
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.json()).to_equal({"message": "Item not found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Item not found"})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

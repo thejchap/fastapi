@@ -10,15 +10,15 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("PUT with body and query parameter succeeds")
 def put_all(client: TestClient = Depends(client)):
     response = client.put(
         "/items/123",
         json={"name": "Foo", "price": 50.1, "description": "Some Foo", "tax": 0.3},
         params={"q": "somequery"},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 123,
             "name": "Foo",
@@ -30,14 +30,14 @@ def put_all(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("PUT with only required fields succeeds")
 def put_only_required(client: TestClient = Depends(client)):
     response = client.put(
         "/items/123",
         json={"name": "Foo", "price": 50.1},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 123,
             "name": "Foo",
@@ -48,11 +48,11 @@ def put_only_required(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("PUT with empty body returns missing-field errors")
 def put_with_no_data(client: TestClient = Depends(client)):
     response = client.put("/items/123", json={})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -72,11 +72,11 @@ def put_with_no_data(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

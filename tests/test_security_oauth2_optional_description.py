@@ -45,32 +45,34 @@ def read_users_me(current_user: User | None = Depends(get_current_user)):
 client = TestClient(app)
 
 
-@test
+@test("Optional OAuth2 with description reads Bearer header")
 def security_oauth2():
     response = client.get("/users/me", headers={"Authorization": "Bearer footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Bearer footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Bearer footokenbar"})
 
 
-@test
+@test("Optional OAuth2 with description reads non-Bearer header")
 def security_oauth2_password_other_header():
     response = client.get("/users/me", headers={"Authorization": "Other footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Other footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Other footokenbar"})
 
 
-@test
+@test("Optional OAuth2 with description allows missing header")
 def security_oauth2_password_bearer_no_header():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("Strict OAuth2 password form rejects None body")
 def strict_login_None():
     response = client.post("/login", data=None)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -96,11 +98,11 @@ def strict_login_None():
     )
 
 
-@test
+@test("Strict OAuth2 password form rejects missing grant_type")
 def strict_login_no_grant_type():
     response = client.post("/login", data={"username": "johndoe", "password": "secret"})
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -124,8 +126,8 @@ def strict_login_incorrect_grant_type(grant_type: str):
         "/login",
         data={"username": "johndoe", "password": "secret", "grant_type": grant_type},
     )
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -140,14 +142,14 @@ def strict_login_incorrect_grant_type(grant_type: str):
     )
 
 
-@test
+@test("Strict OAuth2 password form accepts correct grant_type")
 def strict_login_correct_correct_grant_type():
     response = client.post(
         "/login",
         data={"username": "johndoe", "password": "secret", "grant_type": "password"},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "grant_type": "password",
             "username": "johndoe",
@@ -159,11 +161,11 @@ def strict_login_correct_correct_grant_type():
     )
 
 
-@test
+@test("OpenAPI schema includes OAuth2 description")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

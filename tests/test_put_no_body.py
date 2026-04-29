@@ -14,25 +14,25 @@ def save_item_no_body(item_id: str):
 client = TestClient(app)
 
 
-@test
+@test("PUT with no body works on a body-less route")
 def put_no_body():
     response = client.put("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": "foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": "foo"})
 
 
-@test
+@test("PUT with an unexpected body still works on a body-less route")
 def put_no_body_with_body():
     response = client.put("/items/foo", json={"name": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": "foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": "foo"})
 
 
-@test
+@test("OpenAPI schema for a body-less PUT route")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

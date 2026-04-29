@@ -16,8 +16,8 @@ def _client_for(name: str) -> TestClient:
 def get(name: str):
     client = _client_for(name)
     response = client.get("/items/baz")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Baz",
             "description": None,
@@ -36,7 +36,7 @@ def put(name: str):
     response = client.put(
         "/items/bar", json={"name": "Barz", "price": 3, "description": None}
     )
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Barz",
             "description": None,
@@ -53,8 +53,8 @@ def put(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -20,25 +20,25 @@ async def get_root():
 client = TestClient(app)
 
 
-@test
+@test("Top-level Bearer dependency authorises GET /")
 def get_root_ok():
     response = client.get("/", headers={"Authorization": "Bearer token"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello, World!"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Hello, World!"})
 
 
-@test
+@test("Top-level Bearer dependency rejects unauthenticated GET /")
 def get_root_no_token():
     response = client.get("/")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
-@test
+@test("Top-level security scheme appears in OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

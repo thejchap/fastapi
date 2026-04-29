@@ -35,7 +35,7 @@ def gzip_request(name: str, compress: bool):
         headers["Content-Encoding"] = "gzip"
     headers["Content-Type"] = "application/json"
     response = client.post("/sum", content=data, headers=headers)
-    expect(response.json()).to_equal({"sum": n})
+    expect(response.json(), "response body").to_equal({"sum": n})
 
 
 @test.cases(
@@ -45,4 +45,4 @@ def gzip_request(name: str, compress: bool):
 def request_class(name: str):
     client = _client_for(name)
     response = client.get("/check-class")
-    expect(response.json()).to_equal({"request_class": "GzipRequest"})
+    expect(response.json(), "response body").to_equal({"request_class": "GzipRequest"})

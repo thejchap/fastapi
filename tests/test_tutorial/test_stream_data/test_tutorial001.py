@@ -61,8 +61,8 @@ expected_text = (
 def stream_story(name: str, path: str):
     client = _client_for(name)
     response = client.get(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_equal(expected_text)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.text, "streamed body").to_equal(expected_text)
 
 
 @test.cases(
@@ -71,8 +71,8 @@ def stream_story(name: str, path: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -59,39 +59,39 @@ app.include_router(router)
 client = TestClient(app)
 
 
-@test
+@test("GET /a returns the expected payload")
 def a_route():
     response = client.get("/a")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("a")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("a")
 
 
-@test
+@test("GET /b returns the expected payload")
 def b_route():
     response = client.get("/b")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("b")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("b")
 
 
-@test
+@test("GET /c returns the expected payload")
 def c_route():
     response = client.get("/c")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("c")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("c")
 
 
-@test
+@test("GET /d returns the expected payload")
 def d_route():
     response = client.get("/d")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("d")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("d")
 
 
-@test
+@test("OpenAPI schema renders router-level additional responses")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

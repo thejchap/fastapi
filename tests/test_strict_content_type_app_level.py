@@ -22,28 +22,28 @@ client_default = TestClient(app_default)
 client_lax = TestClient(app_lax)
 
 
-@test
+@test("Default strict app rejects POST without content-type")
 def default_strict_rejects_no_content_type():
     response = client_default.post("/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Default strict app accepts POST with JSON content-type")
 def default_strict_accepts_json_content_type():
     response = client_default.post("/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"key": "value"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"key": "value"})
 
 
-@test
+@test("Lax app accepts POST without content-type")
 def lax_accepts_no_content_type():
     response = client_lax.post("/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"key": "value"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"key": "value"})
 
 
-@test
+@test("Lax app accepts POST with JSON content-type")
 def lax_accepts_json_content_type():
     response = client_lax.post("/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"key": "value"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"key": "value"})

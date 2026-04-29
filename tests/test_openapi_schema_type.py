@@ -12,12 +12,13 @@ def allowed_schema_type(
 ) -> None:
     """Test that Schema accepts SchemaType, List[SchemaType] and None for type field."""
     schema = Schema(type=type_value)
-    expect(schema.type).to_equal(type_value)
+    expect(schema.type, "schema.type").to_equal(type_value)
 
 
-@test
+@test("Schema rejects invalid type values")
 def invalid_type_value() -> None:
     """Test that Schema raises ValueError for invalid type values."""
-    expect(lambda: Schema(type=True)).to_raise(  # type: ignore[arg-type]
-        ValueError, match="2 validation errors for Schema"
-    )
+    expect(
+        lambda: Schema(type=True),  # type: ignore[arg-type]
+        "constructing Schema with type=True",
+    ).to_raise(ValueError, match="2 validation errors for Schema")

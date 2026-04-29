@@ -28,8 +28,10 @@ def path_operation(name: str):
     """
 
     response = client.get("/legacy/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal("application/xml")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type header").to_equal(
+        "application/xml"
+    )
     assert response.text == expected_content
 
 
@@ -39,8 +41,8 @@ def path_operation(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "info": {

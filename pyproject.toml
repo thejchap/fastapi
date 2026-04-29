@@ -47,6 +47,7 @@ dependencies = [
     "typing-extensions>=4.8.0",
     "typing-inspection>=0.4.2",
     "annotated-doc>=0.0.2",
+    "tryke",
 ]
 
 [project.urls]
@@ -350,5 +351,8 @@ known-third-party = ["fastapi", "pydantic", "starlette"]
 keep-runtime-typing = true
 
 [tool.inline-snapshot]
+
+[tool.uv.sources]
+tryke = { path = "../../.config/superpowers/worktrees/tryke/add-next-sugar-reporters" }
 # default-flags=["fix"]
 # default-flags=["create"]

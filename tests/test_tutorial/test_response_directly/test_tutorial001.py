@@ -24,8 +24,8 @@ def path_operation(name: str):
             "description": "A test item",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "description": "A test item",
             "timestamp": "2023-01-01T12:00:00",
@@ -40,8 +40,8 @@ def path_operation(name: str):
 def openapi_schema_pv2(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "info": {

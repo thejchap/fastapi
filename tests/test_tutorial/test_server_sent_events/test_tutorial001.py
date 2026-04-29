@@ -29,14 +29,14 @@ def _client_for(name: str) -> TestClient:
 def stream_items(name: str, path: str):
     client = _client_for(name)
     response = client.get(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
     data_lines = [
         line for line in response.text.strip().split("\n") if line.startswith("data: ")
     ]
-    expect(data_lines).to_have_length(3)
+    expect(data_lines, "data lines emitted").to_have_length(3)
 
 
 @test.cases(
@@ -45,8 +45,8 @@ def stream_items(name: str, path: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

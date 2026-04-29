@@ -44,8 +44,8 @@ client = TestClient(app)
 # in the same contextvar context, so that
 # request_state_context_var.reset(contextvar_token). If they are run in a
 # different context, that raises an error.
-@test
+@test("dependency setup/teardown share a contextvar context across middleware")
 def dependency_contextvars():
     response = client.get("/user")
-    expect(response.json()).to_equal("deadpond")
-    expect(response.headers["custom"]).to_equal("foo")
+    expect(response.json(), "response body").to_equal("deadpond")
+    expect(response.headers["custom"], "custom header").to_equal("foo")

@@ -16,29 +16,35 @@ def _client_for(name: str) -> TestClient:
 def stream_items(name: str):
     client = _client_for(name)
     response = client.get("/items/stream")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type header").to_equal(
         "text/event-stream; charset=utf-8"
     )
 
     lines = response.text.strip().split("\n")
 
     # First event is a comment-only event.
-    expect(lines[0]).to_equal(": stream of item updates")
+    expect(lines[0], "first line (comment)").to_equal(": stream of item updates")
 
     event_lines = [line for line in lines if line.startswith("event: ")]
-    expect(event_lines).to_have_length(3)
-    expect(all(line == "event: item_update" for line in event_lines)).to_be_truthy()
+    expect(event_lines, "event lines").to_have_length(3)
+    expect(
+        all(line == "event: item_update" for line in event_lines),
+        "all events are item_update",
+    ).to_be_truthy()
 
     data_lines = [line for line in lines if line.startswith("data: ")]
-    expect(data_lines).to_have_length(3)
+    expect(data_lines, "data lines").to_have_length(3)
 
     id_lines = [line for line in lines if line.startswith("id: ")]
-    expect(id_lines).to_equal(["id: 1", "id: 2", "id: 3"])
+    expect(id_lines, "id lines").to_equal(["id: 1", "id: 2", "id: 3"])
 
     retry_lines = [line for line in lines if line.startswith("retry: ")]
-    expect(retry_lines).to_have_length(3)
-    expect(all(line == "retry: 5000" for line in retry_lines)).to_be_truthy()
+    expect(retry_lines, "retry lines").to_have_length(3)
+    expect(
+        all(line == "retry: 5000" for line in retry_lines),
+        "all retry values are 5000",
+    ).to_be_truthy()
 
 
 @test.cases(
@@ -47,8 +53,8 @@ def stream_items(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

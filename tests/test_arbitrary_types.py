@@ -39,13 +39,15 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("Arbitrary type with PlainSerializer is serialised through FastAPI")
 def get(client: TestClient = Depends(client)):
     response = client.get("/")
-    expect(response.json()).to_equal({"custom_field": [1.0, 2.0, 3.0]})
+    expect(response.json(), "response body").to_equal(
+        {"custom_field": [1.0, 2.0, 3.0]}
+    )
 
 
-@test
+@test("TypeAdapter alone serialises the arbitrary type and emits expected schema")
 def typeadapter():
     # This test is only to confirm that Pydantic alone is working as expected
     from pydantic import (
@@ -71,10 +73,11 @@ def typeadapter():
         custom_field: FakeNumpyArrayPydantic
 
     ta = TypeAdapter(MyModel)
-    expect(ta.dump_python(MyModel(custom_field=FakeNumpyArray()))).to_equal(
-        {"custom_field": [1.0, 2.0, 3.0]}
-    )
-    expect(ta.json_schema()).to_equal(
+    expect(
+        ta.dump_python(MyModel(custom_field=FakeNumpyArray())),
+        "dump_python output",
+    ).to_equal({"custom_field": [1.0, 2.0, 3.0]})
+    expect(ta.json_schema(), "json schema").to_equal(
         snapshot(
             {
                 "properties": {
@@ -92,10 +95,10 @@ def typeadapter():
     )
 
 
-@test
+@test("OpenAPI schema for the arbitrary-type model")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

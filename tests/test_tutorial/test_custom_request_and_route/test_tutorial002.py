@@ -17,7 +17,7 @@ def _client_for(name: str) -> TestClient:
 def endpoint_works(name: str):
     client = _client_for(name)
     response = client.post("/", json=[1, 2, 3])
-    expect(response.json()).to_equal(6)
+    expect(response.json(), "response body").to_equal(6)
 
 
 @test.cases(
@@ -27,7 +27,7 @@ def endpoint_works(name: str):
 def exception_handler_body_access(name: str):
     client = _client_for(name)
     response = client.post("/", json={"numbers": [1, 2, 3]})
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "detail": {
                 "errors": [

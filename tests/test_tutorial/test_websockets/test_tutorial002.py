@@ -19,8 +19,8 @@ def main(name: str):
     app = _app_for(name)
     client = TestClient(app)
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.content).to_contain(b"<!DOCTYPE html>")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.content, "HTML body").to_contain(b"<!DOCTYPE html>")
 
 
 @test.cases(
@@ -36,17 +36,25 @@ def websocket_with_cookie(name: str):
             message = "Message one"
             ws.send_text(message)
             data = ws.receive_text()
-            expect(data).to_equal("Session cookie or query token value is: fakesession")
+            expect(data, "cookie/token line").to_equal(
+                "Session cookie or query token value is: fakesession"
+            )
             data = ws.receive_text()
-            expect(data).to_equal(f"Message text was: {message}, for item ID: foo")
+            expect(data, "echo for message one").to_equal(
+                f"Message text was: {message}, for item ID: foo"
+            )
             message = "Message two"
             ws.send_text(message)
             data = ws.receive_text()
-            expect(data).to_equal("Session cookie or query token value is: fakesession")
+            expect(data, "cookie/token line").to_equal(
+                "Session cookie or query token value is: fakesession"
+            )
             data = ws.receive_text()
-            expect(data).to_equal(f"Message text was: {message}, for item ID: foo")
+            expect(data, "echo for message two").to_equal(
+                f"Message text was: {message}, for item ID: foo"
+            )
 
-    expect(_body).to_raise(WebSocketDisconnect)
+    expect(_body, "running websocket interaction").to_raise(WebSocketDisconnect)
 
 
 @test.cases(
@@ -62,17 +70,25 @@ def websocket_with_header(name: str):
             message = "Message one"
             ws.send_text(message)
             data = ws.receive_text()
-            expect(data).to_equal("Session cookie or query token value is: some-token")
+            expect(data, "cookie/token line").to_equal(
+                "Session cookie or query token value is: some-token"
+            )
             data = ws.receive_text()
-            expect(data).to_equal(f"Message text was: {message}, for item ID: bar")
+            expect(data, "echo for message one").to_equal(
+                f"Message text was: {message}, for item ID: bar"
+            )
             message = "Message two"
             ws.send_text(message)
             data = ws.receive_text()
-            expect(data).to_equal("Session cookie or query token value is: some-token")
+            expect(data, "cookie/token line").to_equal(
+                "Session cookie or query token value is: some-token"
+            )
             data = ws.receive_text()
-            expect(data).to_equal(f"Message text was: {message}, for item ID: bar")
+            expect(data, "echo for message two").to_equal(
+                f"Message text was: {message}, for item ID: bar"
+            )
 
-    expect(_body).to_raise(WebSocketDisconnect)
+    expect(_body, "running websocket interaction").to_raise(WebSocketDisconnect)
 
 
 @test.cases(
@@ -88,21 +104,29 @@ def websocket_with_header_and_query(name: str):
             message = "Message one"
             ws.send_text(message)
             data = ws.receive_text()
-            expect(data).to_equal("Session cookie or query token value is: some-token")
+            expect(data, "cookie/token line").to_equal(
+                "Session cookie or query token value is: some-token"
+            )
             data = ws.receive_text()
-            expect(data).to_equal("Query parameter q is: 3")
+            expect(data, "query parameter line").to_equal("Query parameter q is: 3")
             data = ws.receive_text()
-            expect(data).to_equal(f"Message text was: {message}, for item ID: 2")
+            expect(data, "echo for message one").to_equal(
+                f"Message text was: {message}, for item ID: 2"
+            )
             message = "Message two"
             ws.send_text(message)
             data = ws.receive_text()
-            expect(data).to_equal("Session cookie or query token value is: some-token")
+            expect(data, "cookie/token line").to_equal(
+                "Session cookie or query token value is: some-token"
+            )
             data = ws.receive_text()
-            expect(data).to_equal("Query parameter q is: 3")
+            expect(data, "query parameter line").to_equal("Query parameter q is: 3")
             data = ws.receive_text()
-            expect(data).to_equal(f"Message text was: {message}, for item ID: 2")
+            expect(data, "echo for message two").to_equal(
+                f"Message text was: {message}, for item ID: 2"
+            )
 
-    expect(_body).to_raise(WebSocketDisconnect)
+    expect(_body, "running websocket interaction").to_raise(WebSocketDisconnect)
 
 
 @test.cases(
@@ -119,7 +143,7 @@ def websocket_no_credentials(name: str):
                 "did not raise WebSocketDisconnect on __enter__"
             )  # pragma: no cover
 
-    expect(_body).to_raise(WebSocketDisconnect)
+    expect(_body, "connecting without credentials").to_raise(WebSocketDisconnect)
 
 
 @test.cases(
@@ -136,4 +160,4 @@ def websocket_invalid_data(name: str):
                 "did not raise WebSocketDisconnect on __enter__"
             )  # pragma: no cover
 
-    expect(_body).to_raise(WebSocketDisconnect)
+    expect(_body, "connecting with invalid q").to_raise(WebSocketDisconnect)

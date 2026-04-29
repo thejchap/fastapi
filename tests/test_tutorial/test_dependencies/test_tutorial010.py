@@ -8,7 +8,7 @@ from tryke import expect, test
 from docs_src.dependencies.tutorial010_py310 import get_db
 
 
-@test
+@test("Endpoint receives the DB session from the get_db dependency")
 def get_db_endpoint():
     app = FastAPI()
 
@@ -27,5 +27,5 @@ def get_db_endpoint():
     ):
         response = client.get("/")
 
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"c": str(dbsession_mock)})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"c": str(dbsession_mock)})

@@ -7,18 +7,18 @@ from docs_src.metadata.tutorial001_1_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/ returns the items list")
 def items():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"name": "Katana"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([{"name": "Katana"}])
 
 
-@test
+@test("OpenAPI schema includes summary and description metadata")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

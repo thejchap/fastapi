@@ -15,7 +15,7 @@ with warnings.catch_warnings():
     from pydantic.v1 import BaseModel
 
 
-@test
+@test("Pydantic v1 model used as an endpoint parameter raises")
 def raises_pydantic_v1_model_in_endpoint_param() -> None:
     class ParamModelV1(BaseModel):
         name: str
@@ -27,10 +27,12 @@ def raises_pydantic_v1_model_in_endpoint_param() -> None:
         def endpoint(data: ParamModelV1):  # pragma: no cover
             return data
 
-    expect(_body).to_raise(PydanticV1NotSupportedError)
+    expect(_body, "registering route with v1 param model").to_raise(
+        PydanticV1NotSupportedError
+    )
 
 
-@test
+@test("Pydantic v1 model used as a return type annotation raises")
 def raises_pydantic_v1_model_in_return_type() -> None:
     class ReturnModelV1(BaseModel):
         name: str
@@ -42,10 +44,12 @@ def raises_pydantic_v1_model_in_return_type() -> None:
         def endpoint() -> ReturnModelV1:  # pragma: no cover
             return ReturnModelV1(name="test")
 
-    expect(_body).to_raise(PydanticV1NotSupportedError)
+    expect(_body, "registering route with v1 return type").to_raise(
+        PydanticV1NotSupportedError
+    )
 
 
-@test
+@test("Pydantic v1 model passed as response_model raises")
 def raises_pydantic_v1_model_in_response_model() -> None:
     class ResponseModelV1(BaseModel):
         name: str
@@ -57,10 +61,12 @@ def raises_pydantic_v1_model_in_response_model() -> None:
         def endpoint():  # pragma: no cover
             return {"name": "test"}
 
-    expect(_body).to_raise(PydanticV1NotSupportedError)
+    expect(_body, "registering route with v1 response_model").to_raise(
+        PydanticV1NotSupportedError
+    )
 
 
-@test
+@test("Pydantic v1 model in an additional responses model raises")
 def raises_pydantic_v1_model_in_additional_responses_model() -> None:
     class ErrorModelV1(BaseModel):
         detail: str
@@ -74,10 +80,12 @@ def raises_pydantic_v1_model_in_additional_responses_model() -> None:
         def endpoint():  # pragma: no cover
             return {"ok": True}
 
-    expect(_body).to_raise(PydanticV1NotSupportedError)
+    expect(_body, "registering route with v1 in responses dict").to_raise(
+        PydanticV1NotSupportedError
+    )
 
 
-@test
+@test("Pydantic v1 model nested inside a Union annotation raises")
 def raises_pydantic_v1_model_in_union() -> None:
     class ModelV1A(BaseModel):
         name: str
@@ -89,10 +97,12 @@ def raises_pydantic_v1_model_in_union() -> None:
         def endpoint(data: dict | ModelV1A):  # pragma: no cover
             return data
 
-    expect(_body).to_raise(PydanticV1NotSupportedError)
+    expect(_body, "registering route with v1 inside a Union").to_raise(
+        PydanticV1NotSupportedError
+    )
 
 
-@test
+@test("Pydantic v1 model nested inside a list annotation raises")
 def raises_pydantic_v1_model_in_sequence() -> None:
     class ModelV1A(BaseModel):
         name: str
@@ -104,4 +114,6 @@ def raises_pydantic_v1_model_in_sequence() -> None:
         def endpoint(data: list[ModelV1A]):  # pragma: no cover
             return data
 
-    expect(_body).to_raise(PydanticV1NotSupportedError)
+    expect(_body, "registering route with v1 inside a list").to_raise(
+        PydanticV1NotSupportedError
+    )

@@ -35,6 +35,7 @@ def _make_orjson_app() -> FastAPI:
     return app
 
 
+@test("ORJSONResponse still serialises the model body")
 @test.skip_if(_NEEDS_ORJSON is not None, reason=_NEEDS_ORJSON or "")
 def orjson_response_returns_correct_data():
     app = _make_orjson_app()
@@ -42,10 +43,13 @@ def orjson_response_returns_correct_data():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FastAPIDeprecationWarning)
         response = client.get("/items")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"name": "widget", "price": 9.99})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"name": "widget", "price": 9.99}
+    )
 
 
+@test("constructing ORJSONResponse emits deprecation warning")
 @test.skip_if(_NEEDS_ORJSON is not None, reason=_NEEDS_ORJSON or "")
 def orjson_response_emits_deprecation_warning():
     with expect_warning(
@@ -69,6 +73,7 @@ def _make_ujson_app() -> FastAPI:
     return app
 
 
+@test("UJSONResponse still serialises the model body")
 @test.skip_if(_NEEDS_UJSON is not None, reason=_NEEDS_UJSON or "")
 def ujson_response_returns_correct_data():
     app = _make_ujson_app()
@@ -76,10 +81,13 @@ def ujson_response_returns_correct_data():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FastAPIDeprecationWarning)
         response = client.get("/items")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"name": "widget", "price": 9.99})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"name": "widget", "price": 9.99}
+    )
 
 
+@test("constructing UJSONResponse emits deprecation warning")
 @test.skip_if(_NEEDS_UJSON is not None, reason=_NEEDS_UJSON or "")
 def ujson_response_emits_deprecation_warning():
     with expect_warning(FastAPIDeprecationWarning, match="UJSONResponse is deprecated"):

@@ -27,8 +27,8 @@ def post_all(name: str):
             },
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "item": {
@@ -53,8 +53,8 @@ def post_required(name: str):
             "item": {"name": "Foo", "price": 50.5},
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "item": {
@@ -74,8 +74,8 @@ def post_required(name: str):
 def post_no_body(name: str):
     client = _client_for(name)
     response = client.put("/items/5", json=None)
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -102,8 +102,8 @@ def post_like_not_embeded(name: str):
             "price": 50.5,
         },
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -126,8 +126,8 @@ def post_missing_required_field_in_item(name: str):
     response = client.put(
         "/items/5", json={"item": {"name": "Foo"}, "user": {"username": "johndoe"}}
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -148,8 +148,8 @@ def post_missing_required_field_in_item(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "info": {

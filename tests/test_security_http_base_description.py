@@ -17,26 +17,30 @@ def read_current_user(credentials: HTTPAuthorizationCredentials = Security(secur
 client = TestClient(app)
 
 
-@test
+@test("HTTPBase with description authenticates with valid credentials")
 def security_http_base():
     response = client.get("/users/me", headers={"Authorization": "Other foobar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"scheme": "Other", "credentials": "foobar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"scheme": "Other", "credentials": "foobar"}
+    )
 
 
-@test
+@test("HTTPBase without credentials returns 401")
 def security_http_base_no_credentials():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Other")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Other"
+    )
 
 
-@test
+@test("OpenAPI schema includes HTTPBase description")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

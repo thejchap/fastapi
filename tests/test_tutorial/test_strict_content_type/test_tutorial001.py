@@ -18,8 +18,8 @@ def lax_post_without_content_type_is_parsed_as_json(name: str):
         "/items/",
         content='{"name": "Foo", "price": 50.5}',
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo", "price": 50.5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo", "price": 50.5})
 
 
 @test.cases(
@@ -31,8 +31,8 @@ def lax_post_with_json_content_type(name: str):
         "/items/",
         json={"name": "Foo", "price": 50.5},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo", "price": 50.5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo", "price": 50.5})
 
 
 @test.cases(
@@ -45,4 +45,4 @@ def lax_post_with_text_plain_is_still_rejected(name: str):
         content='{"name": "Foo", "price": 50.5}',
         headers={"Content-Type": "text/plain"},
     )
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()

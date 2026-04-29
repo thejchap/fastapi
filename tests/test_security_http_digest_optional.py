@@ -21,34 +21,40 @@ def read_current_user(
 client = TestClient(app)
 
 
-@test
+@test("Optional HTTP Digest accepts valid Digest header")
 def security_http_digest():
     response = client.get("/users/me", headers={"Authorization": "Digest foobar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"scheme": "Digest", "credentials": "foobar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"scheme": "Digest", "credentials": "foobar"}
+    )
 
 
-@test
+@test("Optional HTTP Digest allows missing credentials")
 def security_http_digest_no_credentials():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("Optional HTTP Digest allows incorrect scheme")
 def security_http_digest_incorrect_scheme_credentials():
     response = client.get(
         "/users/me", headers={"Authorization": "Other invalidauthorization"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("OpenAPI schema includes optional HTTPDigest scheme")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

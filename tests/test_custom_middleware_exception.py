@@ -66,7 +66,7 @@ app.add_middleware(ContentSizeLimitMiddleware, max_content_size=2**8)
 client = TestClient(app)
 
 
-@test
+@test("oversized upload triggers HTTPException raised in middleware")
 def custom_middleware_exception():
     with tmp_path_ctx() as tmp_path:
         default_pydantic_max_size = 2**16
@@ -76,8 +76,8 @@ def custom_middleware_exception():
         with client:
             with open(path, "rb") as file:
                 response = client.post("/middleware", files={"file": file})
-            expect(response.status_code).to_equal(422).fatal()
-            expect(response.json()).to_equal(
+            expect(response.status_code, "status code").to_equal(422).fatal()
+            expect(response.json(), "response body").to_equal(
                 {
                     "detail": {
                         "name": "ContentSizeLimitExceeded",
@@ -88,7 +88,7 @@ def custom_middleware_exception():
             )
 
 
-@test
+@test("normal upload passes through the middleware untouched")
 def custom_middleware_exception_not_raised():
     with tmp_path_ctx() as tmp_path:
         path = tmp_path / "test.txt"
@@ -97,5 +97,5 @@ def custom_middleware_exception_not_raised():
         with client:
             with open(path, "rb") as file:
                 response = client.post("/middleware", files={"file": file})
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal({"message": "OK"})
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "response body").to_equal({"message": "OK"})

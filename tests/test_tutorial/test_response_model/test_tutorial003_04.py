@@ -8,6 +8,7 @@ from ..._shims import import_tutorial
     test.case("tutorial003_04_py310", module_name="tutorial003_04_py310"),
 )
 def invalid_response_model(module_name: str) -> None:
-    expect(lambda: import_tutorial("response_model", module_name)).to_raise(
-        FastAPIError
-    )
+    expect(
+        lambda: import_tutorial("response_model", module_name),
+        "importing tutorial with invalid response_model",
+    ).to_raise(FastAPIError)

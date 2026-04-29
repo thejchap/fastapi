@@ -50,16 +50,21 @@ item_schema = {
 }
 
 
-@test
+@test("custom WithJsonSchema and json_schema_extra appear in OpenAPI schema")
 def custom_response_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()["components"]["schemas"]["Item"]).to_equal(item_schema)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(
+        response.json()["components"]["schemas"]["Item"],
+        "Item component schema",
+    ).to_equal(item_schema)
 
 
-@test
+@test("GET /foo returns the Item with description defaulted to None")
 def response():
     # For coverage
     response = client.get("/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo item", "description": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"name": "Foo item", "description": None}
+    )

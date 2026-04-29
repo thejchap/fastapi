@@ -44,32 +44,34 @@ def read_users_me(current_user: User | None = Depends(get_current_user)):
 client = TestClient(app)
 
 
-@test
+@test("Optional OAuth2 reads Bearer authorization header verbatim")
 def security_oauth2():
     response = client.get("/users/me", headers={"Authorization": "Bearer footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Bearer footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Bearer footokenbar"})
 
 
-@test
+@test("Optional OAuth2 also reads non-Bearer authorization header")
 def security_oauth2_password_other_header():
     response = client.get("/users/me", headers={"Authorization": "Other footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Other footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Other footokenbar"})
 
 
-@test
+@test("Optional OAuth2 allows missing authorization header")
 def security_oauth2_password_bearer_no_header():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("Strict OAuth2 password form rejects empty body")
 def strict_login_no_data():
     response = client.post("/login")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -95,11 +97,11 @@ def strict_login_no_data():
     )
 
 
-@test
+@test("Strict OAuth2 password form rejects missing grant_type")
 def strict_login_no_grant_type():
     response = client.post("/login", data={"username": "johndoe", "password": "secret"})
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -123,8 +125,8 @@ def strict_login_incorrect_grant_type(grant_type: str):
         "/login",
         data={"username": "johndoe", "password": "secret", "grant_type": grant_type},
     )
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -139,14 +141,14 @@ def strict_login_incorrect_grant_type(grant_type: str):
     )
 
 
-@test
+@test("Strict OAuth2 password form accepts complete data")
 def strict_login_correct_data():
     response = client.post(
         "/login",
         data={"username": "johndoe", "password": "secret", "grant_type": "password"},
     )
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "grant_type": "password",
             "username": "johndoe",
@@ -158,11 +160,11 @@ def strict_login_correct_data():
     )
 
 
-@test
+@test("OpenAPI schema includes optional OAuth2 password flow")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

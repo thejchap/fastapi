@@ -40,8 +40,8 @@ def _client_for(name: str) -> TestClient:
 def read_items(name: str, path: str, expected_response: dict):
     client = _client_for(name)
     response = client.get(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
 @test.cases(
@@ -51,8 +51,8 @@ def read_items(name: str, path: str, expected_response: dict):
 def read_items_item_id_less_than_zero(name: str):
     client = _client_for(name)
     response = client.get("/items/-1?q=somequery&size=5")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -74,8 +74,8 @@ def read_items_item_id_less_than_zero(name: str):
 def read_items_item_id_greater_than_one_thousand(name: str):
     client = _client_for(name)
     response = client.get("/items/1001?q=somequery&size=5")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -97,8 +97,8 @@ def read_items_item_id_greater_than_one_thousand(name: str):
 def read_items_size_too_small(name: str):
     client = _client_for(name)
     response = client.get("/items/1?q=somequery&size=0.0")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -120,8 +120,8 @@ def read_items_size_too_small(name: str):
 def read_items_size_too_large(name: str):
     client = _client_for(name)
     response = client.get("/items/1?q=somequery&size=10.5")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -143,8 +143,8 @@ def read_items_size_too_large(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -7,11 +7,11 @@ from docs_src.handling_errors.tutorial005_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("Validation error response includes the original request body")
 def post_validation_error():
     response = client.post("/items/", json={"title": "towel", "size": "XL"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -26,19 +26,19 @@ def post_validation_error():
     )
 
 
-@test
+@test("POST /items/ with valid data echoes it back")
 def post():
     data = {"title": "towel", "size": 5}
     response = client.post("/items/", json=data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(data)
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

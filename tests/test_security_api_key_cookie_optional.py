@@ -29,28 +29,30 @@ def read_current_user(current_user: User = Depends(get_current_user)):
         return current_user
 
 
-@test
+@test("optional APIKeyCookie authenticates with valid cookie")
 def security_api_key():
     client = TestClient(app, cookies={"key": "secret"})
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "secret"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "secret"})
 
 
-@test
+@test("optional APIKeyCookie passes None when cookie missing")
 def security_api_key_no_key():
     client = TestClient(app)
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("OpenAPI schema for optional APIKeyCookie")
 def openapi_schema():
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

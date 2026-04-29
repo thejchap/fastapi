@@ -31,10 +31,10 @@ def login(name: str):
     mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.post("/token", data={"username": "johndoe", "password": "secret"})
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     content = response.json()
-    expect(content).to_contain("access_token")
-    expect(content["token_type"]).to_equal("bearer")
+    expect(content, "token response").to_contain("access_token")
+    expect(content["token_type"], "token_type").to_equal("bearer")
 
 
 @test.cases(
@@ -47,8 +47,10 @@ def login_incorrect_password(name: str):
     response = client.post(
         "/token", data={"username": "johndoe", "password": "incorrect"}
     )
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "error body").to_equal(
+        {"detail": "Incorrect username or password"}
+    )
 
 
 @test.cases(
@@ -59,8 +61,10 @@ def login_incorrect_username(name: str):
     mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.post("/token", data={"username": "foo", "password": "secret"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "error body").to_equal(
+        {"detail": "Incorrect username or password"}
+    )
 
 
 @test.cases(
@@ -71,9 +75,11 @@ def no_token(name: str):
     mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
 @test.cases(
@@ -87,8 +93,8 @@ def token(name: str):
     response = client.get(
         "/users/me", headers={"Authorization": f"Bearer {access_token}"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "current user").to_equal(
         {
             "username": "johndoe",
             "full_name": "John Doe",
@@ -106,9 +112,13 @@ def incorrect_token(name: str):
     mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/users/me", headers={"Authorization": "Bearer nonexistent"})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
-    expect(response.headers["WWW-Authenticate"]).to_equal('Bearer scope="me"')
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "Could not validate credentials"}
+    )
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Bearer scope="me"'
+    )
 
 
 @test.cases(
@@ -121,9 +131,11 @@ def incorrect_token_type(name: str):
     response = client.get(
         "/users/me", headers={"Authorization": "Notexistent testtoken"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
 @test.cases(
@@ -133,7 +145,8 @@ def incorrect_token_type(name: str):
 def verify_password(name: str):
     mod = _module_for(name)
     expect(
-        mod.verify_password("secret", mod.fake_users_db["johndoe"]["hashed_password"])
+        mod.verify_password("secret", mod.fake_users_db["johndoe"]["hashed_password"]),
+        "verify_password result",
     ).to_be_truthy()
 
 
@@ -143,7 +156,7 @@ def verify_password(name: str):
 )
 def get_password_hash(name: str):
     mod = _module_for(name)
-    expect(mod.get_password_hash("secretalice")).to_be_truthy()
+    expect(mod.get_password_hash("secretalice"), "hashed password").to_be_truthy()
 
 
 @test.cases(
@@ -153,7 +166,7 @@ def get_password_hash(name: str):
 def create_access_token(name: str):
     mod = _module_for(name)
     access_token = mod.create_access_token(data={"data": "foo"})
-    expect(access_token).to_be_truthy()
+    expect(access_token, "access token").to_be_truthy()
 
 
 @test.cases(
@@ -169,9 +182,13 @@ def token_no_sub(name: str):
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoiZm9vIn0.9ynBhuYb4e6aW3oJr_K_TBgwcMTDpRToQIE25L57rOE"
         },
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
-    expect(response.headers["WWW-Authenticate"]).to_equal('Bearer scope="me"')
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "Could not validate credentials"}
+    )
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Bearer scope="me"'
+    )
 
 
 @test.cases(
@@ -187,9 +204,13 @@ def token_no_username(name: str):
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmb28ifQ.NnExK_dlNAYyzACrXtXDrcWOgGY2JuPbI4eDaHdfK5Y"
         },
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
-    expect(response.headers["WWW-Authenticate"]).to_equal('Bearer scope="me"')
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "Could not validate credentials"}
+    )
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Bearer scope="me"'
+    )
 
 
 @test.cases(
@@ -203,9 +224,13 @@ def token_no_scope(name: str):
     response = client.get(
         "/users/me", headers={"Authorization": f"Bearer {access_token}"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not enough permissions"})
-    expect(response.headers["WWW-Authenticate"]).to_equal('Bearer scope="me"')
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "Not enough permissions"}
+    )
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Bearer scope="me"'
+    )
 
 
 @test.cases(
@@ -221,9 +246,13 @@ def token_nonexistent_user(name: str):
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VybmFtZTpib2IifQ.HcfCW67Uda-0gz54ZWTqmtgJnZeNem0Q757eTa9EZuw"
         },
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Could not validate credentials"})
-    expect(response.headers["WWW-Authenticate"]).to_equal('Bearer scope="me"')
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "Could not validate credentials"}
+    )
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Bearer scope="me"'
+    )
 
 
 @test.cases(
@@ -239,8 +268,8 @@ def token_inactive_user(name: str):
     response = client.get(
         "/users/me", headers={"Authorization": f"Bearer {access_token}"}
     )
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Inactive user"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "error body").to_equal({"detail": "Inactive user"})
 
 
 @test.cases(
@@ -254,8 +283,10 @@ def read_items(name: str):
     response = client.get(
         "/users/me/items/", headers={"Authorization": f"Bearer {access_token}"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"item_id": "Foo", "owner": "johndoe"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "items list").to_equal(
+        [{"item_id": "Foo", "owner": "johndoe"}]
+    )
 
 
 @test.cases(
@@ -269,8 +300,8 @@ def read_system_status(name: str):
     response = client.get(
         "/status/", headers={"Authorization": f"Bearer {access_token}"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"status": "ok"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"status": "ok"})
 
 
 @test.cases(
@@ -281,9 +312,11 @@ def read_system_status_no_token(name: str):
     mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/status/")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
 @test.cases(
@@ -294,8 +327,8 @@ def openapi_schema(name: str):
     mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

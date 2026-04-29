@@ -85,20 +85,20 @@ def get_validdict_exclude_unset():
 client = TestClient(app)
 
 
-@test
+@test("Valid model is serialised with aliases preserved")
 def valid():
     response = client.get("/items/valid")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {"aliased_name": "valid", "price": 1.0, "owner_ids": None}
     )
 
 
-@test
+@test("Model response_model coerces string price to float")
 def coerce():
     response = client.get("/items/coerce")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "aliased_name": "coerce",
             "price": 1.0,
@@ -107,11 +107,11 @@ def coerce():
     )
 
 
-@test
+@test("List of models is serialised correctly")
 def validlist():
     response = client.get("/items/validlist")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         [
             {"aliased_name": "foo", "price": None, "owner_ids": None},
             {"aliased_name": "bar", "price": 1.0, "owner_ids": None},
@@ -120,11 +120,11 @@ def validlist():
     )
 
 
-@test
+@test("Dict of models is serialised correctly")
 def validdict():
     response = client.get("/items/validdict")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "k1": {"aliased_name": "foo", "price": None, "owner_ids": None},
             "k2": {"aliased_name": "bar", "price": 1.0, "owner_ids": None},
@@ -133,25 +133,29 @@ def validdict():
     )
 
 
-@test
+@test("response_model_exclude_unset omits unset fields")
 def valid_exclude_unset():
     response = client.get("/items/valid-exclude-unset")
     response.raise_for_status()
-    expect(response.json()).to_equal({"aliased_name": "valid", "price": 1.0})
+    expect(response.json(), "response body").to_equal(
+        {"aliased_name": "valid", "price": 1.0}
+    )
 
 
-@test
+@test("response_model_exclude_unset omits unset fields with coercion")
 def coerce_exclude_unset():
     response = client.get("/items/coerce-exclude-unset")
     response.raise_for_status()
-    expect(response.json()).to_equal({"aliased_name": "coerce", "price": 1.0})
+    expect(response.json(), "response body").to_equal(
+        {"aliased_name": "coerce", "price": 1.0}
+    )
 
 
-@test
+@test("response_model_exclude_unset omits unset fields in list")
 def validlist_exclude_unset():
     response = client.get("/items/validlist-exclude-unset")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         [
             {"aliased_name": "foo"},
             {"aliased_name": "bar", "price": 1.0},
@@ -160,11 +164,11 @@ def validlist_exclude_unset():
     )
 
 
-@test
+@test("response_model_exclude_unset omits unset fields in dict")
 def validdict_exclude_unset():
     response = client.get("/items/validdict-exclude-unset")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "k1": {"aliased_name": "foo"},
             "k2": {"aliased_name": "bar", "price": 1.0},

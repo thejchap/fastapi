@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from tryke import expect, test
 
 
-@test
+@test("Jinja2 templates render and StaticFiles serves CSS")
 def main():
     if os.path.isdir("./static"):  # pragma: nocover
         shutil.rmtree("./static")
@@ -17,12 +17,12 @@ def main():
 
     client = TestClient(app)
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.content).to_contain(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.content, "rendered HTML").to_contain(
         b'<h1><a href="http://testserver/items/foo">Item ID: foo</a></h1>'
     )
     response = client.get("/static/styles.css")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.content).to_contain(b"color: green;")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.content, "served CSS").to_contain(b"color: green;")
     shutil.rmtree("./templates")
     shutil.rmtree("./static")

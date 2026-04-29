@@ -33,22 +33,22 @@ async def b(dep: Dep[B]):
 client = TestClient(app)
 
 
-@test
+@test("Annotated[T, Depends()] resolves the right class for each TypeVar instance")
 def generic_parameterless_depends():
     response = client.get("/a")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"cls": "A"})
+    expect(response.status_code, "/a status code").to_equal(200).fatal()
+    expect(response.json(), "/a response body").to_equal({"cls": "A"})
 
     response = client.get("/b")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"cls": "B"})
+    expect(response.status_code, "/b status code").to_equal(200).fatal()
+    expect(response.json(), "/b response body").to_equal({"cls": "B"})
 
 
-@test
+@test("Generic parameterless Depends produces the expected OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "info": {"title": "FastAPI", "version": "0.1.0"},

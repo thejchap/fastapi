@@ -26,8 +26,8 @@ def header_param_model(name: str):
             ("x_tag", "two"),
         ],
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "host": "testserver",
             "save_data": True,
@@ -54,8 +54,8 @@ def header_param_model_no_underscore(name: str):
             ("x-tag", "two"),
         ],
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "detail": [
@@ -89,8 +89,8 @@ def header_param_model_no_underscore(name: str):
 def header_param_model_defaults(name: str):
     client = _client_for(name)
     response = client.get("/items/", headers=[("save_data", "true")])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "host": "testserver",
             "save_data": True,
@@ -108,8 +108,8 @@ def header_param_model_defaults(name: str):
 def header_param_model_invalid(name: str):
     client = _client_for(name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "detail": [
@@ -141,8 +141,8 @@ def header_param_model_extra(name: str):
     response = client.get(
         "/items/", headers=[("save_data", "true"), ("tool", "plumbus")]
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "host": "testserver",
@@ -162,8 +162,8 @@ def header_param_model_extra(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

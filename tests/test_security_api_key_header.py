@@ -27,26 +27,28 @@ def read_current_user(current_user: User = Depends(get_current_user)):
 client = TestClient(app)
 
 
-@test
+@test("APIKeyHeader authenticates with valid header")
 def security_api_key():
     response = client.get("/users/me", headers={"key": "secret"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "secret"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "secret"})
 
 
-@test
+@test("APIKeyHeader without header returns 401")
 def security_api_key_no_key():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("APIKey")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "APIKey"
+    )
 
 
-@test
+@test("OpenAPI schema for APIKeyHeader")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

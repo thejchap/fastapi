@@ -7,26 +7,26 @@ from docs_src.handling_errors.tutorial001_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/foo returns the item")
 def get_item():
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": "The Foo Wrestlers"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item": "The Foo Wrestlers"})
 
 
-@test
+@test("GET /items/bar raises HTTPException 404")
 def get_item_not_found():
     response = client.get("/items/bar")
-    expect(response.status_code).to_equal(404).fatal()
-    expect(response.headers.get("x-error")).to_be_none()
-    expect(response.json()).to_equal({"detail": "Item not found"})
+    expect(response.status_code, "status code").to_equal(404).fatal()
+    expect(response.headers.get("x-error"), "x-error header").to_be_none()
+    expect(response.json(), "response body").to_equal({"detail": "Item not found"})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

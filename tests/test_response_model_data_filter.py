@@ -57,18 +57,18 @@ async def read_pets():
 client = TestClient(app)
 
 
-@test
+@test("response_model filters base-class fields from subclass")
 def filter_top_level_model():
     response = client.post(
         "/users", json={"email": "johndoe@example.com", "password": "secret"}
     )
-    expect(response.json()).to_equal({"email": "johndoe@example.com"})
+    expect(response.json(), "response body").to_equal({"email": "johndoe@example.com"})
 
 
-@test
+@test("response_model filters nested base-class fields")
 def filter_second_level_model():
     response = client.get("/pets/1")
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Nibbler",
             "owner": {"email": "johndoe@example.com"},
@@ -76,10 +76,10 @@ def filter_second_level_model():
     )
 
 
-@test
+@test("list response_model filters nested base-class fields per item")
 def list_of_models():
     response = client.get("/pets/")
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "Nibbler", "owner": {"email": "johndoe@example.com"}},
             {"name": "Zoidberg", "owner": {"email": "johndoe@example.com"}},

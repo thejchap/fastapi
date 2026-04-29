@@ -38,8 +38,10 @@ def _client_for(separate_input_output_schemas: bool) -> TestClient:
 def get(separate_input_output_schemas: bool, path: str):
     client = _client_for(separate_input_output_schemas)
     response = client.get(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"width": 3, "length": 4, "area": 12})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"width": 3, "length": 4, "area": 12}
+    )
 
 
 @test.cases(
@@ -49,8 +51,8 @@ def get(separate_input_output_schemas: bool, path: str):
 def openapi_schema(separate_input_output_schemas: bool):
     client = _client_for(separate_input_output_schemas)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

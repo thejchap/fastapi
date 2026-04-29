@@ -18,20 +18,20 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("GraphQL query returns the user data")
 def query(client: TestClient = Depends(client)):
     response = client.post("/graphql", json={"query": "{ user { name, age } }"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"data": {"user": {"name": "Patrick", "age": 100}}}
     )
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "info": {

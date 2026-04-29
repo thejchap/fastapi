@@ -7,7 +7,7 @@ import fastapi.cli
 from tryke import expect, test
 
 
-@test
+@test("fastapi CLI errors when given a missing path")
 def fastapi_cli():
     result = subprocess.run(
         [
@@ -24,11 +24,13 @@ def fastapi_cli():
         encoding="utf-8",
         env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
-    expect(result.returncode).to_equal(1).fatal()
-    expect(result.stdout).to_contain("Path does not exist non_existent_file.py")
+    expect(result.returncode, "exit code").to_equal(1).fatal()
+    expect(result.stdout, "stdout").to_contain(
+        "Path does not exist non_existent_file.py"
+    )
 
 
-@test
+@test("fastapi CLI raises a friendly error if fastapi-cli is not installed")
 def fastapi_cli_not_installed():
     captured: RuntimeError | None = None
     with patch.object(fastapi.cli, "cli_main", None):
@@ -36,5 +38,7 @@ def fastapi_cli_not_installed():
             fastapi.cli.main()
         except RuntimeError as exc:
             captured = exc
-    expect(captured).not_.to_be_none().fatal()
-    expect(str(captured)).to_contain("To use the fastapi command, please install")
+    expect(captured, "captured RuntimeError").not_.to_be_none().fatal()
+    expect(str(captured), "error message").to_contain(
+        "To use the fastapi command, please install"
+    )

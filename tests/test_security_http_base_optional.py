@@ -21,25 +21,29 @@ def read_current_user(
 client = TestClient(app)
 
 
-@test
+@test("optional HTTPBase authenticates with valid credentials")
 def security_http_base():
     response = client.get("/users/me", headers={"Authorization": "Other foobar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"scheme": "Other", "credentials": "foobar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"scheme": "Other", "credentials": "foobar"}
+    )
 
 
-@test
+@test("optional HTTPBase passes None when credentials missing")
 def security_http_base_no_credentials():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("OpenAPI schema for optional HTTPBase")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -37,35 +37,36 @@ def broken(d: Annotated[str, Depends(broken_dep)]) -> Any:
 client = TestClient(app)
 
 
-@test
+@test("dependency catches errors after yield and converts to HTTPException")
 def catching():  # noqa: F811
     response = client.get("/catching")
-    expect(response.status_code).to_equal(418)
-    expect(response.json()).to_equal({"detail": "Session error"})
+    expect(response.status_code, "status code").to_equal(418)
+    expect(response.json(), "response body").to_equal({"detail": "Session error"})
 
 
-@test
+@test("dependency raising after yield surfaces the exception")
 def broken_raise():
-    expect(lambda: client.get("/broken")).to_raise(
-        ValueError, match="Broken after yield"
-    )
+    expect(
+        lambda: client.get("/broken"),
+        "GET /broken with broken dependency",
+    ).to_raise(ValueError, match="Broken after yield")
 
 
 # When a dependency with yield raises after the yield (not in an except), the
 # response is already "successfully" sent back to the client, but there's still
 # an error in the server afterwards, an exception is raised and captured or
 # shown in the server logs.
-@test
+@test("client suppresses server exception, response still returns 200")
 def broken_no_raise():
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/broken")
-        expect(response.status_code).to_equal(200)
-        expect(response.json()).to_equal({"message": "all good?"})
+        expect(response.status_code, "status code").to_equal(200)
+        expect(response.json(), "response body").to_equal({"message": "all good?"})
 
 
-@test
+@test("response completes even though dependency cleanup errors out")
 def broken_return_finishes():
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/broken")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"message": "all good?"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"message": "all good?"})

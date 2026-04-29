@@ -12,7 +12,7 @@ async def some_value() -> int:
 type DependedValue = Annotated[int, Depends(some_value)]
 
 
-@test
+@test("PEP 695 type alias resolves Depends() correctly")
 def pep695_type_dependencies():
     app = FastAPI()
 
@@ -22,5 +22,5 @@ def pep695_type_dependencies():
 
     client = TestClient(app)
     response = client.get("/")
-    expect(response.status_code).to_equal(200)
-    expect(response.text).to_equal('"value: 123"')
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.text, "response text").to_equal('"value: 123"')

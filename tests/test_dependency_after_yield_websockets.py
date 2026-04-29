@@ -63,21 +63,23 @@ async def websocket_endpoint_broken(websocket: WebSocket, session: BrokenSession
 client = TestClient(app)
 
 
-@test
+@test("websocket endpoint streams session items yielded by dependency")
 def websocket_dependency_after_yield():
     with client.websocket_connect("/ws") as websocket:
         data = websocket.receive_text()
-        expect(data).to_equal("foo")
+        expect(data, "first message").to_equal("foo")
         data = websocket.receive_text()
-        expect(data).to_equal("bar")
+        expect(data, "second message").to_equal("bar")
         data = websocket.receive_text()
-        expect(data).to_equal("baz")
+        expect(data, "third message").to_equal("baz")
 
 
-@test
+@test("broken session raises when websocket connects")
 def websocket_dependency_after_yield_broken():
     def _body():
         with client.websocket_connect("/ws-broken"):
             pass  # pragma no cover
 
-    expect(_body).to_raise(ValueError, match="Session closed")
+    expect(_body, "connecting to /ws-broken").to_raise(
+        ValueError, match="Session closed"
+    )

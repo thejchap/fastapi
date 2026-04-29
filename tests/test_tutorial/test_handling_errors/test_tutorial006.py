@@ -7,11 +7,11 @@ from docs_src.handling_errors.tutorial006_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("Override of RequestValidationError handler returns 422 JSON")
 def get_validation_error():
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -25,25 +25,25 @@ def get_validation_error():
     )
 
 
-@test
+@test("Override of HTTPException handler returns 418 JSON")
 def get_http_error():
     response = client.get("/items/3")
-    expect(response.status_code).to_equal(418).fatal()
-    expect(response.json()).to_equal({"detail": "Nope! I don't like 3."})
+    expect(response.status_code, "status code").to_equal(418).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Nope! I don't like 3."})
 
 
-@test
+@test("GET /items/2 returns the item")
 def get():
     response = client.get("/items/2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": 2})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": 2})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

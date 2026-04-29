@@ -149,87 +149,89 @@ app.include_router(
 client = TestClient(app)
 
 
-@test
+@test("function-scoped dep closes session before stream finishes")
 def function_scope_test() -> None:
     response = client.get("/function-scope")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     data = response.json()
-    expect(data["is_open"]).to_be(False)
+    expect(data["is_open"], "session was closed before stream").to_be(False)
 
 
-@test
+@test("request-scoped dep keeps session open during streaming")
 def request_scope_test() -> None:
     response = client.get("/request-scope")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     data = response.json()
-    expect(data["is_open"]).to_be(True)
+    expect(data["is_open"], "session is still open during stream").to_be(True)
 
 
-@test
+@test("function and request scopes coexist on the same endpoint")
 def two_scopes() -> None:
     response = client.get("/two-scopes")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     data = response.json()
-    expect(data["func_is_open"]).to_be(False)
-    expect(data["req_is_open"]).to_be(True)
+    expect(data["func_is_open"], "function scope already closed").to_be(False)
+    expect(data["req_is_open"], "request scope still open").to_be(True)
 
 
-@test
+@test("sub-dependency uses parent's request-scoped session")
 def sub() -> None:
     response = client.get("/sub")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     data = response.json()
-    expect(data["named_session_open"]).to_be(True)
-    expect(data["session_open"]).to_be(True)
+    expect(data["named_session_open"], "named session open").to_be(True)
+    expect(data["session_open"], "underlying session open").to_be(True)
 
 
-@test
+@test("request-scoped dep cannot depend on function-scoped dep")
 def broken_scope() -> None:
     def _body():
         @app.get("/broken-scope")
         def get_broken(sessions: BrokenSessionsDep) -> Any:  # pragma: no cover
             pass
 
-    expect(_body).to_raise(
+    expect(_body, "registering broken-scope endpoint").to_raise(
         FastAPIError,
         match='The dependency "get_named_func_session" has a scope of "request", it cannot depend on dependencies with scope "function"',
     )
 
 
-@test
+@test("function-scoped dep with sub-dependency closes both early")
 def named_function_scope() -> None:
     response = client.get("/named-function-scope")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     data = response.json()
-    expect(data["named_session_open"]).to_be(False)
-    expect(data["session_open"]).to_be(False)
+    expect(data["named_session_open"], "named session closed").to_be(False)
+    expect(data["session_open"], "underlying session closed").to_be(False)
 
 
-@test
+@test("regular function dep doesn't yield, sub session closes early")
 def regular_function_scope() -> None:
     response = client.get("/regular-function-scope")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
     data = response.json()
-    expect(data["named_session_open"]).to_be(True)
-    expect(data["session_open"]).to_be(False)
+    expect(data["named_session_open"], "named session still open").to_be(True)
+    expect(data["session_open"], "underlying session closed").to_be(False)
 
 
-@test
+@test("router-level function-scoped dep raises after yield, becomes 503")
 def router_level_dep_scope_function() -> None:
     response = client.get("/router-scope-function/")
-    expect(response.status_code).to_equal(503).fatal()
-    expect(response.json()).to_equal({"detail": "Exception after yield"})
+    expect(response.status_code, "status code").to_equal(503).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"detail": "Exception after yield"}
+    )
 
 
-@test
+@test("router-level request-scoped dep raises after response, suppressed")
 def router_level_dep_scope_request() -> None:
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/router-scope-request/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"status": "ok"})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"status": "ok"})
 
 
-@test
+@test("app-level function-scoped dep raises after yield, becomes 503")
 def app_level_dep_scope_function() -> None:
     app = FastAPI(dependencies=[Depends(raise_after_yield, scope="function")])
 
@@ -239,11 +241,13 @@ def app_level_dep_scope_function() -> None:
 
     with TestClient(app) as client:
         response = client.get("/app-scope-function")
-        expect(response.status_code).to_equal(503).fatal()
-        expect(response.json()).to_equal({"detail": "Exception after yield"})
+        expect(response.status_code, "status code").to_equal(503).fatal()
+        expect(response.json(), "response body").to_equal(
+            {"detail": "Exception after yield"}
+        )
 
 
-@test
+@test("app-level request-scoped dep raises after response, suppressed")
 def app_level_dep_scope_request() -> None:
     app = FastAPI(dependencies=[Depends(raise_after_yield, scope="request")])
 
@@ -253,5 +257,5 @@ def app_level_dep_scope_request() -> None:
 
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get("/app-scope-request")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"status": "ok"})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"status": "ok"})

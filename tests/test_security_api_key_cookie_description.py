@@ -24,29 +24,31 @@ def read_current_user(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@test
+@test("APIKeyCookie with description authenticates with valid cookie")
 def security_api_key():
     client = TestClient(app, cookies={"key": "secret"})
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "secret"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "secret"})
 
 
-@test
+@test("APIKeyCookie without cookie returns 401")
 def security_api_key_no_key():
     client = TestClient(app)
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("APIKey")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "APIKey"
+    )
 
 
-@test
+@test("OpenAPI schema includes APIKeyCookie description")
 def openapi_schema():
     client = TestClient(app)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

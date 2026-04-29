@@ -39,8 +39,8 @@ def put_all(mod_name: str):
             "tags": ["foo", "bar", "foo"],
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 123,
             "item": {
@@ -65,8 +65,8 @@ def put_only_required(mod_name: str):
         "/items/5",
         json={"name": "Foo", "price": 35.4},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "item": {
@@ -91,8 +91,8 @@ def put_empty_body(mod_name: str):
         "/items/5",
         json={},
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -123,8 +123,8 @@ def put_missing_required(mod_name: str):
         "/items/5",
         json={"description": "A very nice Item"},
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -160,8 +160,8 @@ def openapi_schema(mod_name: str):
         tags_schema.update(SET_OF_STR_SCHEMA)
 
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

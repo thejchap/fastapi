@@ -18,8 +18,8 @@ def _app_for(name: str) -> FastAPI:
 def post_form_no_body(name: str):
     client = TestClient(_app_for(name))
     response = client.post("/files/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -52,8 +52,8 @@ def post_form_no_body(name: str):
 def post_form_no_file(name: str):
     client = TestClient(_app_for(name))
     response = client.post("/files/", data={"token": "foo"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -80,8 +80,8 @@ def post_form_no_file(name: str):
 def post_body_json(name: str):
     client = TestClient(_app_for(name))
     response = client.post("/files/", json={"file": "Foo", "token": "Bar"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -120,8 +120,8 @@ def post_file_no_token(name: str):
         client = TestClient(app)
         with path.open("rb") as file:
             response = client.post("/files/", files={"file": file})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -160,8 +160,8 @@ def post_files_and_token(name: str):
                 data={"token": "foo"},
                 files={"file": filea, "fileb": ("testb.txt", fileb, "text/plain")},
             )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "file_size": 14,
             "token": "foo",
@@ -177,8 +177,8 @@ def post_files_and_token(name: str):
 def openapi_schema(name: str):
     client = TestClient(_app_for(name))
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -18,8 +18,8 @@ def _client_for(name: str) -> TestClient:
 def login(name: str):
     client = _client_for(name)
     response = client.post("/token", data={"username": "johndoe", "password": "secret"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "token response").to_equal(
         {"access_token": "johndoe", "token_type": "bearer"}
     )
 
@@ -33,8 +33,10 @@ def login_incorrect_password(name: str):
     response = client.post(
         "/token", data={"username": "johndoe", "password": "incorrect"}
     )
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "error body").to_equal(
+        {"detail": "Incorrect username or password"}
+    )
 
 
 @test.cases(
@@ -44,8 +46,10 @@ def login_incorrect_password(name: str):
 def login_incorrect_username(name: str):
     client = _client_for(name)
     response = client.post("/token", data={"username": "foo", "password": "secret"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Incorrect username or password"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "error body").to_equal(
+        {"detail": "Incorrect username or password"}
+    )
 
 
 @test.cases(
@@ -55,9 +59,11 @@ def login_incorrect_username(name: str):
 def no_token(name: str):
     client = _client_for(name)
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
 @test.cases(
@@ -67,8 +73,8 @@ def no_token(name: str):
 def token(name: str):
     client = _client_for(name)
     response = client.get("/users/me", headers={"Authorization": "Bearer johndoe"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "current user").to_equal(
         {
             "username": "johndoe",
             "full_name": "John Doe",
@@ -86,9 +92,11 @@ def token(name: str):
 def incorrect_token(name: str):
     client = _client_for(name)
     response = client.get("/users/me", headers={"Authorization": "Bearer nonexistent"})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
 @test.cases(
@@ -100,9 +108,11 @@ def incorrect_token_type(name: str):
     response = client.get(
         "/users/me", headers={"Authorization": "Notexistent testtoken"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
 @test.cases(
@@ -112,8 +122,8 @@ def incorrect_token_type(name: str):
 def inactive_user(name: str):
     client = _client_for(name)
     response = client.get("/users/me", headers={"Authorization": "Bearer alice"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "Inactive user"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "error body").to_equal({"detail": "Inactive user"})
 
 
 @test.cases(
@@ -123,8 +133,8 @@ def inactive_user(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

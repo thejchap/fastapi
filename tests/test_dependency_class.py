@@ -193,5 +193,5 @@ client = TestClient(app)
 )
 def class_dependency(route: str, value: str):
     response = client.get(route, params={"value": value})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(value)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(value)

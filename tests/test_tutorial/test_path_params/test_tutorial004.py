@@ -7,27 +7,27 @@ from docs_src.path_params.tutorial004_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("path-converter param captures a relative path")
 def file_path():
     response = client.get("/files/home/johndoe/myfile.txt")
     print(response.content)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_path": "home/johndoe/myfile.txt"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_path": "home/johndoe/myfile.txt"})
 
 
-@test
+@test("path-converter param captures an absolute path")
 def root_file_path():
     response = client.get("/files//home/johndoe/myfile.txt")
     print(response.content)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_path": "/home/johndoe/myfile.txt"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_path": "/home/johndoe/myfile.txt"})
 
 
-@test
+@test("OpenAPI schema matches the snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

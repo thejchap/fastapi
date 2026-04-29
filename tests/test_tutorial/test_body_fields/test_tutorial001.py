@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def items_5(name: str):
     client = _client_for(name)
     response = client.put("/items/5", json={"item": {"name": "Foo", "price": 3.0}})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "item": {"name": "Foo", "price": 3.0, "description": None, "tax": None},
@@ -43,8 +43,8 @@ def items_6(name: str):
             }
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 6,
             "item": {
@@ -64,8 +64,8 @@ def items_6(name: str):
 def invalid_price(name: str):
     client = _client_for(name)
     response = client.put("/items/5", json={"item": {"name": "Foo", "price": -3.0}})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -87,8 +87,8 @@ def invalid_price(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

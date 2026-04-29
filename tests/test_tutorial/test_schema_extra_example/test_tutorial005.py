@@ -25,7 +25,7 @@ def post_body_example(name: str):
             "tax": 3.2,
         },
     )
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
 @test.cases(
@@ -35,8 +35,8 @@ def post_body_example(name: str):
 def openapi_schema(name: str) -> None:
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

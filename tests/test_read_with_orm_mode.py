@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 from tryke import expect, test
 
 
-@test
+@test("response_model serializes ORM-mode model attributes")
 def read_with_orm_mode() -> None:
     class PersonBase(BaseModel):
         name: str
@@ -39,9 +39,9 @@ def read_with_orm_mode() -> None:
     person_data = {"name": "Dive", "lastname": "Wilson"}
     response = client.post("/people/", json=person_data)
     data = response.json()
-    expect(response.status_code).to_equal(200).fatal()
-    expect(data["name"]).to_equal(person_data["name"])
-    expect(data["lastname"]).to_equal(person_data["lastname"])
-    expect(data["full_name"]).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(data["name"], "name field").to_equal(person_data["name"])
+    expect(data["lastname"], "lastname field").to_equal(person_data["lastname"])
+    expect(data["full_name"], "full_name property").to_equal(
         person_data["name"] + " " + person_data["lastname"]
     )

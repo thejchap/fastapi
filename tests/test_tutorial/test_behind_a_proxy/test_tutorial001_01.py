@@ -10,15 +10,17 @@ client = TestClient(
 )
 
 
-@test
+@test("GET /items redirects to /items/")
 def redirect() -> None:
     response = client.get("/items")
-    expect(response.status_code).to_equal(307).fatal()
-    expect(response.headers["location"]).to_equal("https://example.com/items/")
+    expect(response.status_code, "status code").to_equal(307).fatal()
+    expect(response.headers["location"], "redirect location").to_equal(
+        "https://example.com/items/"
+    )
 
 
-@test
+@test("GET /items/ returns the item list")
 def no_redirect() -> None:
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["plumbus", "portal gun"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["plumbus", "portal gun"])

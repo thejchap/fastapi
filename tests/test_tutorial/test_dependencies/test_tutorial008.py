@@ -58,5 +58,5 @@ def get_db(name: str):
     ):
         response = client.get("/")
 
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"c": str(c_mock)})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"c": str(c_mock)})

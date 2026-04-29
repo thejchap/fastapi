@@ -23,17 +23,17 @@ def foo():
 client = TestClient(app)
 
 
-@test
+@test("Routes still work when servers list is configured")
 def app_test():
     response = client.get("/foo")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("Configured servers are reflected in the OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

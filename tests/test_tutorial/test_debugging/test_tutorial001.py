@@ -16,7 +16,7 @@ def client() -> TestClient:
     return TestClient(mod.app)
 
 
-@test
+@test("uvicorn.run is not called when the module is imported")
 def uvicorn_run_is_not_called_on_import():
     if sys.modules.get(MOD_NAME):
         del sys.modules[MOD_NAME]
@@ -25,14 +25,14 @@ def uvicorn_run_is_not_called_on_import():
     uvicorn_run_mock.assert_not_called()
 
 
-@test
+@test("GET / returns the hello-world payload")
 def get_root(client: TestClient = Depends(client)):
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"hello world": "ba"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"hello world": "ba"})
 
 
-@test
+@test("uvicorn.run is called when the module runs as __main__")
 def uvicorn_run_called_when_run_as_main():
     # Just for coverage.
     if sys.modules.get(MOD_NAME):
@@ -45,11 +45,11 @@ def uvicorn_run_called_when_run_as_main():
     )
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -19,8 +19,8 @@ def post_with_tax(price: str | float, client: TestClient = Depends(client)):
         "/items/",
         json={"name": "Foo", "price": price, "description": "Some Foo", "tax": 0.3},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "price": 50.5,
@@ -39,8 +39,8 @@ def post_without_tax(price: str | float, client: TestClient = Depends(client)):
     response = client.post(
         "/items/", json={"name": "Foo", "price": price, "description": "Some Foo"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "price": 50.5,
@@ -50,11 +50,11 @@ def post_without_tax(price: str | float, client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("POST with empty body returns missing-field errors")
 def post_with_no_data(client: TestClient = Depends(client)):
     response = client.post("/items/", json={})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -74,11 +74,11 @@ def post_with_no_data(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -7,20 +7,20 @@ from docs_src.response_model.tutorial003_03_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /teleport always issues a 307 redirect")
 def get_portal():
     response = client.get("/teleport", follow_redirects=False)
-    expect(response.status_code).to_equal(307).fatal()
-    expect(response.headers["location"]).to_equal(
+    expect(response.status_code, "status code").to_equal(307).fatal()
+    expect(response.headers["location"], "Location header").to_equal(
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     )
 
 
-@test
+@test("OpenAPI schema for tutorial003_03")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -21,18 +21,18 @@ async def create_item(product: Product):
 client = TestClient(app)
 
 
-@test
+@test("GET endpoints can accept a JSON request body")
 def get_with_body():
     body = {"name": "Foo", "description": "Some description", "price": 5.5}
     response = client.request("GET", "/product", json=body)
-    expect(response.json()).to_equal(body)
+    expect(response.json(), "response body").to_equal(body)
 
 
-@test
+@test("GET-with-body schema documents the request body")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

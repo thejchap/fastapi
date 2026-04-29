@@ -18,8 +18,8 @@ def _client_for(name: str) -> TestClient:
 def get_no_headers_items(name: str):
     client = _client_for(name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -46,8 +46,8 @@ def get_no_headers_items(name: str):
 def get_no_headers_users(name: str):
     client = _client_for(name)
     response = client.get("/users/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -74,8 +74,8 @@ def get_no_headers_users(name: str):
 def get_invalid_one_header_items(name: str):
     client = _client_for(name)
     response = client.get("/items/", headers={"X-Token": "invalid"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Token header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Token header invalid"})
 
 
 @test.cases(
@@ -85,8 +85,8 @@ def get_invalid_one_header_items(name: str):
 def get_invalid_one_users(name: str):
     client = _client_for(name)
     response = client.get("/users/", headers={"X-Token": "invalid"})
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Token header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Token header invalid"})
 
 
 @test.cases(
@@ -98,8 +98,8 @@ def get_invalid_second_header_items(name: str):
     response = client.get(
         "/items/", headers={"X-Token": "fake-super-secret-token", "X-Key": "invalid"}
     )
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Key header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Key header invalid"})
 
 
 @test.cases(
@@ -111,8 +111,8 @@ def get_invalid_second_header_users(name: str):
     response = client.get(
         "/users/", headers={"X-Token": "fake-super-secret-token", "X-Key": "invalid"}
     )
-    expect(response.status_code).to_equal(400).fatal()
-    expect(response.json()).to_equal({"detail": "X-Key header invalid"})
+    expect(response.status_code, "status code").to_equal(400).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "X-Key header invalid"})
 
 
 @test.cases(
@@ -128,8 +128,8 @@ def get_valid_headers_items(name: str):
             "X-Key": "fake-super-secret-key",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"item": "Portal Gun"}, {"item": "Plumbus"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([{"item": "Portal Gun"}, {"item": "Plumbus"}])
 
 
 @test.cases(
@@ -145,8 +145,8 @@ def get_valid_headers_users(name: str):
             "X-Key": "fake-super-secret-key",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"username": "Rick"}, {"username": "Morty"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([{"username": "Rick"}, {"username": "Morty"}])
 
 
 @test.cases(
@@ -156,8 +156,8 @@ def get_valid_headers_users(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

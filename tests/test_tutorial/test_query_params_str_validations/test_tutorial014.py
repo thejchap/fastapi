@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def hidden_query(name: str):
     client = _client_for(name)
     response = client.get("/items?hidden_query=somevalue")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"hidden_query": "somevalue"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"hidden_query": "somevalue"})
 
 
 @test.cases(
@@ -28,8 +28,8 @@ def hidden_query(name: str):
 def no_hidden_query(name: str):
     client = _client_for(name)
     response = client.get("/items")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"hidden_query": "Not found"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"hidden_query": "Not found"})
 
 
 @test.cases(
@@ -39,8 +39,8 @@ def no_hidden_query(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

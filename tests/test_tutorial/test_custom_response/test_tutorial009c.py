@@ -11,7 +11,7 @@ if not _SKIP_ORJSON:
 
     client = TestClient(app)
 
-    @test
+    @test("GET / returns pretty-printed ORJSONResponse body")
     def get():
         response = client.get("/")
-        expect(response.content).to_equal(b'{\n  "message": "Hello World"\n}')
+        expect(response.content, "response content").to_equal(b'{\n  "message": "Hello World"\n}')

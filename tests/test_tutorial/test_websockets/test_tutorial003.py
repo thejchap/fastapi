@@ -17,7 +17,7 @@ def get(name: str):
     mod = _module_for(name)
     client = TestClient(mod.app)
     response = client.get("/")
-    expect(response.text).to_equal(mod.html)
+    expect(response.text, "served HTML").to_equal(mod.html)
 
 
 @test.cases(
@@ -32,14 +32,18 @@ def websocket_handle_disconnection(name: str):
     ):
         connection.send_text("Hello from 1234")
         data1 = connection.receive_text()
-        expect(data1).to_equal("You wrote: Hello from 1234")
+        expect(data1, "personal echo on client 1234").to_equal(
+            "You wrote: Hello from 1234"
+        )
         time.sleep(0.01)  # Give server time to process broadcast
         data2 = connection_two.receive_text()
         client1_says = "Client #1234 says: Hello from 1234"
-        expect(data2).to_equal(client1_says)
+        expect(data2, "broadcast received by client 5678").to_equal(client1_says)
         data1 = connection.receive_text()
-        expect(data1).to_equal(client1_says)
+        expect(data1, "broadcast received by sender").to_equal(client1_says)
         connection_two.close()
         time.sleep(0.01)  # Give server time to process broadcast
         data1 = connection.receive_text()
-        expect(data1).to_equal("Client #5678 left the chat")
+        expect(data1, "leave notification on client 1234").to_equal(
+            "Client #5678 left the chat"
+        )

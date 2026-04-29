@@ -344,30 +344,34 @@ app.include_router(router2_default)
 client = TestClient(app)
 
 
-@test
+@test("Router-level overrides apply at path-operation level 1")
 def level1_override():
     response = client.get("/override1?level1=foo")
-    expect(response.json()).to_equal("foo")
-    expect(response.headers["content-type"]).to_equal("application/x-level-1")
-    expect(response.headers).to_contain("x-level0")
-    expect(response.headers).to_contain("x-level1")
-    expect(response.headers).not_.to_contain("x-level2")
-    expect(response.headers).not_.to_contain("x-level3")
-    expect(response.headers).not_.to_contain("x-level4")
-    expect(response.headers).not_.to_contain("x-level5")
+    expect(response.json(), "response body").to_equal("foo")
+    expect(response.headers["content-type"], "content-type header").to_equal(
+        "application/x-level-1"
+    )
+    expect(response.headers, "response headers").to_contain("x-level0")
+    expect(response.headers, "response headers").to_contain("x-level1")
+    expect(response.headers, "response headers").not_.to_contain("x-level2")
+    expect(response.headers, "response headers").not_.to_contain("x-level3")
+    expect(response.headers, "response headers").not_.to_contain("x-level4")
+    expect(response.headers, "response headers").not_.to_contain("x-level5")
 
 
-@test
+@test("Default settings flow down when no router-level override is set")
 def level1_default():
     response = client.get("/default1?level1=foo")
-    expect(response.json()).to_equal("foo")
-    expect(response.headers["content-type"]).to_equal("application/x-level-0")
-    expect(response.headers).to_contain("x-level0")
-    expect(response.headers).not_.to_contain("x-level1")
-    expect(response.headers).not_.to_contain("x-level2")
-    expect(response.headers).not_.to_contain("x-level3")
-    expect(response.headers).not_.to_contain("x-level4")
-    expect(response.headers).not_.to_contain("x-level5")
+    expect(response.json(), "response body").to_equal("foo")
+    expect(response.headers["content-type"], "content-type header").to_equal(
+        "application/x-level-0"
+    )
+    expect(response.headers, "response headers").to_contain("x-level0")
+    expect(response.headers, "response headers").not_.to_contain("x-level1")
+    expect(response.headers, "response headers").not_.to_contain("x-level2")
+    expect(response.headers, "response headers").not_.to_contain("x-level3")
+    expect(response.headers, "response headers").not_.to_contain("x-level4")
+    expect(response.headers, "response headers").not_.to_contain("x-level5")
 
 
 @test.cases(
@@ -396,14 +400,20 @@ def paths_level3(override1: bool, override2: bool, override3: bool):
         url += "/default3"
     url += "?level3=foo"
     response = client.get(url)
-    expect(response.json()).to_equal("foo")
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.json(), "response body").to_equal("foo")
+    expect(response.headers["content-type"], "content-type header").to_equal(
         f"application/x-level-{content_type_level}"
     )
-    expect(response.headers).to_contain("x-level0")
-    expect(not override1 or "x-level1" in response.headers).to_be_truthy()
-    expect(not override2 or "x-level2" in response.headers).to_be_truthy()
-    expect(not override3 or "x-level3" in response.headers).to_be_truthy()
+    expect(response.headers, "response headers").to_contain("x-level0")
+    expect(
+        not override1 or "x-level1" in response.headers, "x-level1 header presence"
+    ).to_be_truthy()
+    expect(
+        not override2 or "x-level2" in response.headers, "x-level2 header presence"
+    ).to_be_truthy()
+    expect(
+        not override3 or "x-level3" in response.headers, "x-level3 header presence"
+    ).to_be_truthy()
 
 
 @test.cases(
@@ -688,27 +698,41 @@ def paths_level5(
         url += "/default5"
     url += "?level5=foo"
     response = client.get(url)
-    expect(response.json()).to_equal("foo")
-    expect(response.headers["content-type"]).to_equal(
+    expect(response.json(), "response body").to_equal("foo")
+    expect(response.headers["content-type"], "content-type header").to_equal(
         f"application/x-level-{content_type_level}"
     )
-    expect(response.headers).to_contain("x-level0")
-    expect(not override1 or "x-level1" in response.headers).to_be_truthy()
-    expect(not override2 or "x-level2" in response.headers).to_be_truthy()
-    expect(not override3 or "x-level3" in response.headers).to_be_truthy()
-    expect(not override4 or "x-level4" in response.headers).to_be_truthy()
-    expect(not override5 or "x-level5" in response.headers).to_be_truthy()
+    expect(response.headers, "response headers").to_contain("x-level0")
+    expect(
+        not override1 or "x-level1" in response.headers, "x-level1 header presence"
+    ).to_be_truthy()
+    expect(
+        not override2 or "x-level2" in response.headers, "x-level2 header presence"
+    ).to_be_truthy()
+    expect(
+        not override3 or "x-level3" in response.headers, "x-level3 header presence"
+    ).to_be_truthy()
+    expect(
+        not override4 or "x-level4" in response.headers, "x-level4 header presence"
+    ).to_be_truthy()
+    expect(
+        not override5 or "x-level5" in response.headers, "x-level5 header presence"
+    ).to_be_truthy()
 
 
-@test
+@test("Nested router overrides produce the expected OpenAPI schema")
 def openapi():
     local_client = TestClient(app)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         response = local_client.get("/openapi.json")
-        expect(issubclass(w[-1].category, UserWarning)).to_be_truthy()
-        expect(str(w[-1].message)).to_contain("Duplicate Operation ID")
-    expect(response.json()).to_equal(
+        expect(
+            issubclass(w[-1].category, UserWarning), "last warning is UserWarning"
+        ).to_be_truthy()
+        expect(str(w[-1].message), "last warning message").to_contain(
+            "Duplicate Operation ID"
+        )
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

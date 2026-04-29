@@ -11,7 +11,7 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("POST /items/ creates an item")
 def post_items(client: TestClient = Depends(client)):
     response = client.post(
         "/items/",
@@ -23,8 +23,8 @@ def post_items(client: TestClient = Depends(client)):
             "tags": ["bar", "baz"],
         },
     )
-    expect(response.status_code).to_equal(201).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(201).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "Foo",
             "description": "Item description",
@@ -35,11 +35,11 @@ def post_items(client: TestClient = Depends(client)):
     )
 
 
-@test
+@test("OpenAPI schema matches the snapshot")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

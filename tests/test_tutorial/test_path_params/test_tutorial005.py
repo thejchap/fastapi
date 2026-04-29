@@ -7,38 +7,38 @@ from docs_src.path_params.tutorial005_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /models/alexnet returns the alexnet response")
 def get_enums_alexnet():
     response = client.get("/models/alexnet")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {"model_name": "alexnet", "message": "Deep Learning FTW!"}
     )
 
 
-@test
+@test("GET /models/lenet returns the lenet response")
 def get_enums_lenet():
     response = client.get("/models/lenet")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {"model_name": "lenet", "message": "LeCNN all the images"}
     )
 
 
-@test
+@test("GET /models/resnet returns the resnet response")
 def get_enums_resnet():
     response = client.get("/models/resnet")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {"model_name": "resnet", "message": "Have some residuals"}
     )
 
 
-@test
+@test("GET /models/{name} rejects an invalid enum value")
 def get_enums_invalid():
     response = client.get("/models/foo")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -53,11 +53,11 @@ def get_enums_invalid():
     )
 
 
-@test
+@test("OpenAPI schema matches the snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

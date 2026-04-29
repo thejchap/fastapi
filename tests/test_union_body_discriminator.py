@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from tryke import expect, test
 
 
-@test
+@test("Pydantic v2 discriminated union body routes by tag and emits OpenAPI mapping")
 def discriminator_pydantic_v2() -> None:
     from pydantic import Tag
 
@@ -35,16 +35,20 @@ def discriminator_pydantic_v2() -> None:
 
     client = TestClient(app)
     response = client.post("/items/?q=first", json={"value": "first", "price": 100})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": {"value": "first", "price": 100}})
+    expect(response.status_code, "status code (first)").to_equal(200).fatal()
+    expect(response.json(), "response body (first)").to_equal(
+        {"item": {"value": "first", "price": 100}}
+    )
 
     response = client.post("/items/?q=other", json={"value": "other", "price": 100.5})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item": {"value": "other", "price": 100.5}})
+    expect(response.status_code, "status code (other)").to_equal(200).fatal()
+    expect(response.json(), "response body (other)").to_equal(
+        {"item": {"value": "other", "price": 100.5}}
+    )
 
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "openapi status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

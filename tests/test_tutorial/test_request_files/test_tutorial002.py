@@ -18,8 +18,8 @@ def _app_for(name: str) -> FastAPI:
 def post_form_no_body(name: str):
     client = TestClient(_app_for(name))
     response = client.post("/files/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -40,8 +40,8 @@ def post_form_no_body(name: str):
 def post_body_json(name: str):
     client = TestClient(_app_for(name))
     response = client.post("/files/", json={"file": "Foo"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -76,8 +76,8 @@ def post_files(name: str):
                     ("files", ("test2.txt", file2)),
                 ),
             )
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"file_sizes": [14, 15]})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"file_sizes": [14, 15]})
 
 
 @test.cases(
@@ -101,8 +101,8 @@ def post_upload_file(name: str):
                     ("files", ("test2.txt", file2)),
                 ),
             )
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"filenames": ["test.txt", "test2.txt"]})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"filenames": ["test.txt", "test2.txt"]})
 
 
 @test.cases(
@@ -113,8 +113,8 @@ def get_root(name: str):
     app = _app_for(name)
     client = TestClient(app)
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(b"<form" in response.content).to_be_truthy()
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(b"<form" in response.content, "response contains a form").to_be_truthy()
 
 
 @test.cases(
@@ -124,8 +124,8 @@ def get_root(name: str):
 def openapi_schema(name: str):
     client = TestClient(_app_for(name))
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

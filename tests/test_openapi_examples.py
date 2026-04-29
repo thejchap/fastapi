@@ -123,29 +123,29 @@ def cookie_examples(
 client = TestClient(app)
 
 
-@test
+@test("All example-bearing routes return 200")
 def call_api():
     response = client.post("/examples/", json={"data": "example1"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "POST /examples/ status code").to_equal(200)
 
     response = client.get("/path_examples/foo")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "GET /path_examples/foo status code").to_equal(200)
 
     response = client.get("/query_examples/")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "GET /query_examples/ status code").to_equal(200)
 
     response = client.get("/header_examples/")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "GET /header_examples/ status code").to_equal(200)
 
     response = client.get("/cookie_examples/")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "GET /cookie_examples/ status code").to_equal(200)
 
 
-@test
+@test("OpenAPI schema serializes both schema-level and openapi_examples")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

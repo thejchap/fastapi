@@ -14,5 +14,5 @@ def process_items(name: str):
     with patch("builtins.print") as mock_print:
         module.process_item("a")
 
-    expect(mock_print.call_count).to_equal(1)
+    expect(mock_print.call_count, "print call count").to_equal(1)
     mock_print.assert_called_with("a")

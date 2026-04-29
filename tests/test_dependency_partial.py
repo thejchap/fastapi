@@ -274,5 +274,5 @@ client = TestClient(app)
 )
 def dependency_types_with_partial(route: str, value: str) -> None:
     response = client.get(route)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(value)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(value)

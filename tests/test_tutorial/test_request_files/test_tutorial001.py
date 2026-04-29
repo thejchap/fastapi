@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def post_form_no_body(name: str):
     client = _client_for(name)
     response = client.post("/files/")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -39,8 +39,8 @@ def post_form_no_body(name: str):
 def post_body_json(name: str):
     client = _client_for(name)
     response = client.post("/files/", json={"file": "Foo"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -66,8 +66,8 @@ def post_file(name: str):
 
         with path.open("rb") as file:
             response = client.post("/files/", files={"file": file})
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"file_size": 14})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"file_size": 14})
 
 
 @test.cases(
@@ -83,8 +83,8 @@ def post_large_file(name: str):
 
         with path.open("rb") as file:
             response = client.post("/files/", files={"file": file})
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"file_size": default_pydantic_max_size + 1})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"file_size": default_pydantic_max_size + 1})
 
 
 @test.cases(
@@ -99,8 +99,8 @@ def post_upload_file(name: str):
 
         with path.open("rb") as file:
             response = client.post("/uploadfile/", files={"file": file})
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"filename": "test.txt"})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"filename": "test.txt"})
 
 
 @test.cases(
@@ -110,8 +110,8 @@ def post_upload_file(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

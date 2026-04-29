@@ -813,6 +813,7 @@ dependencies = [
     { name = "annotated-doc" },
     { name = "pydantic" },
     { name = "starlette" },
+    { name = "tryke" },
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
@@ -983,6 +984,7 @@ requires-dist = [
     { name = "python-multipart", marker = "extra == 'standard-no-fastapi-cloud-cli'", specifier = ">=0.0.18" },
     { name = "pyyaml", marker = "extra == 'all'", specifier = ">=5.3.1" },
     { name = "starlette", specifier = ">=0.46.0" },
+    { name = "tryke", directory = "../../.config/superpowers/worktrees/tryke/add-next-sugar-reporters" },
     { name = "typing-extensions", specifier = ">=4.8.0" },
     { name = "typing-inspection", specifier = ">=0.4.2" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'all'", specifier = ">=0.12.0" },
@@ -1029,7 +1031,7 @@ dev = [
     { name = "ruff", specifier = ">=0.14.14" },
     { name = "sqlmodel", specifier = ">=0.0.31" },
     { name = "strawberry-graphql", specifier = ">=0.200.0,<1.0.0" },
-    { name = "tryke", specifier = ">=0.0.23" },
+    { name = "tryke", directory = "../../.config/superpowers/worktrees/tryke/add-next-sugar-reporters" },
     { name = "ty", specifier = ">=0.0.9" },
     { name = "typer", specifier = ">=0.21.1" },
     { name = "zizmor", specifier = ">=1.23.1" },
@@ -1084,7 +1086,7 @@ tests = [
     { name = "ruff", specifier = ">=0.14.14" },
     { name = "sqlmodel", specifier = ">=0.0.31" },
     { name = "strawberry-graphql", specifier = ">=0.200.0,<1.0.0" },
-    { name = "tryke", specifier = ">=0.0.23" },
+    { name = "tryke", directory = "../../.config/superpowers/worktrees/tryke/add-next-sugar-reporters" },
     { name = "ty", specifier = ">=0.0.9" },
 ]
 translations = [
@@ -4172,12 +4174,17 @@ wheels = [
 
 [[package]]
 name = "tryke"
-version = "0.0.23"
-source = { registry = "https://pypi.org/simple" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/fc/d9e245e0694507f1a5b0ee094b6e02a0cdc756b564fdde836df65696ef96/tryke-0.0.23-py3-none-macosx_11_0_arm64.whl", hash = "sha256:004e2504982e6195a6e6aab2945859b3804406b02ee74a07c998271b063ceac6", size = 4496728, upload-time = "2026-04-25T15:09:10.275Z" },
-    { url = "https://files.pythonhosted.org/packages/56/f5/13ead76128e683a9c9498c9b0f22314bb94b8b7e297e323a061eb3f66566/tryke-0.0.23-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a4687230ce9d7016e060095956cf785d2243bb6c8782c5a3d30bb08bbac1be57", size = 4867936, upload-time = "2026-04-25T15:09:08.398Z" },
-    { url = "https://files.pythonhosted.org/packages/96/19/59898e55206d7cae9f5d172575dd812c1514a8a7c4c31d7097040046e610/tryke-0.0.23-py3-none-win_amd64.whl", hash = "sha256:b6a38bb1687a83576f7b5c255923e55ed13759807b498d15a1119874dac75236", size = 4180312, upload-time = "2026-04-25T15:09:12.274Z" },
+source = { directory = "../../.config/superpowers/worktrees/tryke/add-next-sugar-reporters" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mkdocstrings-python", specifier = ">=1.16.12" },
+    { name = "ruff", specifier = "~=0.15.4" },
+    { name = "tryke", editable = "../../.config/superpowers/worktrees/tryke/add-next-sugar-reporters" },
+    { name = "ty", specifier = "~=0.0.29" },
+    { name = "zensical", specifier = ">=0.0.26" },
 ]
 
 [[package]]

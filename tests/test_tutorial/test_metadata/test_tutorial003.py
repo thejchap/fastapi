@@ -7,18 +7,18 @@ from docs_src.metadata.tutorial003_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/ returns the items list")
 def items():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"name": "Foo"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([{"name": "Foo"}])
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -45,20 +45,20 @@ def openapi_schema():
     )
 
 
-@test
+@test("Default Swagger UI URL /docs returns 404 when relocated")
 def swagger_ui_default_url():
     response = client.get("/docs")
-    expect(response.status_code).to_equal(404)
+    expect(response.status_code, "status code").to_equal(404)
 
 
-@test
+@test("Swagger UI is served at the custom /documentation URL")
 def swagger_ui_custom_url():
     response = client.get("/documentation")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.text).to_contain("<title>FastAPI - Swagger UI</title>")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.text, "response text").to_contain("<title>FastAPI - Swagger UI</title>")
 
 
-@test
+@test("Default ReDoc URL /redoc returns 404 when disabled")
 def redoc_ui_default_url():
     response = client.get("/redoc")
-    expect(response.status_code).to_equal(404)
+    expect(response.status_code, "status code").to_equal(404)

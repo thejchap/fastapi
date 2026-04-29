@@ -32,18 +32,18 @@ def route_with_extra_query_parameters(standard_query_param: int | None = 50):
 client = TestClient(app)
 
 
-@test
+@test("Routes with extra openapi parameters still respond")
 def get_route():
     response = client.get("/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({})
 
 
-@test
+@test("openapi_extra parameters merge with the auto-detected ones")
 def openapi():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

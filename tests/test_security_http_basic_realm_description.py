@@ -19,46 +19,54 @@ def read_current_user(credentials: HTTPBasicCredentials = Security(security)):
 client = TestClient(app)
 
 
-@test
+@test("HTTPBasic with realm and description authenticates valid credentials")
 def security_http_basic():
     response = client.get("/users/me", auth=("john", "secret"))
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "john", "password": "secret"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"username": "john", "password": "secret"}
+    )
 
 
-@test
+@test("HTTPBasic with realm 401 includes realm in WWW-Authenticate")
 def security_http_basic_no_credentials():
     response = client.get("/users/me")
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.status_code).to_equal(401)
-    expect(response.headers["WWW-Authenticate"]).to_equal('Basic realm="simple"')
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401)
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Basic realm="simple"'
+    )
 
 
-@test
+@test("HTTPBasic with realm rejects non-base64 credentials with realm in WWW-Authenticate")
 def security_http_basic_invalid_credentials():
     response = client.get(
         "/users/me", headers={"Authorization": "Basic notabase64token"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.headers["WWW-Authenticate"]).to_equal('Basic realm="simple"')
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Basic realm="simple"'
+    )
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
-@test
+@test("HTTPBasic with realm rejects credentials missing colon")
 def security_http_basic_non_basic_credentials():
     payload = b64encode(b"johnsecret").decode("ascii")
     auth_header = f"Basic {payload}"
     response = client.get("/users/me", headers={"Authorization": auth_header})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.headers["WWW-Authenticate"]).to_equal('Basic realm="simple"')
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        'Basic realm="simple"'
+    )
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
-@test
+@test("OpenAPI schema includes HTTPBasic description (realm not surfaced)")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

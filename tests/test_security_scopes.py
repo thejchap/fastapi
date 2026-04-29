@@ -37,12 +37,12 @@ def client(app: FastAPI = TrykeDepends(app)) -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("Shared dependency with Security scopes is called only once per request")
 def security_scopes_dependency_called_once(
     client: TestClient = TrykeDepends(client),
     call_counter: dict[str, int] = TrykeDepends(call_counter),
 ):
     response = client.get("/")
 
-    expect(response.status_code).to_equal(200)
-    expect(call_counter["count"]).to_equal(1)
+    expect(response.status_code, "status code").to_equal(200)
+    expect(call_counter["count"], "dependency call count").to_equal(1)

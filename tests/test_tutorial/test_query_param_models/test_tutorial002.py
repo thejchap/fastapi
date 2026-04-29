@@ -25,8 +25,8 @@ def query_param_model(name: str):
             "tags": ["tag1", "tag2"],
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "limit": 10,
             "offset": 5,
@@ -43,8 +43,8 @@ def query_param_model(name: str):
 def query_param_model_defaults(name: str):
     client = _client_for(name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "limit": 100,
             "offset": 0,
@@ -68,8 +68,8 @@ def query_param_model_invalid(name: str):
             "order_by": "invalid",
         },
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "detail": [
@@ -116,8 +116,8 @@ def query_param_model_extra(name: str):
             "tool": "plumbus",
         },
     )
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "detail": [
@@ -140,8 +140,8 @@ def query_param_model_extra(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

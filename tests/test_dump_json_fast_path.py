@@ -28,7 +28,7 @@ def get_explicit() -> Item:
 client = TestClient(app)
 
 
-@test
+@test("default response class skips json.dumps via Pydantic fast path")
 def default_response_class_skips_json_dumps():
     """When no response_class is set, the fast path serializes directly to
     JSON bytes via Pydantic's dump_json and never calls json.dumps."""
@@ -36,12 +36,14 @@ def default_response_class_skips_json_dumps():
         "starlette.responses.json.dumps", wraps=__import__("json").dumps
     ) as mock_dumps:
         response = client.get("/default")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"name": "widget", "price": 9.99})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"name": "widget", "price": 9.99}
+    )
     mock_dumps.assert_not_called()
 
 
-@test
+@test("explicit JSONResponse still goes through json.dumps")
 def explicit_response_class_uses_json_dumps():
     """When response_class is explicitly set to JSONResponse, the normal path
     is used and json.dumps is called via JSONResponse.render()."""
@@ -49,6 +51,8 @@ def explicit_response_class_uses_json_dumps():
         "starlette.responses.json.dumps", wraps=__import__("json").dumps
     ) as mock_dumps:
         response = client.get("/explicit")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"name": "widget", "price": 9.99})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
+        {"name": "widget", "price": 9.99}
+    )
     mock_dumps.assert_called_once()

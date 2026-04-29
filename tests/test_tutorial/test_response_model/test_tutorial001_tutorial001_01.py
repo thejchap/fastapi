@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def read_items(name: str):
     client = _client_for(name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "items list").to_equal(
         [
             {
                 "name": "Portal Gun",
@@ -52,8 +52,8 @@ def create_item(name: str):
         "tags": ["test", "item"],
     }
     response = client.post("/items/", json=item_data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(item_data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "created item").to_equal(item_data)
 
 
 @test.cases(
@@ -69,8 +69,8 @@ def create_item_only_required(name: str):
             "price": 10.5,
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "created item").to_equal(
         {
             "name": "Test Item",
             "price": 10.5,
@@ -88,8 +88,8 @@ def create_item_only_required(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

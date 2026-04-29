@@ -37,7 +37,10 @@ def optional_list_str_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p": {
@@ -54,20 +57,20 @@ def optional_list_str_schema(path: str):
     )
 
 
-@test
+@test("Missing optional list[str] body returns 200 with null")
 def optional_list_str_missing():
     client = TestClient(app)
     response = client.post("/optional-list-str")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
-@test
+@test("Missing optional list[str] model body returns 422")
 def model_optional_list_str_missing():
     client = TestClient(app)
     response = client.post("/model-optional-list-str")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -88,8 +91,8 @@ def model_optional_list_str_missing():
 def optional_list_str_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -99,8 +102,8 @@ def optional_list_str_missing_empty_dict(path: str):
 def optional_list_str(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": ["hello", "world"]})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})
 
 
 # =====================================================================================
@@ -131,7 +134,10 @@ def optional_list_str_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_alias": {
@@ -148,20 +154,20 @@ def optional_list_str_alias_schema(path: str):
     )
 
 
-@test
+@test("Missing optional list[str] alias body returns 200 with null")
 def optional_list_alias_missing():
     client = TestClient(app)
     response = client.post("/optional-list-alias")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
-@test
+@test("Missing optional list[str] alias model body returns 422")
 def model_optional_list_alias_missing():
     client = TestClient(app)
     response = client.post("/model-optional-list-alias")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -182,8 +188,8 @@ def model_optional_list_alias_missing():
 def optional_list_alias_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -193,8 +199,8 @@ def optional_list_alias_missing_empty_dict(path: str):
 def optional_list_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": ["hello", "world"]})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -204,8 +210,8 @@ def optional_list_alias_by_name(path: str):
 def optional_list_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_alias": ["hello", "world"]})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})
 
 
 # =====================================================================================
@@ -248,7 +254,10 @@ def optional_list_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_val_alias": {
@@ -265,20 +274,20 @@ def optional_list_validation_alias_schema(path: str):
     )
 
 
-@test
+@test("Missing optional list[str] validation_alias body returns 200")
 def optional_list_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/optional-list-validation-alias")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
-@test
+@test("Missing optional list[str] validation_alias model returns 422")
 def model_optional_list_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/model-optional-list-validation-alias")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -302,8 +311,8 @@ def model_optional_list_validation_alias_missing():
 def optional_list_validation_alias_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -316,8 +325,8 @@ def optional_list_validation_alias_missing_empty_dict(path: str):
 def optional_list_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": ["hello", "world"]})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -330,8 +339,8 @@ def optional_list_validation_alias_by_name(path: str):
 def optional_list_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_val_alias": ["hello", "world"]})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})
 
 
 # =====================================================================================
@@ -379,7 +388,10 @@ def optional_list_alias_and_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_val_alias": {
@@ -396,20 +408,20 @@ def optional_list_alias_and_validation_alias_schema(path: str):
     )
 
 
-@test
+@test("Missing optional list[str] alias+validation_alias returns 200")
 def optional_list_alias_and_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/optional-list-alias-and-validation-alias")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
-@test
+@test("Missing optional list[str] alias+validation_alias model returns 422")
 def model_optional_list_alias_and_validation_alias_missing():
     client = TestClient(app)
     response = client.post("/model-optional-list-alias-and-validation-alias")
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -436,8 +448,8 @@ def model_optional_list_alias_and_validation_alias_missing():
 def optional_list_alias_and_validation_alias_missing_empty_dict(path: str):
     client = TestClient(app)
     response = client.post(path, json={})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -453,8 +465,8 @@ def optional_list_alias_and_validation_alias_missing_empty_dict(path: str):
 def optional_list_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p": ["hello", "world"]})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -470,8 +482,8 @@ def optional_list_alias_and_validation_alias_by_name(path: str):
 def optional_list_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_alias": ["hello", "world"]})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": None})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": None})
 
 
 @test.cases(
@@ -487,5 +499,5 @@ def optional_list_alias_and_validation_alias_by_alias(path: str):
 def optional_list_alias_and_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.post(path, json={"p_val_alias": ["hello", "world"]})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": ["hello", "world"]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": ["hello", "world"]})

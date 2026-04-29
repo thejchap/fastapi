@@ -75,19 +75,19 @@ def client(app: FastAPI = TrykeDepends(app)) -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("Sub-dependencies with different Security scopes are cached per scope set")
 def security_scopes_sub_dependency_caching(
     client: TestClient = TrykeDepends(client),
     call_counts: dict[str, int] = TrykeDepends(call_counts),
 ):
     response = client.get("/")
 
-    expect(response.status_code).to_equal(200)
-    expect(call_counts["get_db_session"]).to_equal(1)
-    expect(call_counts["get_current_user"]).to_equal(2)
-    expect(call_counts["get_user_me"]).to_equal(2)
-    expect(call_counts["get_user_items"]).to_equal(1)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(call_counts["get_db_session"], "get_db_session call count").to_equal(1)
+    expect(call_counts["get_current_user"], "get_current_user call count").to_equal(2)
+    expect(call_counts["get_user_me"], "get_user_me call count").to_equal(2)
+    expect(call_counts["get_user_items"], "get_user_items call count").to_equal(1)
+    expect(response.json(), "response body").to_equal(
         {
             "user_me": {
                 "user_me": "user_me_1",

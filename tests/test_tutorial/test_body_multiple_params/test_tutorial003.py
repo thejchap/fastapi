@@ -24,8 +24,8 @@ def post_body_valid(name: str):
             "user": {"username": "Dave"},
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "importance": 2,
@@ -47,8 +47,8 @@ def post_body_valid(name: str):
 def post_body_no_data(name: str):
     client = _client_for(name)
     response = client.put("/items/5", json=None)
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -81,8 +81,8 @@ def post_body_no_data(name: str):
 def post_body_empty_list(name: str):
     client = _client_for(name)
     response = client.put("/items/5", json=[])
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -115,8 +115,8 @@ def post_body_empty_list(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

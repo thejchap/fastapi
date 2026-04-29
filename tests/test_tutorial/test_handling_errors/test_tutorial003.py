@@ -7,27 +7,27 @@ from docs_src.handling_errors.tutorial003_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /unicorns/shinny returns the unicorn")
 def get():
     response = client.get("/unicorns/shinny")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"unicorn_name": "shinny"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"unicorn_name": "shinny"})
 
 
-@test
+@test("GET /unicorns/yolo invokes the custom exception handler")
 def get_exception():
     response = client.get("/unicorns/yolo")
-    expect(response.status_code).to_equal(418).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(418).fatal()
+    expect(response.json(), "response body").to_equal(
         {"message": "Oops! yolo did something. There goes a rainbow..."}
     )
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

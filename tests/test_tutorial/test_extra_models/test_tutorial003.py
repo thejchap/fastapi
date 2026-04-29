@@ -16,8 +16,8 @@ def _client_for(name: str) -> TestClient:
 def get_car(name: str):
     client = _client_for(name)
     response = client.get("/items/item1")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "description": "All my friends drive a low rider",
             "type": "car",
@@ -31,8 +31,8 @@ def get_car(name: str):
 def get_plane(name: str):
     client = _client_for(name)
     response = client.get("/items/item2")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "description": "Music is my aeroplane, it's my aeroplane",
             "type": "plane",
@@ -47,8 +47,8 @@ def get_plane(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

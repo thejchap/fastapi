@@ -23,32 +23,36 @@ async def read_items(token: str | None = Security(oauth2_scheme)):
 client = TestClient(app)
 
 
-@test
+@test("Optional OAuth2 password bearer with description allows missing token")
 def no_token():
     response = client.get("/items")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("Optional OAuth2 password bearer with description accepts valid token")
 def token():
     response = client.get("/items", headers={"Authorization": "Bearer testtoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"token": "testtoken"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"token": "testtoken"})
 
 
-@test
+@test("Optional OAuth2 password bearer with description treats wrong scheme as missing")
 def incorrect_token():
     response = client.get("/items", headers={"Authorization": "Notexistent testtoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("OpenAPI schema includes OAuth2PasswordBearer description")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

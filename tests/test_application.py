@@ -29,49 +29,57 @@ client = TestClient(app)
 )
 def get_path(path: str, expected_status: int, expected_response: dict):
     response = client.get(path)
-    expect(response.status_code).to_equal(expected_status)
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(expected_status)
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
-@test
+@test("/docs serves the Swagger UI with oauth2 redirect URL")
 def swagger_ui():
     response = client.get("/docs")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal("text/html; charset=utf-8")
-    expect(response.text).to_contain("swagger-ui-dist")
-    expect(response.text).to_contain(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type").to_equal(
+        "text/html; charset=utf-8"
+    )
+    expect(response.text, "response body").to_contain("swagger-ui-dist")
+    expect(response.text, "response body").to_contain(
         "oauth2RedirectUrl: window.location.origin + '/docs/oauth2-redirect'"
     )
 
 
-@test
+@test("/docs/oauth2-redirect serves the OAuth2 redirect page")
 def swagger_ui_oauth2_redirect():
     response = client.get("/docs/oauth2-redirect")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal("text/html; charset=utf-8")
-    expect(response.text).to_contain("window.opener.swaggerUIRedirectOauth2")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type").to_equal(
+        "text/html; charset=utf-8"
+    )
+    expect(response.text, "response body").to_contain(
+        "window.opener.swaggerUIRedirectOauth2"
+    )
 
 
-@test
+@test("/redoc serves the ReDoc UI")
 def redoc():
     response = client.get("/redoc")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal("text/html; charset=utf-8")
-    expect(response.text).to_contain("redoc@2")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type").to_equal(
+        "text/html; charset=utf-8"
+    )
+    expect(response.text, "response body").to_contain("redoc@2")
 
 
-@test
+@test("HTTPStatus enum used as status_code returns the right code")
 def enum_status_code_response():
     response = client.get("/enum-status-code")
-    expect(response.status_code).to_equal(201).fatal()
-    expect(response.json()).to_equal("foo bar")
+    expect(response.status_code, "status code").to_equal(201).fatal()
+    expect(response.json(), "response body").to_equal("foo bar")
 
 
-@test
+@test("OpenAPI schema for the test app matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

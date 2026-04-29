@@ -501,5 +501,5 @@ client = TestClient(app)
 )
 def class_dependency(route: str):
     response = client.get(route)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_be(True)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_be(True)

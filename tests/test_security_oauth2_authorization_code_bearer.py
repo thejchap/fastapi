@@ -19,39 +19,39 @@ async def read_items(token: str | None = Security(oauth2_scheme)):
 client = TestClient(app)
 
 
-@test
+@test("OAuth2 authorization code bearer rejects missing token")
 def no_token():
     response = client.get("/items")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
-@test
+@test("OAuth2 authorization code bearer rejects incorrect scheme")
 def incorrect_token():
     response = client.get("/items", headers={"Authorization": "Non-existent testtoken"})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
-@test
+@test("OAuth2 authorization code bearer accepts valid token")
 def token():
     response = client.get("/items", headers={"Authorization": "Bearer testtoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"token": "testtoken"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"token": "testtoken"})
 
 
-@test
+@test("OAuth2 authorization code bearer trims whitespace around token")
 def token_with_whitespaces():
     response = client.get("/items", headers={"Authorization": "Bearer  testtoken "})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"token": "testtoken"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"token": "testtoken"})
 
 
-@test
+@test("OpenAPI schema includes OAuth2AuthorizationCodeBearer scheme")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -22,36 +22,40 @@ async def websocket_item(item_id: str, websocket: WebSocket):
 client = TestClient(app)
 
 
-@test
+@test("APIRoute is exposed via request.scope['route']")
 def get():
     response = client.get("/users/rick")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"user_id": "rick", "path": "/users/{user_id}"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"user_id": "rick", "path": "/users/{user_id}"}
+    )
 
 
-@test
+@test("invalid HTTP method returns 405")
 def invalid_method_doesnt_match():
     response = client.post("/users/rick")
-    expect(response.status_code).to_equal(405).fatal()
+    expect(response.status_code, "status code").to_equal(405).fatal()
 
 
-@test
+@test("invalid path returns 404")
 def invalid_path_doesnt_match():
     response = client.post("/usersx/rick")
-    expect(response.status_code).to_equal(404).fatal()
+    expect(response.status_code, "status code").to_equal(404).fatal()
 
 
-@test
+@test("APIWebSocketRoute is exposed via websocket.scope['route']")
 def websocket():
     with client.websocket_connect("/items/portal-gun") as websocket:
         data = websocket.receive_json()
-        expect(data).to_equal({"item_id": "portal-gun", "path": "/items/{item_id}"})
+        expect(data, "websocket message").to_equal(
+            {"item_id": "portal-gun", "path": "/items/{item_id}"}
+        )
 
 
-@test
+@test("invalid websocket path raises WebSocketDisconnect")
 def websocket_invalid_path_doesnt_match():
     def _body() -> None:
         with client.websocket_connect("/itemsx/portal-gun"):
             pass  # pragma: no cover
 
-    expect(_body).to_raise(WebSocketDisconnect)
+    expect(_body, "connect to invalid websocket path").to_raise(WebSocketDisconnect)

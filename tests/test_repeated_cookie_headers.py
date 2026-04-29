@@ -27,10 +27,10 @@ def get_indirect_cookie(dep: str = Depends(set_indirect_cookie)):
 client = TestClient(app)
 
 
-@test
+@test("set-cookie header is identical for direct and indirect dependencies")
 def cookie_is_set_once():
     direct_response = client.get("/directCookie")
     indirect_response = client.get("/indirectCookie")
-    expect(direct_response.headers["set-cookie"]).to_equal(
+    expect(direct_response.headers["set-cookie"], "set-cookie header").to_equal(
         indirect_response.headers["set-cookie"]
     )

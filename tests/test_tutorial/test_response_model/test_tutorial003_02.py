@@ -7,29 +7,29 @@ from docs_src.response_model.tutorial003_02_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /portal returns interdimensional portal message")
 def get_portal():
     response = client.get("/portal")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"message": "Here's your interdimensional portal."}
     )
 
 
-@test
+@test("GET /portal?teleport=true issues a 307 redirect")
 def get_redirect():
     response = client.get("/portal", params={"teleport": True}, follow_redirects=False)
-    expect(response.status_code).to_equal(307).fatal()
-    expect(response.headers["location"]).to_equal(
+    expect(response.status_code, "status code").to_equal(307).fatal()
+    expect(response.headers["location"], "Location header").to_equal(
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     )
 
 
-@test
+@test("OpenAPI schema for tutorial003_02")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

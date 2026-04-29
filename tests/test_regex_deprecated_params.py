@@ -26,28 +26,28 @@ def get_client():
     return client
 
 
-@test
+@test("Query regex param can be omitted")
 def query_params_str_validations_no_query():
     client = get_client()
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("Hello World")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("Hello World")
 
 
-@test
+@test("Query regex param accepts matching value")
 def query_params_str_validations_q_fixedquery():
     client = get_client()
     response = client.get("/items/", params={"q": "fixedquery"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("Hello fixedquery")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("Hello fixedquery")
 
 
-@test
+@test("Query regex param rejects non-matching value")
 def query_params_str_validations_item_query_nonregexquery():
     client = get_client()
     response = client.get("/items/", params={"q": "nonregexquery"})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -62,12 +62,12 @@ def query_params_str_validations_item_query_nonregexquery():
     )
 
 
-@test
+@test("OpenAPI schema documents Query regex param")
 def openapi_schema():
     client = get_client()
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

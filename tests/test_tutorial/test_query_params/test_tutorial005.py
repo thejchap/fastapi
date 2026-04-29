@@ -7,18 +7,18 @@ from docs_src.query_params.tutorial005_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("required query param is accepted")
 def foo_needy_very():
     response = client.get("/items/foo?needy=very")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"item_id": "foo", "needy": "very"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"item_id": "foo", "needy": "very"})
 
 
-@test
+@test("missing required query param returns 422")
 def foo_no_needy():
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -32,11 +32,11 @@ def foo_no_needy():
     )
 
 
-@test
+@test("OpenAPI schema matches the snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

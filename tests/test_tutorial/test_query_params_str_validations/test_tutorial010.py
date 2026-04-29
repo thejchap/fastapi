@@ -18,8 +18,8 @@ def _client_for(name: str) -> TestClient:
 def query_params_str_validations_no_query(name: str):
     client = _client_for(name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
     )
 
@@ -31,8 +31,8 @@ def query_params_str_validations_no_query(name: str):
 def query_params_str_validations_item_query_fixedquery(name: str):
     client = _client_for(name)
     response = client.get("/items/", params={"item-query": "fixedquery"})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "items": [{"item_id": "Foo"}, {"item_id": "Bar"}],
             "q": "fixedquery",
@@ -47,8 +47,8 @@ def query_params_str_validations_item_query_fixedquery(name: str):
 def query_params_str_validations_q_fixedquery(name: str):
     client = _client_for(name)
     response = client.get("/items/", params={"q": "fixedquery"})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
     )
 
@@ -60,8 +60,8 @@ def query_params_str_validations_q_fixedquery(name: str):
 def query_params_str_validations_item_query_nonregexquery(name: str):
     client = _client_for(name)
     response = client.get("/items/", params={"item-query": "nonregexquery"})
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -83,7 +83,7 @@ def query_params_str_validations_item_query_nonregexquery(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
     parameters_schema = {
         "anyOf": [
@@ -101,7 +101,7 @@ def openapi_schema(name: str):
         **({"deprecated": True} if PYDANTIC_VERSION_MINOR_TUPLE >= (2, 10) else {}),
     }
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

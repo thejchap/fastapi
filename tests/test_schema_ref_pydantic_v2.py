@@ -22,16 +22,16 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("model with $ref-aliased field serialises by alias")
 def get(client: TestClient = Depends(client)):
     response = client.get("/")
-    expect(response.json()).to_equal({"$ref": "some-ref"})
+    expect(response.json(), "response body").to_equal({"$ref": "some-ref"})
 
 
-@test
+@test("OpenAPI schema preserves $ref-aliased property")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

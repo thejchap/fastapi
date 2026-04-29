@@ -27,24 +27,26 @@ def foo_handler(
 client = TestClient(app)
 
 
-@test
+@test("Missing required query param yields a single 422")
 def get_invalid():
     response = client.get("/foo")
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Required query param shared across deps is only required once")
 def get_valid():
     response = client.get("/foo", params={"client_id": "bar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"client_id": "bar_key", "client_tag": "bar_tag"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"client_id": "bar_key", "client_tag": "bar_tag"}
+    )
 
 
-@test
+@test("OpenAPI schema lists the shared required param only once")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "components": {

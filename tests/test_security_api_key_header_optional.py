@@ -31,25 +31,27 @@ def read_current_user(current_user: User | None = Depends(get_current_user)):
 client = TestClient(app)
 
 
-@test
+@test("optional APIKeyHeader authenticates with valid header")
 def security_api_key():
     response = client.get("/users/me", headers={"key": "secret"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "secret"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "secret"})
 
 
-@test
+@test("optional APIKeyHeader passes None when header missing")
 def security_api_key_no_key():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("OpenAPI schema for optional APIKeyHeader")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -21,8 +21,8 @@ async def get_main():
 client = TestClient(app)
 
 
-@test
+@test("nested dependency can set Response.status_code")
 def dependency_set_status_code():
     response = client.get("/")
-    expect(response.status_code).to_equal(201).fatal()
-    expect(response.json()).to_equal({"msg": "Hello World"})
+    expect(response.status_code, "status code").to_equal(201).fatal()
+    expect(response.json(), "response body").to_equal({"msg": "Hello World"})

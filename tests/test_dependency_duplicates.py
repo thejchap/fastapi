@@ -44,11 +44,11 @@ async def no_duplicates_sub(
     return [item, sub_items]
 
 
-@test
+@test("missing item2 returns 422 when dependency uses distinct name")
 def no_duplicates_invalid():
     response = client.post("/no-duplicates", json={"item": {"data": "myitem"}})
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -62,28 +62,32 @@ def no_duplicates_invalid():
     )
 
 
-@test
+@test("distinct body fields are accepted on /no-duplicates")
 def no_duplicates():
     response = client.post(
         "/no-duplicates",
         json={"item": {"data": "myitem"}, "item2": {"data": "myitem2"}},
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"data": "myitem"}, {"data": "myitem2"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        [{"data": "myitem"}, {"data": "myitem2"}]
+    )
 
 
-@test
+@test("duplicate dependency type collapses into a single body field")
 def duplicates():
     response = client.post("/with-duplicates", json={"data": "myitem"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"data": "myitem"}, {"data": "myitem"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        [{"data": "myitem"}, {"data": "myitem"}]
+    )
 
 
-@test
+@test("transitive duplicate dependencies collapse into a single body field")
 def sub_duplicates():
     response = client.post("/with-duplicates-sub", json={"data": "myitem"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"data": "myitem"},
             [{"data": "myitem"}, {"data": "myitem"}],
@@ -91,11 +95,11 @@ def sub_duplicates():
     )
 
 
-@test
+@test("OpenAPI schema collapses duplicate dependencies appropriately")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

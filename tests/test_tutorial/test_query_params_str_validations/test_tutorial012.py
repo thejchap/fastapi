@@ -18,8 +18,8 @@ def default_query_values(name: str):
     client = _client_for(name)
     url = "/items/"
     response = client.get(url)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"q": ["foo", "bar"]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"q": ["foo", "bar"]})
 
 
 @test.cases(
@@ -30,8 +30,8 @@ def multi_query_values(name: str):
     client = _client_for(name)
     url = "/items/?q=baz&q=foobar"
     response = client.get(url)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"q": ["baz", "foobar"]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"q": ["baz", "foobar"]})
 
 
 @test.cases(
@@ -41,8 +41,8 @@ def multi_query_values(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

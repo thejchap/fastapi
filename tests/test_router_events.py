@@ -22,7 +22,7 @@ def state() -> State:
     return State()
 
 
-@test
+@test("on_event handlers fire on app, router, and sub-router")
 def router_events(state: State = Depends(state)) -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", DeprecationWarning)
@@ -63,31 +63,37 @@ def router_events(state: State = Depends(state)) -> None:
         router.include_router(sub_router)
         app.include_router(router)
 
-        expect(state.app_startup).to_be(False)
-        expect(state.router_startup).to_be(False)
-        expect(state.sub_router_startup).to_be(False)
-        expect(state.app_shutdown).to_be(False)
-        expect(state.router_shutdown).to_be(False)
-        expect(state.sub_router_shutdown).to_be(False)
+        expect(state.app_startup, "app_startup before client").to_be(False)
+        expect(state.router_startup, "router_startup before client").to_be(False)
+        expect(state.sub_router_startup, "sub_router_startup before client").to_be(False)
+        expect(state.app_shutdown, "app_shutdown before client").to_be(False)
+        expect(state.router_shutdown, "router_shutdown before client").to_be(False)
+        expect(state.sub_router_shutdown, "sub_router_shutdown before client").to_be(
+            False
+        )
         with TestClient(app) as client:
-            expect(state.app_startup).to_be(True)
-            expect(state.router_startup).to_be(True)
-            expect(state.sub_router_startup).to_be(True)
-            expect(state.app_shutdown).to_be(False)
-            expect(state.router_shutdown).to_be(False)
-            expect(state.sub_router_shutdown).to_be(False)
+            expect(state.app_startup, "app_startup during client").to_be(True)
+            expect(state.router_startup, "router_startup during client").to_be(True)
+            expect(state.sub_router_startup, "sub_router_startup during client").to_be(
+                True
+            )
+            expect(state.app_shutdown, "app_shutdown during client").to_be(False)
+            expect(state.router_shutdown, "router_shutdown during client").to_be(False)
+            expect(
+                state.sub_router_shutdown, "sub_router_shutdown during client"
+            ).to_be(False)
             response = client.get("/")
-            expect(response.status_code).to_equal(200).fatal()
-            expect(response.json()).to_equal({"message": "Hello World"})
-        expect(state.app_startup).to_be(True)
-        expect(state.router_startup).to_be(True)
-        expect(state.sub_router_startup).to_be(True)
-        expect(state.app_shutdown).to_be(True)
-        expect(state.router_shutdown).to_be(True)
-        expect(state.sub_router_shutdown).to_be(True)
+            expect(response.status_code, "status code").to_equal(200).fatal()
+            expect(response.json(), "response body").to_equal({"message": "Hello World"})
+        expect(state.app_startup, "app_startup after client").to_be(True)
+        expect(state.router_startup, "router_startup after client").to_be(True)
+        expect(state.sub_router_startup, "sub_router_startup after client").to_be(True)
+        expect(state.app_shutdown, "app_shutdown after client").to_be(True)
+        expect(state.router_shutdown, "router_shutdown after client").to_be(True)
+        expect(state.sub_router_shutdown, "sub_router_shutdown after client").to_be(True)
 
 
-@test
+@test("app lifespan startup and shutdown fire around the client")
 def app_lifespan_state(state: State = Depends(state)) -> None:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
@@ -101,19 +107,19 @@ def app_lifespan_state(state: State = Depends(state)) -> None:
     def main() -> dict[str, str]:
         return {"message": "Hello World"}
 
-    expect(state.app_startup).to_be(False)
-    expect(state.app_shutdown).to_be(False)
+    expect(state.app_startup, "app_startup before client").to_be(False)
+    expect(state.app_shutdown, "app_shutdown before client").to_be(False)
     with TestClient(app) as client:
-        expect(state.app_startup).to_be(True)
-        expect(state.app_shutdown).to_be(False)
+        expect(state.app_startup, "app_startup during client").to_be(True)
+        expect(state.app_shutdown, "app_shutdown during client").to_be(False)
         response = client.get("/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"message": "Hello World"})
-    expect(state.app_startup).to_be(True)
-    expect(state.app_shutdown).to_be(True)
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"message": "Hello World"})
+    expect(state.app_startup, "app_startup after client").to_be(True)
+    expect(state.app_shutdown, "app_shutdown after client").to_be(True)
 
 
-@test
+@test("nested router lifespans yield merged state")
 def router_nested_lifespan_state(state: State = Depends(state)) -> None:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[dict[str, bool]]:
@@ -148,33 +154,35 @@ def router_nested_lifespan_state(state: State = Depends(state)) -> None:
         assert request.state.sub_router
         return {"message": "Hello World"}
 
-    expect(state.app_startup).to_be(False)
-    expect(state.router_startup).to_be(False)
-    expect(state.sub_router_startup).to_be(False)
-    expect(state.app_shutdown).to_be(False)
-    expect(state.router_shutdown).to_be(False)
-    expect(state.sub_router_shutdown).to_be(False)
+    expect(state.app_startup, "app_startup before client").to_be(False)
+    expect(state.router_startup, "router_startup before client").to_be(False)
+    expect(state.sub_router_startup, "sub_router_startup before client").to_be(False)
+    expect(state.app_shutdown, "app_shutdown before client").to_be(False)
+    expect(state.router_shutdown, "router_shutdown before client").to_be(False)
+    expect(state.sub_router_shutdown, "sub_router_shutdown before client").to_be(False)
 
     with TestClient(app) as client:
-        expect(state.app_startup).to_be(True)
-        expect(state.router_startup).to_be(True)
-        expect(state.sub_router_startup).to_be(True)
-        expect(state.app_shutdown).to_be(False)
-        expect(state.router_shutdown).to_be(False)
-        expect(state.sub_router_shutdown).to_be(False)
+        expect(state.app_startup, "app_startup during client").to_be(True)
+        expect(state.router_startup, "router_startup during client").to_be(True)
+        expect(state.sub_router_startup, "sub_router_startup during client").to_be(True)
+        expect(state.app_shutdown, "app_shutdown during client").to_be(False)
+        expect(state.router_shutdown, "router_shutdown during client").to_be(False)
+        expect(state.sub_router_shutdown, "sub_router_shutdown during client").to_be(
+            False
+        )
         response = client.get("/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"message": "Hello World"})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"message": "Hello World"})
 
-    expect(state.app_startup).to_be(True)
-    expect(state.router_startup).to_be(True)
-    expect(state.sub_router_startup).to_be(True)
-    expect(state.app_shutdown).to_be(True)
-    expect(state.router_shutdown).to_be(True)
-    expect(state.sub_router_shutdown).to_be(True)
+    expect(state.app_startup, "app_startup after client").to_be(True)
+    expect(state.router_startup, "router_startup after client").to_be(True)
+    expect(state.sub_router_startup, "sub_router_startup after client").to_be(True)
+    expect(state.app_shutdown, "app_shutdown after client").to_be(True)
+    expect(state.router_shutdown, "router_shutdown after client").to_be(True)
+    expect(state.sub_router_shutdown, "sub_router_shutdown after client").to_be(True)
 
 
-@test
+@test("parent lifespan state overrides router lifespan on key conflict")
 def router_nested_lifespan_state_overriding_by_parent() -> None:
     @asynccontextmanager
     async def lifespan(
@@ -199,7 +207,7 @@ def router_nested_lifespan_state_overriding_by_parent() -> None:
     app.include_router(router)
 
     with TestClient(app) as client:
-        expect(client.app_state).to_equal(
+        expect(client.app_state, "merged app_state").to_equal(
             {
                 "app_specific": True,
                 "router_specific": True,
@@ -208,7 +216,7 @@ def router_nested_lifespan_state_overriding_by_parent() -> None:
         )
 
 
-@test
+@test("merged lifespans returning None yield empty state")
 def merged_no_return_lifespans_return_none() -> None:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
@@ -223,10 +231,10 @@ def merged_no_return_lifespans_return_none() -> None:
     app.include_router(router)
 
     with TestClient(app) as client:
-        expect(client.app_state).to_be_falsy()
+        expect(client.app_state, "app_state").to_be_falsy()
 
 
-@test
+@test("mixed state/none lifespans merge correctly")
 def merged_mixed_state_lifespans() -> None:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
@@ -247,10 +255,10 @@ def merged_mixed_state_lifespans() -> None:
     app.include_router(router)
 
     with TestClient(app) as client:
-        expect(client.app_state).to_equal({"router": True})
+        expect(client.app_state, "app_state").to_equal({"router": True})
 
 
-@test
+@test("async on_shutdown handlers are awaited")
 def router_async_shutdown_handler(state: State = Depends(state)) -> None:
     """Test that async on_shutdown event handlers are called correctly, for coverage."""
     with warnings.catch_warnings():
@@ -265,15 +273,15 @@ def router_async_shutdown_handler(state: State = Depends(state)) -> None:
         async def app_shutdown() -> None:
             state.app_shutdown = True
 
-        expect(state.app_shutdown).to_be(False)
+        expect(state.app_shutdown, "app_shutdown before client").to_be(False)
         with TestClient(app) as client:
-            expect(state.app_shutdown).to_be(False)
+            expect(state.app_shutdown, "app_shutdown during client").to_be(False)
             response = client.get("/")
-            expect(response.status_code).to_equal(200).fatal()
-        expect(state.app_shutdown).to_be(True)
+            expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(state.app_shutdown, "app_shutdown after client").to_be(True)
 
 
-@test
+@test("sync generator lifespan is wrapped and called")
 def router_sync_generator_lifespan(state: State = Depends(state)) -> None:
     """Test that a sync generator lifespan works via _wrap_gen_lifespan_context."""
     from collections.abc import Generator
@@ -289,19 +297,19 @@ def router_sync_generator_lifespan(state: State = Depends(state)) -> None:
     def main() -> dict[str, str]:
         return {"message": "Hello World"}
 
-    expect(state.app_startup).to_be(False)
-    expect(state.app_shutdown).to_be(False)
+    expect(state.app_startup, "app_startup before client").to_be(False)
+    expect(state.app_shutdown, "app_shutdown before client").to_be(False)
     with TestClient(app) as client:
-        expect(state.app_startup).to_be(True)
-        expect(state.app_shutdown).to_be(False)
+        expect(state.app_startup, "app_startup during client").to_be(True)
+        expect(state.app_shutdown, "app_shutdown during client").to_be(False)
         response = client.get("/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"message": "Hello World"})
-    expect(state.app_startup).to_be(True)
-    expect(state.app_shutdown).to_be(True)
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"message": "Hello World"})
+    expect(state.app_startup, "app_startup after client").to_be(True)
+    expect(state.app_shutdown, "app_shutdown after client").to_be(True)
 
 
-@test
+@test("async generator lifespan is called")
 def router_async_generator_lifespan(state: State = Depends(state)) -> None:
     """Test that an async generator lifespan (not wrapped) works."""
 
@@ -316,19 +324,19 @@ def router_async_generator_lifespan(state: State = Depends(state)) -> None:
     def main() -> dict[str, str]:
         return {"message": "Hello World"}
 
-    expect(state.app_startup).to_be(False)
-    expect(state.app_shutdown).to_be(False)
+    expect(state.app_startup, "app_startup before client").to_be(False)
+    expect(state.app_shutdown, "app_shutdown before client").to_be(False)
     with TestClient(app) as client:
-        expect(state.app_startup).to_be(True)
-        expect(state.app_shutdown).to_be(False)
+        expect(state.app_startup, "app_startup during client").to_be(True)
+        expect(state.app_shutdown, "app_shutdown during client").to_be(False)
         response = client.get("/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"message": "Hello World"})
-    expect(state.app_startup).to_be(True)
-    expect(state.app_shutdown).to_be(True)
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"message": "Hello World"})
+    expect(state.app_startup, "app_startup after client").to_be(True)
+    expect(state.app_shutdown, "app_shutdown after client").to_be(True)
 
 
-@test
+@test("on_startup/on_shutdown handlers passed as constructor parameters")
 def startup_shutdown_handlers_as_parameters(state: State = Depends(state)) -> None:
     """Test that startup/shutdown handlers passed as parameters to FastAPI are called correctly."""
 
@@ -365,25 +373,27 @@ def startup_shutdown_handlers_as_parameters(state: State = Depends(state)) -> No
     router.include_router(sub_router)
     app.include_router(router)
 
-    expect(state.app_startup).to_be(False)
-    expect(state.router_startup).to_be(False)
-    expect(state.sub_router_startup).to_be(False)
-    expect(state.app_shutdown).to_be(False)
-    expect(state.router_shutdown).to_be(False)
-    expect(state.sub_router_shutdown).to_be(False)
+    expect(state.app_startup, "app_startup before client").to_be(False)
+    expect(state.router_startup, "router_startup before client").to_be(False)
+    expect(state.sub_router_startup, "sub_router_startup before client").to_be(False)
+    expect(state.app_shutdown, "app_shutdown before client").to_be(False)
+    expect(state.router_shutdown, "router_shutdown before client").to_be(False)
+    expect(state.sub_router_shutdown, "sub_router_shutdown before client").to_be(False)
     with TestClient(app) as client:
-        expect(state.app_startup).to_be(True)
-        expect(state.router_startup).to_be(True)
-        expect(state.sub_router_startup).to_be(True)
-        expect(state.app_shutdown).to_be(False)
-        expect(state.router_shutdown).to_be(False)
-        expect(state.sub_router_shutdown).to_be(False)
+        expect(state.app_startup, "app_startup during client").to_be(True)
+        expect(state.router_startup, "router_startup during client").to_be(True)
+        expect(state.sub_router_startup, "sub_router_startup during client").to_be(True)
+        expect(state.app_shutdown, "app_shutdown during client").to_be(False)
+        expect(state.router_shutdown, "router_shutdown during client").to_be(False)
+        expect(state.sub_router_shutdown, "sub_router_shutdown during client").to_be(
+            False
+        )
         response = client.get("/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"message": "Hello World"})
-    expect(state.app_startup).to_be(True)
-    expect(state.router_startup).to_be(True)
-    expect(state.sub_router_startup).to_be(True)
-    expect(state.app_shutdown).to_be(True)
-    expect(state.router_shutdown).to_be(True)
-    expect(state.sub_router_shutdown).to_be(True)
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"message": "Hello World"})
+    expect(state.app_startup, "app_startup after client").to_be(True)
+    expect(state.router_startup, "router_startup after client").to_be(True)
+    expect(state.sub_router_startup, "sub_router_startup after client").to_be(True)
+    expect(state.app_shutdown, "app_shutdown after client").to_be(True)
+    expect(state.router_shutdown, "router_shutdown after client").to_be(True)
+    expect(state.sub_router_shutdown, "sub_router_shutdown after client").to_be(True)

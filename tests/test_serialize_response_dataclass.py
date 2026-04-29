@@ -75,11 +75,11 @@ def get_no_response_model_objectlist():
 client = TestClient(app)
 
 
-@test
+@test("Dict response is serialised through dataclass response_model")
 def valid():
     response = client.get("/items/valid")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "valid",
             "date": datetime(2021, 7, 26).isoformat(),
@@ -89,11 +89,11 @@ def valid():
     )
 
 
-@test
+@test("Dataclass instance response is serialised correctly")
 def object_test():
     response = client.get("/items/object")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "object",
             "date": datetime(2021, 7, 26).isoformat(),
@@ -103,11 +103,11 @@ def object_test():
     )
 
 
-@test
+@test("Dataclass response_model coerces string fields")
 def coerce():
     response = client.get("/items/coerce")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "coerce",
             "date": datetime(2021, 7, 26).isoformat(),
@@ -117,11 +117,11 @@ def coerce():
     )
 
 
-@test
+@test("List of dicts is serialised via list[dataclass] response_model")
 def validlist():
     response = client.get("/items/validlist")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         [
             {
                 "name": "foo",
@@ -145,11 +145,11 @@ def validlist():
     )
 
 
-@test
+@test("List of dataclass instances serialises correctly")
 def objectlist():
     response = client.get("/items/objectlist")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         [
             {
                 "name": "foo",
@@ -173,11 +173,11 @@ def objectlist():
     )
 
 
-@test
+@test("Dataclass without response_model still serialises to dict")
 def no_response_model_object():
     response = client.get("/items/no-response-model/object")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "name": "object",
             "date": datetime(2021, 7, 26).isoformat(),
@@ -187,11 +187,11 @@ def no_response_model_object():
     )
 
 
-@test
+@test("List of dataclasses without response_model serialises to JSON")
 def no_response_model_objectlist():
     response = client.get("/items/no-response-model/objectlist")
     response.raise_for_status()
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         [
             {
                 "name": "foo",

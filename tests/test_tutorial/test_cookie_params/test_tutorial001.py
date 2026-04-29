@@ -85,8 +85,8 @@ def items(
 ):
     client = _client_for(mod_name, cookies=cookies)
     response = client.get(path)
-    expect(response.status_code).to_equal(expected_status)
-    expect(response.json()).to_equal(expected_response)
+    expect(response.status_code, "status code").to_equal(expected_status)
+    expect(response.json(), "response body").to_equal(expected_response)
 
 
 @test.cases(
@@ -96,8 +96,8 @@ def items(
 def openapi_schema(mod_name: str):
     client = _client_for(mod_name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

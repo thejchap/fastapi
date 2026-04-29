@@ -31,38 +31,38 @@ app.include_router(router_default)
 client = TestClient(app)
 
 
-@test
+@test("Lax router on strict app accepts missing content-type")
 def lax_router_on_strict_app_accepts_no_content_type():
     response = client.post("/lax/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"key": "value"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"key": "value"})
 
 
-@test
+@test("Strict router on strict app rejects missing content-type")
 def strict_router_on_strict_app_rejects_no_content_type():
     response = client.post("/strict/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Default router inherits strict content-type from app")
 def default_router_inherits_strict_from_app():
     response = client.post("/default/items/", content='{"key": "value"}')
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Lax router accepts JSON content-type")
 def lax_router_accepts_json_content_type():
     response = client.post("/lax/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("Strict router accepts JSON content-type")
 def strict_router_accepts_json_content_type():
     response = client.post("/strict/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
 
 
-@test
+@test("Default router accepts JSON content-type")
 def default_router_accepts_json_content_type():
     response = client.post("/default/items/", json={"key": "value"})
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)

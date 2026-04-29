@@ -18,8 +18,8 @@ app.include_router(router, prefix="/{segment}")
 client = TestClient(app)
 
 
-@test
+@test("router prefix template parameter is captured")
 def get():
     response = client.get("/seg/users/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"segment": "seg", "id": "foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"segment": "seg", "id": "foo"})

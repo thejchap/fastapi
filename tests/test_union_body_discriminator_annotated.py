@@ -44,25 +44,25 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("Discriminated union body via assignment default routes to Cat")
 def union_body_discriminator_assignment(client: TestClient = Depends(client)) -> None:
     response = client.post("/pet/assignment", json={"pet_type": "cat", "meows": 5})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"pet_type": "cat", "meows": 5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"pet_type": "cat", "meows": 5})
 
 
-@test
+@test("Discriminated union body via Annotated[Body()] routes to Dog")
 def union_body_discriminator_annotated(client: TestClient = Depends(client)) -> None:
     response = client.post("/pet/annotated", json={"pet_type": "dog", "barks": 3.5})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"pet_type": "dog", "barks": 3.5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"pet_type": "dog", "barks": 3.5})
 
 
-@test
+@test("OpenAPI schema differs between assignment and Annotated discriminated unions")
 def openapi_schema(client: TestClient = Depends(client)) -> None:
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from tryke import expect, test
 
 
-@test
+@test("Query param of list[Model] is rejected")
 def invalid_sequence():
     def _body():
         app = FastAPI()
@@ -15,13 +15,13 @@ def invalid_sequence():
         def read_items(q: list[Item] = Query(default=None)):
             pass  # pragma: no cover
 
-    expect(_body).to_raise(
+    expect(_body, "registering the route").to_raise(
         AssertionError,
         match="Query parameter 'q' must be one of the supported types",
     )
 
 
-@test
+@test("Query param of tuple[Model, Model] is rejected")
 def invalid_tuple():
     def _body():
         app = FastAPI()
@@ -33,13 +33,13 @@ def invalid_tuple():
         def read_items(q: tuple[Item, Item] = Query(default=None)):
             pass  # pragma: no cover
 
-    expect(_body).to_raise(
+    expect(_body, "registering the route").to_raise(
         AssertionError,
         match="Query parameter 'q' must be one of the supported types",
     )
 
 
-@test
+@test("Query param of dict[str, Model] is rejected")
 def invalid_dict():
     def _body():
         app = FastAPI()
@@ -51,13 +51,13 @@ def invalid_dict():
         def read_items(q: dict[str, Item] = Query(default=None)):
             pass  # pragma: no cover
 
-    expect(_body).to_raise(
+    expect(_body, "registering the route").to_raise(
         AssertionError,
         match="Query parameter 'q' must be one of the supported types",
     )
 
 
-@test
+@test("Query param of bare dict is rejected")
 def invalid_simple_dict():
     def _body():
         app = FastAPI()
@@ -69,7 +69,7 @@ def invalid_simple_dict():
         def read_items(q: dict | None = Query(default=None)):
             pass  # pragma: no cover
 
-    expect(_body).to_raise(
+    expect(_body, "registering the route").to_raise(
         AssertionError,
         match="Query parameter 'q' must be one of the supported types",
     )

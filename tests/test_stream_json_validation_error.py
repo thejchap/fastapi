@@ -30,15 +30,17 @@ def stream_items_invalid_sync() -> Iterable[Item]:
 client = TestClient(app)
 
 
-@test
+@test("Async streaming endpoint raises ResponseValidationError on bad item")
 def stream_json_validation_error_async():
-    expect(lambda: client.get("/items/stream-invalid")).to_raise(
-        ResponseValidationError
-    )
+    expect(
+        lambda: client.get("/items/stream-invalid"),
+        "GET to invalid async stream",
+    ).to_raise(ResponseValidationError)
 
 
-@test
+@test("Sync streaming endpoint raises ResponseValidationError on bad item")
 def stream_json_validation_error_sync():
-    expect(lambda: client.get("/items/stream-invalid-sync")).to_raise(
-        ResponseValidationError
-    )
+    expect(
+        lambda: client.get("/items/stream-invalid-sync"),
+        "GET to invalid sync stream",
+    ).to_raise(ResponseValidationError)

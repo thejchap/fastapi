@@ -17,6 +17,7 @@ class Dep:
 _NEEDS_PY310 = needs_py310()
 
 
+@test("Stringified Annotated dependency works on 3.10+")
 @test.skip_if(_NEEDS_PY310 is not None, reason=_NEEDS_PY310 or "")
 def stringified_annotations():
     app = FastAPI()
@@ -28,4 +29,4 @@ def stringified_annotations():
         return {"test": test}
 
     response = client.get("/test")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)

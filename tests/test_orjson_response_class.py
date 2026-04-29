@@ -25,10 +25,10 @@ if _HAS_ORJSON:
 
 
 @test.skip_if(not _HAS_ORJSON, reason="requires orjson")
-@test
+@test("ORJSONResponse coerces non-string dict keys to strings")
 def orjson_non_str_keys():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", FastAPIDeprecationWarning)
         with client:
             response = client.get("/orjson_non_str_keys")
-    expect(response.json()).to_equal({"msg": "Hello World", "1": 1})
+    expect(response.json(), "response body").to_equal({"msg": "Hello World", "1": 1})

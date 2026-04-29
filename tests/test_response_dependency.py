@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from tryke import expect, test
 
 
-@test
+@test("Response type hint works with Annotated[Response, Depends(...)]")
 def response_with_depends_annotated():
     """Response type hint should work with Annotated[Response, Depends(...)]."""
     app = FastAPI()
@@ -28,12 +28,12 @@ def response_with_depends_annotated():
     client = TestClient(app)
     resp = client.get("/")
 
-    expect(resp.status_code).to_equal(200)
-    expect(resp.json()).to_equal({"status": "ok"})
-    expect(resp.headers.get("X-Custom")).to_equal("modified")
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.json(), "response body").to_equal({"status": "ok"})
+    expect(resp.headers.get("X-Custom"), "X-Custom header").to_equal("modified")
 
 
-@test
+@test("Response type hint works with Response = Depends(...)")
 def response_with_depends_default():
     """Response type hint should work with Response = Depends(...)."""
     app = FastAPI()
@@ -49,12 +49,12 @@ def response_with_depends_default():
     client = TestClient(app)
     resp = client.get("/")
 
-    expect(resp.status_code).to_equal(200)
-    expect(resp.json()).to_equal({"status": "ok"})
-    expect(resp.headers.get("X-Custom")).to_equal("modified")
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.json(), "response body").to_equal({"status": "ok"})
+    expect(resp.headers.get("X-Custom"), "X-Custom header").to_equal("modified")
 
 
-@test
+@test("Response can be injected without Depends")
 def response_without_depends():
     """Regular Response injection should still work."""
     app = FastAPI()
@@ -67,12 +67,12 @@ def response_without_depends():
     client = TestClient(app)
     resp = client.get("/")
 
-    expect(resp.status_code).to_equal(200)
-    expect(resp.json()).to_equal({"status": "ok"})
-    expect(resp.headers.get("X-Direct")).to_equal("set")
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.json(), "response body").to_equal({"status": "ok"})
+    expect(resp.headers.get("X-Direct"), "X-Direct header").to_equal("set")
 
 
-@test
+@test("Response dependency chains preserve all modifications")
 def response_dependency_chain():
     """Response dependency should work in a chain of dependencies."""
     app = FastAPI()
@@ -94,12 +94,12 @@ def response_dependency_chain():
     client = TestClient(app)
     resp = client.get("/")
 
-    expect(resp.status_code).to_equal(200)
-    expect(resp.headers.get("X-First")).to_equal("1")
-    expect(resp.headers.get("X-Second")).to_equal("2")
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.headers.get("X-First"), "X-First header").to_equal("1")
+    expect(resp.headers.get("X-Second"), "X-Second header").to_equal("2")
 
 
-@test
+@test("Response dependency returning a new instance is honoured")
 def response_dependency_returns_different_response_instance():
     """Dependency that returns a different Response instance should work.
 
@@ -122,13 +122,13 @@ def response_dependency_returns_different_response_instance():
     client = TestClient(app)
     resp = client.get("/")
 
-    expect(resp.status_code).to_equal(200)
-    expect(resp.json()).to_equal({"status": "ok"})
-    expect(resp.headers.get("X-Custom")).to_equal("modified")
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.json(), "response body").to_equal({"status": "ok"})
+    expect(resp.headers.get("X-Custom"), "X-Custom header").to_equal("modified")
 
 
 # Tests for Request type hint with Depends
-@test
+@test("Request type hint works in dependency chain")
 def request_with_depends_annotated():
     """Request type hint should work in dependency chain."""
     app = FastAPI()
@@ -148,12 +148,14 @@ def request_with_depends_annotated():
     client = TestClient(app)
     resp = client.get("/", headers={"user-agent": "test-agent"})
 
-    expect(resp.status_code).to_equal(200)
-    expect(resp.json()).to_equal({"path": "/", "user_agent": "test-agent"})
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(resp.json(), "response body").to_equal(
+        {"path": "/", "user_agent": "test-agent"}
+    )
 
 
 # Tests for BackgroundTasks type hint with Depends
-@test
+@test("BackgroundTasks works with Annotated[BackgroundTasks, Depends(...)]")
 def background_tasks_with_depends_annotated():
     """BackgroundTasks type hint should work with Annotated[BackgroundTasks, Depends(...)]."""
     app = FastAPI()
@@ -176,6 +178,6 @@ def background_tasks_with_depends_annotated():
     client = TestClient(app)
     resp = client.get("/")
 
-    expect(resp.status_code).to_equal(200)
-    expect(task_results).to_contain("from dependency")
-    expect(task_results).to_contain("from endpoint")
+    expect(resp.status_code, "status code").to_equal(200)
+    expect(task_results, "task results").to_contain("from dependency")
+    expect(task_results, "task results").to_contain("from endpoint")

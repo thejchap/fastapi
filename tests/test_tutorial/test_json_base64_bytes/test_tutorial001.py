@@ -22,8 +22,8 @@ def post_data(name: str):
             "data": "SGVsbG8sIFdvcmxkIQ==",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"description": "A file", "content": "Hello, World!"}
     )
 
@@ -34,8 +34,8 @@ def post_data(name: str):
 def get_data(name: str):
     client = _client_for(name)
     response = client.get("/data")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"description": "A plumbus", "data": "aGVsbG8="})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"description": "A plumbus", "data": "aGVsbG8="})
 
 
 @test.cases(
@@ -50,8 +50,8 @@ def post_data_in_out(name: str):
             "data": "SGVsbG8sIFdvcmxkIQ==",
         },
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "description": "A plumbus",
             "data": "SGVsbG8sIFdvcmxkIQ==",
@@ -65,8 +65,8 @@ def post_data_in_out(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

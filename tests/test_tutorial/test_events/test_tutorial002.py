@@ -14,22 +14,22 @@ def app() -> FastAPI:
     return _app
 
 
-@test
+@test("Shutdown event writes to log.txt and GET /items/ succeeds")
 def events(app: FastAPI = Depends(app)):
     with TestClient(app) as client:
         response = client.get("/items/")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal([{"name": "Foo"}])
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal([{"name": "Foo"}])
     with open("log.txt") as log:
-        expect(log.read()).to_contain("Application shutdown")
+        expect(log.read(), "log file contents").to_contain("Application shutdown")
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema(app: FastAPI = Depends(app)):
     with TestClient(app) as client:
         response = client.get("/openapi.json")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal(
             snapshot(
                 {
                     "openapi": "3.1.0",

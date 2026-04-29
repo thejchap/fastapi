@@ -18,8 +18,8 @@ def _client_for(name: str) -> TestClient:
 def create_item(name: str):
     client = _client_for(name)
     response = client.post("/items/", params={"name": "Test Item"})
-    expect(response.status_code).to_equal(201).fatal()
-    expect(response.json()).to_equal({"name": "Test Item"})
+    expect(response.status_code, "status code").to_equal(201).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Test Item"})
 
 
 @test.cases(
@@ -29,8 +29,8 @@ def create_item(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

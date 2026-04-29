@@ -46,27 +46,29 @@ client = TestClient(app)
 
 
 # Check that /users returns expected data
-@test
+@test("/users returns the list of users")
 def get_users():  # noqa: F811
     response = client.get("/users")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"user_id": "u1"}, {"user_id": "u2"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        [{"user_id": "u1"}, {"user_id": "u2"}]
+    )
 
 
 # Check that /users/{user_id} returns expected data
-@test
+@test("/users/{user_id} returns a single user")
 def get_user():  # noqa: F811
     response = client.get("/users/abc123")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"user_id": "abc123"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"user_id": "abc123"})
 
 
 # Check that /items returns expected data
-@test
+@test("/items returns all items when user_id query is omitted")
 def get_items_1():
     response = client.get("/items")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"item_id": "i1", "user_id": "u1"},
             {"item_id": "i2", "user_id": "u2"},
@@ -75,50 +77,58 @@ def get_items_1():
 
 
 # Check that /items returns expected data with user_id specified
-@test
+@test("/items filters by user_id when supplied as a query")
 def get_items_2():
     response = client.get("/items?user_id=abc123")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"item_id": "i2", "user_id": "abc123"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        [{"item_id": "i2", "user_id": "abc123"}]
+    )
 
 
 # Check that /items/{item_id} returns expected data
-@test
+@test("/items/{item_id} returns the item with no user_id")
 def get_item_1():
     response = client.get("/items/item01")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": "item01"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": "item01"})
 
 
 # Check that /items/{item_id} returns expected data with user_id specified
-@test
+@test("/items/{item_id} includes user_id when supplied as a query")
 def get_item_2():
     response = client.get("/items/item01?user_id=abc123")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": "item01", "user_id": "abc123"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"item_id": "item01", "user_id": "abc123"}
+    )
 
 
 # Check that /users/{user_id}/items returns expected data
-@test
+@test("Nested route inherits user_id from the parent path")
 def get_users_items():
     response = client.get("/users/abc123/items")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"item_id": "i2", "user_id": "abc123"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        [{"item_id": "i2", "user_id": "abc123"}]
+    )
 
 
 # Check that /users/{user_id}/items/{item_id} returns expected data
-@test
+@test("Nested item route inherits user_id from the parent path")
 def get_users_item():
     response = client.get("/users/abc123/items/item01")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": "item01", "user_id": "abc123"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"item_id": "item01", "user_id": "abc123"}
+    )
 
 
-@test
+@test("Inferred param optionality is reflected in the OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

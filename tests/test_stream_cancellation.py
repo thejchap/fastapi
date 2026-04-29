@@ -104,7 +104,7 @@ def raw_stream_cancellation(runner: ModuleType) -> None:
         cancelled = await _run_asgi_and_cancel(app, "/stream-raw", timeout=3.0)
         # The key assertion: we reached this line at all (didn't hang).
         # cancelled will be True because the infinite generator was interrupted.
-        expect(cancelled).to_be_truthy()
+        expect(cancelled, "raw stream cancelled within timeout").to_be_truthy()
 
     _run(runner, _body)
 
@@ -117,6 +117,6 @@ def raw_stream_cancellation(runner: ModuleType) -> None:
 def jsonl_stream_cancellation(runner: ModuleType) -> None:
     async def _body() -> None:
         cancelled = await _run_asgi_and_cancel(app, "/stream-jsonl", timeout=3.0)
-        expect(cancelled).to_be_truthy()
+        expect(cancelled, "jsonl stream cancelled within timeout").to_be_truthy()
 
     _run(runner, _body)

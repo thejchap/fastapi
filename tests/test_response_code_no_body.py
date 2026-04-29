@@ -39,19 +39,19 @@ async def b():
 client = TestClient(app)
 
 
-@test
+@test("204 response omits content-length and body")
 def get_response():
     response = client.get("/a")
-    expect(response.status_code).to_equal(204).fatal()
-    expect(response.headers).not_.to_contain("content-length")
-    expect(response.content).to_equal(b"")
+    expect(response.status_code, "status code").to_equal(204).fatal()
+    expect(response.headers, "response headers").not_.to_contain("content-length")
+    expect(response.content, "response content").to_equal(b"")
 
 
-@test
+@test("OpenAPI schema for routes returning 204")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

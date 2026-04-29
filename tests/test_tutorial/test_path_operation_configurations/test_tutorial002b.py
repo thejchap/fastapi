@@ -7,25 +7,25 @@ from docs_src.path_operation_configuration.tutorial002b_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/ lists items")
 def get_items():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["Portal gun", "Plumbus"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["Portal gun", "Plumbus"])
 
 
-@test
+@test("GET /users/ lists users")
 def get_users():
     response = client.get("/users/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(["Rick", "Morty"])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(["Rick", "Morty"])
 
 
-@test
+@test("OpenAPI schema matches the snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

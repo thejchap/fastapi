@@ -19,8 +19,8 @@ app.get("/")(endpoint)
 client = TestClient(app)
 
 
-@test
+@test("functools.partial endpoints work with query parameters")
 def partial_endpoint():
     response = client.get("/?q=bar")
     data = response.json()
-    expect(data).to_equal({"some_arg": "foo", "q": "bar"})
+    expect(data, "response body").to_equal({"some_arg": "foo", "q": "bar"})

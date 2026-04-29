@@ -17,8 +17,8 @@ app.include_router(router)
 client = TestClient(app)
 
 
-@test
+@test("APIRouter.route handles plain Starlette routes")
 def sub_router():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"hello": "world"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"hello": "world"})

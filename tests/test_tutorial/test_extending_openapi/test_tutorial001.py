@@ -7,18 +7,18 @@ from docs_src.extending_openapi.tutorial001_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("GET /items/ returns the items list")
 def root():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"name": "Foo"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([{"name": "Foo"}])
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -51,5 +51,5 @@ def openapi_schema():
     openapi_schema = response.json()
     # Request again to test the custom cache.
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(openapi_schema)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(openapi_schema)

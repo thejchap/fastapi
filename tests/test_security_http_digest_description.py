@@ -17,36 +17,42 @@ def read_current_user(credentials: HTTPAuthorizationCredentials = Security(secur
 client = TestClient(app)
 
 
-@test
+@test("HTTP Digest with description accepts valid Digest header")
 def security_http_digest():
     response = client.get("/users/me", headers={"Authorization": "Digest foobar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"scheme": "Digest", "credentials": "foobar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"scheme": "Digest", "credentials": "foobar"}
+    )
 
 
-@test
+@test("HTTP Digest with description rejects request without credentials")
 def security_http_digest_no_credentials():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Digest")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Digest"
+    )
 
 
-@test
+@test("HTTP Digest with description rejects incorrect scheme")
 def security_http_digest_incorrect_scheme_credentials():
     response = client.get(
         "/users/me", headers={"Authorization": "Other invalidauthorization"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Digest")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Digest"
+    )
 
 
-@test
+@test("OpenAPI schema includes HTTPDigest scheme description")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

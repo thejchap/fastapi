@@ -16,8 +16,8 @@ def _client_for(name: str) -> TestClient:
 def query_params_str_validations_no_query(name: str):
     client = _client_for(name)
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
     )
 
@@ -28,8 +28,8 @@ def query_params_str_validations_no_query(name: str):
 def query_params_str_validations_q_empty_str(name: str):
     client = _client_for(name)
     response = client.get("/items/", params={"q": ""})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
     )
 
@@ -40,8 +40,8 @@ def query_params_str_validations_q_empty_str(name: str):
 def query_params_str_validations_q_query(name: str):
     client = _client_for(name)
     response = client.get("/items/", params={"q": "query"})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "items": [{"item_id": "Foo"}, {"item_id": "Bar"}],
             "q": "query",
@@ -55,8 +55,8 @@ def query_params_str_validations_q_query(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

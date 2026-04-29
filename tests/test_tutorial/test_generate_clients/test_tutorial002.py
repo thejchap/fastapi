@@ -7,27 +7,27 @@ from docs_src.generate_clients.tutorial002_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("POST /items/ creates an item")
 def post_items():
     response = client.post("/items/", json={"name": "Foo", "price": 5})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Item received"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Item received"})
 
 
-@test
+@test("POST /users/ creates a user")
 def post_users():
     response = client.post(
         "/users/", json={"username": "Foo", "email": "foo@example.com"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "User received"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "User received"})
 
 
-@test
+@test("GET /items/ lists the items")
 def get_items():
     response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "Plumbus", "price": 3},
             {"name": "Portal Gun", "price": 9001},
@@ -35,11 +35,11 @@ def get_items():
     )
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

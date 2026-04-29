@@ -32,7 +32,10 @@ async def read_model_required_str(p: Annotated[HeaderModelRequiredStr, Header()]
     test.case("model-required-str", path="/model-required-str"),
 )
 def required_str_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -53,8 +56,8 @@ def required_str_schema(path: str):
 def required_str_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -75,8 +78,8 @@ def required_str_missing(path: str):
 def required_str(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p": "hello"})
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"p": "hello"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -102,7 +105,10 @@ async def read_model_required_alias(p: Annotated[HeaderModelRequiredAlias, Heade
     test.case("model-required-alias", path="/model-required-alias"),
 )
 def required_str_alias_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -123,8 +129,8 @@ def required_str_alias_schema(path: str):
 def required_alias_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -145,8 +151,8 @@ def required_alias_missing(path: str):
 def required_alias_by_name(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p": "hello"})
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -167,8 +173,8 @@ def required_alias_by_name(path: str):
 def required_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p_alias": "hello"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": "hello"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -200,7 +206,10 @@ def read_model_required_validation_alias(
     ),
 )
 def required_validation_alias_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -223,8 +232,8 @@ def required_validation_alias_schema(path: str):
 def required_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -247,9 +256,9 @@ def required_validation_alias_missing(path: str):
 def required_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p": "hello"})
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -272,9 +281,9 @@ def required_validation_alias_by_name(path: str):
 def required_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p_val_alias": "hello"})
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
-    expect(response.json()).to_equal({"p": "hello"})
+    expect(response.json(), "response body").to_equal({"p": "hello"})
 
 
 # =====================================================================================
@@ -310,7 +319,10 @@ def read_model_required_alias_and_validation_alias(
     ),
 )
 def required_alias_and_validation_alias_schema(path: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -337,8 +349,8 @@ def required_alias_and_validation_alias_schema(path: str):
 def required_alias_and_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.get(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -365,9 +377,9 @@ def required_alias_and_validation_alias_missing(path: str):
 def required_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p": "hello"})
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -394,9 +406,9 @@ def required_alias_and_validation_alias_by_name(path: str):
 def required_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p_alias": "hello"})
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -423,6 +435,6 @@ def required_alias_and_validation_alias_by_alias(path: str):
 def required_alias_and_validation_alias_by_validation_alias(path: str):
     client = TestClient(app)
     response = client.get(path, headers={"p_val_alias": "hello"})
-    expect(response.status_code).to_equal(200).fatal()
+    expect(response.status_code, "status code").to_equal(200).fatal()
 
-    expect(response.json()).to_equal({"p": "hello"})
+    expect(response.json(), "response body").to_equal({"p": "hello"})

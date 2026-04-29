@@ -17,5 +17,5 @@ def _client_for(name: str) -> TestClient:
 def get_users_me(name: str):
     client = _client_for(name)
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("Rick")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("Rick")

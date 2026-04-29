@@ -34,65 +34,65 @@ def hello(values: tuple[int, int] = Form()):
 client = TestClient(app)
 
 
-@test
+@test("Model containing list of tuples accepts well-formed payload")
 def model_with_tuple_valid():
     data = {"items": [["foo", "bar"], ["baz", "whatelse"]]}
     response = client.post("/model-with-tuple/", json=data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(data)
 
 
-@test
+@test("Model containing list of tuples rejects wrong-arity tuples")
 def model_with_tuple_invalid():
     data = {"items": [["foo", "bar"], ["baz", "whatelse", "too", "much"]]}
     response = client.post("/model-with-tuple/", json=data)
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code (too long)").to_equal(422)
 
     data = {"items": [["foo", "bar"], ["baz"]]}
     response = client.post("/model-with-tuple/", json=data)
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code (too short)").to_equal(422)
 
 
-@test
+@test("Endpoint typed as tuple of models accepts a 2-element list")
 def tuple_with_model_valid():
     data = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
     response = client.post("/tuple-of-models/", json=data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(data)
 
 
-@test
+@test("Endpoint typed as tuple of models rejects wrong-arity payload")
 def tuple_with_model_invalid():
     data = [{"x": 1, "y": 2}, {"x": 3, "y": 4}, {"x": 5, "y": 6}]
     response = client.post("/tuple-of-models/", json=data)
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code (too long)").to_equal(422)
 
     data = [{"x": 1, "y": 2}]
     response = client.post("/tuple-of-models/", json=data)
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code (too short)").to_equal(422)
 
 
-@test
+@test("Form field typed as tuple parses two values into a list")
 def tuple_form_valid():
     response = client.post("/tuple-form/", data={"values": ("1", "2")})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([1, 2])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([1, 2])
 
 
-@test
+@test("Form field typed as tuple rejects wrong-arity input")
 def tuple_form_invalid():
     response = client.post("/tuple-form/", data={"values": ("1", "2", "3")})
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code (too many)").to_equal(422)
 
     response = client.post("/tuple-form/", data={"values": ("1")})
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code (too few)").to_equal(422)
 
 
-@test
+@test("OpenAPI schema models tuples as prefixItems with min/maxItems")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

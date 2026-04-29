@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def post_body_q_bar_content(name: str):
     client = _client_for(name)
     response = client.put("/items/5?q=bar", json={"name": "Foo", "price": 50.5})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": 5,
             "item": {
@@ -39,8 +39,8 @@ def post_body_q_bar_content(name: str):
 def post_no_body_q_bar(name: str):
     client = _client_for(name)
     response = client.put("/items/5?q=bar", json=None)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": 5, "q": "bar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": 5, "q": "bar"})
 
 
 @test.cases(
@@ -50,8 +50,8 @@ def post_no_body_q_bar(name: str):
 def post_no_body(name: str):
     client = _client_for(name)
     response = client.put("/items/5", json=None)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": 5})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": 5})
 
 
 @test.cases(
@@ -61,8 +61,8 @@ def post_no_body(name: str):
 def post_id_foo(name: str):
     client = _client_for(name)
     response = client.put("/items/foo", json=None)
-    expect(response.status_code).to_equal(422).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -83,8 +83,8 @@ def post_id_foo(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

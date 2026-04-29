@@ -21,45 +21,53 @@ def read_current_user(credentials: HTTPBasicCredentials | None = Security(securi
 client = TestClient(app)
 
 
-@test
+@test("optional HTTPBasic authenticates with valid credentials")
 def security_http_basic():
     response = client.get("/users/me", auth=("john", "secret"))
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "john", "password": "secret"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"username": "john", "password": "secret"}
+    )
 
 
-@test
+@test("optional HTTPBasic passes None when credentials missing")
 def security_http_basic_no_credentials():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("optional HTTPBasic rejects non-base64 credentials with 401")
 def security_http_basic_invalid_credentials():
     response = client.get(
         "/users/me", headers={"Authorization": "Basic notabase64token"}
     )
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Basic"
+    )
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
-@test
+@test("optional HTTPBasic rejects credentials missing colon with 401")
 def security_http_basic_non_basic_credentials():
     payload = b64encode(b"johnsecret").decode("ascii")
     auth_header = f"Basic {payload}"
     response = client.get("/users/me", headers={"Authorization": auth_header})
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.headers["WWW-Authenticate"]).to_equal("Basic")
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Basic"
+    )
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
 
 
-@test
+@test("OpenAPI schema for optional HTTPBasic")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

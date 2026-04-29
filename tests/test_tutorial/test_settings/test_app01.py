@@ -29,9 +29,9 @@ def settings_validation_error(name: str):
             importlib.import_module(mod_name)
         except ValidationError as exc:
             caught = exc
-        expect(caught).not_.to_be_none().fatal()
+        expect(caught, "caught ValidationError").not_.to_be_none().fatal()
         assert caught is not None
-        expect(caught.errors()).to_equal(
+        expect(caught.errors(), "validation errors").to_equal(
             [
                 {
                     "loc": ("admin_email",),
@@ -58,7 +58,7 @@ def app(name: str):
 
         response = client.get("/info")
         data = response.json()
-        expect(data).to_equal(
+        expect(data, "info response").to_equal(
             {
                 "app_name": "Awesome API",
                 "admin_email": "admin@example.com",
@@ -80,8 +80,8 @@ def openapi_schema(name: str):
         client = TestClient(main_mod.app)
 
         response = client.get("/openapi.json")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "OpenAPI schema").to_equal(
             snapshot(
                 {
                     "openapi": "3.1.0",

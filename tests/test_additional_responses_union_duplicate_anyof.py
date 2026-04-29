@@ -42,11 +42,11 @@ async def route2():
 client = TestClient(app)
 
 
-@test
+@test("OpenAPI Union responses don't duplicate $ref entries in anyOf")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -18,9 +18,11 @@ def _client_for(name: str) -> TestClient:
 def no_token(name: str):
     client = _client_for(name)
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(401).fatal()
-    expect(response.json()).to_equal({"detail": "Not authenticated"})
-    expect(response.headers["WWW-Authenticate"]).to_equal("Bearer")
+    expect(response.status_code, "status code").to_equal(401).fatal()
+    expect(response.json(), "response body").to_equal({"detail": "Not authenticated"})
+    expect(response.headers["WWW-Authenticate"], "WWW-Authenticate header").to_equal(
+        "Bearer"
+    )
 
 
 @test.cases(
@@ -30,8 +32,8 @@ def no_token(name: str):
 def token(name: str):
     client = _client_for(name)
     response = client.get("/users/me", headers={"Authorization": "Bearer testtoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "current user").to_equal(
         {
             "username": "testtokenfakedecoded",
             "email": "john@example.com",
@@ -48,8 +50,8 @@ def token(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

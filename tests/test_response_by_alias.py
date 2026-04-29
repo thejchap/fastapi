@@ -72,25 +72,25 @@ def no_alias_list():
 client = TestClient(app)
 
 
-@test
+@test("response_model_by_alias=False serialises dict by field name")
 def read_dict():  # noqa: F811
     response = client.get("/dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo"})
 
 
-@test
+@test("response_model_by_alias=False serialises model by field name")
 def read_model():  # noqa: F811
     response = client.get("/model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo"})
 
 
-@test
+@test("response_model_by_alias=False serialises list by field name")
 def read_list():  # noqa: F811
     response = client.get("/list")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "Foo"},
             {"name": "Bar"},
@@ -98,25 +98,25 @@ def read_list():  # noqa: F811
     )
 
 
-@test
+@test("default response_model_by_alias serialises dict by alias")
 def read_dict_by_alias():
     response = client.get("/by-alias/dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"alias": "Foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"alias": "Foo"})
 
 
-@test
+@test("default response_model_by_alias serialises model by alias")
 def read_model_by_alias():
     response = client.get("/by-alias/model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"alias": "Foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"alias": "Foo"})
 
 
-@test
+@test("default response_model_by_alias serialises list by alias")
 def read_list_by_alias():
     response = client.get("/by-alias/list")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"alias": "Foo"},
             {"alias": "Bar"},
@@ -124,25 +124,25 @@ def read_list_by_alias():
     )
 
 
-@test
+@test("model without alias serialises dict by field name")
 def read_dict_no_alias():
     response = client.get("/no-alias/dict")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo"})
 
 
-@test
+@test("model without alias serialises model by field name")
 def read_model_no_alias():
     response = client.get("/no-alias/model")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"name": "Foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"name": "Foo"})
 
 
-@test
+@test("model without alias serialises list by field name")
 def read_list_no_alias():
     response = client.get("/no-alias/list")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         [
             {"name": "Foo"},
             {"name": "Bar"},
@@ -150,11 +150,11 @@ def read_list_no_alias():
     )
 
 
-@test
+@test("OpenAPI schema reflects alias regardless of response_model_by_alias")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -63,50 +63,50 @@ app.include_router(router)
 client = TestClient(app)
 
 
-@test
+@test("App-level OAuth2 dependency authorises root request")
 def root_test():
     response = client.get("/", headers={"Authorization": "Bearer testtoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello World"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Hello World"})
 
 
-@test
+@test("Endpoint with Security(oauth2_scheme) accepts Bearer token")
 def read_with_oauth2_scheme():
     response = client.get(
         "/with-oauth2-scheme", headers={"Authorization": "Bearer testtoken"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Admin Access"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Admin Access"})
 
 
-@test
+@test("Endpoint with Security(get_token) accepts Bearer token")
 def read_with_get_token():
     response = client.get(
         "/with-get-token", headers={"Authorization": "Bearer testtoken"}
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Admin Access"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"message": "Admin Access"})
 
 
-@test
+@test("Router GET /items/ resolves token via OAuth2 dependency")
 def read_token():
     response = client.get("/items/", headers={"Authorization": "Bearer testtoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"token": "testtoken"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"token": "testtoken"})
 
 
-@test
+@test("Router POST /items/ resolves token with read+write scopes")
 def create_token():
     response = client.post("/items/", headers={"Authorization": "Bearer testtoken"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"token": "testtoken"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"token": "testtoken"})
 
 
-@test
+@test("OpenAPI schema reflects per-route OAuth2 scopes")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

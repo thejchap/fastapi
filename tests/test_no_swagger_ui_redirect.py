@@ -13,23 +13,25 @@ async def read_items():
 client = TestClient(app)
 
 
-@test
+@test("/docs page omits oauth2 redirect helper when disabled")
 def swagger_ui():
     response = client.get("/docs")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal("text/html; charset=utf-8")
-    expect(response.text).to_contain("swagger-ui-dist")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type header").to_equal(
+        "text/html; charset=utf-8"
+    )
+    expect(response.text, "swagger UI HTML").to_contain("swagger-ui-dist")
     print(client.base_url)
-    expect(response.text).not_.to_contain("oauth2RedirectUrl")
+    expect(response.text, "swagger UI HTML").not_.to_contain("oauth2RedirectUrl")
 
 
-@test
+@test("/docs/oauth2-redirect returns 404 when disabled")
 def swagger_ui_no_oauth2_redirect():
     response = client.get("/docs/oauth2-redirect")
-    expect(response.status_code).to_equal(404)
+    expect(response.status_code, "status code").to_equal(404)
 
 
-@test
+@test("Regular routes still respond")
 def response():
     response = client.get("/items/")
-    expect(response.json()).to_equal({"id": "foo"})
+    expect(response.json(), "response body").to_equal({"id": "foo"})

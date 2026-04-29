@@ -56,7 +56,10 @@ def read_required_alias_and_validation_alias(
     ),
 )
 def schema(path: str, expected_name: str, expected_title: str):
-    expect(app.openapi()["paths"][path]["get"]["parameters"]).to_equal(
+    expect(
+        app.openapi()["paths"][path]["get"]["parameters"],
+        "openapi parameters",
+    ).to_equal(
         snapshot(
             [
                 {
@@ -82,5 +85,5 @@ def schema(path: str, expected_name: str, expected_title: str):
 def success(path: str):
     client = TestClient(app)
     response = client.get(f"{path}/hello")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"p": "hello"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"p": "hello"})

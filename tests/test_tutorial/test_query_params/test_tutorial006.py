@@ -17,8 +17,8 @@ def _client_for(name: str) -> TestClient:
 def foo_needy_very(name: str):
     client = _client_for(name)
     response = client.get("/items/foo?needy=very")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "item_id": "foo",
             "needy": "very",
@@ -34,8 +34,8 @@ def foo_needy_very(name: str):
 def foo_no_needy(name: str):
     client = _client_for(name)
     response = client.get("/items/foo?skip=a&limit=b")
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -67,8 +67,8 @@ def foo_no_needy(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

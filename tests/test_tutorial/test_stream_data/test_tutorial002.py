@@ -34,9 +34,11 @@ def _client_and_mod(name: str):
 def stream_image(name: str, path: str):
     client, mod = _client_and_mod(name)
     response = client.get(path)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal("image/png")
-    expect(response.content).to_equal(mod.binary_image)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type header").to_equal(
+        "image/png"
+    )
+    expect(response.content, "streamed bytes").to_equal(mod.binary_image)
 
 
 @test.cases(
@@ -45,8 +47,8 @@ def stream_image(name: str, path: str):
 def openapi_schema(name: str):
     client, _ = _client_and_mod(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

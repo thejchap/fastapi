@@ -11,7 +11,7 @@ from ..._shims import tmp_path_ctx
 client = TestClient(app)
 
 
-@test
+@test("GET / streams a file via StreamingResponse")
 def get():
     with tmp_path_ctx() as tmp_path:
         file_path: Path = tmp_path / "large-video-file.mp4"
@@ -19,4 +19,4 @@ def get():
         test_content = b"Fake video bytes"
         file_path.write_bytes(test_content)
         response = client.get("/")
-        expect(response.content).to_equal(test_content)
+        expect(response.content, "response content").to_equal(test_content)

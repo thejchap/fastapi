@@ -23,8 +23,8 @@ def get_custom_response(name: str):
         warnings.simplefilter("ignore", FastAPIDeprecationWarning)
         client = _client_for(name)
         response = client.get("/items/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal([{"item_id": "Foo"}])
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal([{"item_id": "Foo"}])
 
 
 @test.cases(
@@ -35,8 +35,8 @@ def openapi_schema(name: str):
         warnings.simplefilter("ignore", FastAPIDeprecationWarning)
         client = _client_for(name)
         response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -7,18 +7,18 @@ from docs_src.middleware.tutorial001_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("Middleware adds the X-Process-Time response header")
 def response_headers():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers).to_contain("X-Process-Time")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers, "response headers").to_contain("X-Process-Time")
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

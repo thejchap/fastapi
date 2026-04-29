@@ -4,12 +4,12 @@ from tryke import expect, test
 from .app import app
 
 
-@test
+@test("recursive response models serialize without infinite loops")
 def recursive():
     client = TestClient(app)
     response = client.get("/items/recursive")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "sub_items": [{"name": "subitem", "sub_items": []}],
             "name": "item",
@@ -17,8 +17,8 @@ def recursive():
     )
 
     response = client.get("/items/recursive-submodel")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {
             "name": "item",
             "sub_items1": [

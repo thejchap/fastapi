@@ -52,49 +52,57 @@ async def get_scope_counter(
 client = TestClient(app)
 
 
-@test
+@test("counter dependency increments once per request")
 def normal_counter():
     counter_holder["counter"] = 0
     response = client.get("/counter/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"counter": 1})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"counter": 1})
     response = client.get("/counter/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"counter": 2})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"counter": 2})
 
 
-@test
+@test("sub-dependency reuses cache within a request")
 def sub_counter():
     counter_holder["counter"] = 0
     response = client.get("/sub-counter/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"counter": 1, "subcounter": 1})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"counter": 1, "subcounter": 1}
+    )
     response = client.get("/sub-counter/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"counter": 2, "subcounter": 2})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"counter": 2, "subcounter": 2}
+    )
 
 
-@test
+@test("use_cache=False causes the dependency to run twice")
 def sub_counter_no_cache():
     counter_holder["counter"] = 0
     response = client.get("/sub-counter-no-cache/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"counter": 2, "subcounter": 1})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"counter": 2, "subcounter": 1}
+    )
     response = client.get("/sub-counter-no-cache/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"counter": 4, "subcounter": 3})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"counter": 4, "subcounter": 3}
+    )
 
 
-@test
+@test("Security dependencies cache distinctly per scope set")
 def security_cache():
     counter_holder["counter"] = 0
     response = client.get("/scope-counter/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"counter": 1, "scope_counter_1": 2, "scope_counter_2": 2}
     )
     response = client.get("/scope-counter/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"counter": 3, "scope_counter_1": 4, "scope_counter_2": 4}
     )

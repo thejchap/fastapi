@@ -17,18 +17,20 @@ def get_parameters_with_repeated_aliases(
 client = TestClient(app)
 
 
-@test
+@test("path and query parameters with the same alias coexist")
 def get_parameters():
     response = client.get("/test_path", params={"repeated_alias": "test_query"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"path": "test_path", "query": "test_query"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"path": "test_path", "query": "test_query"}
+    )
 
 
-@test
+@test("OpenAPI schema lists both path and query alias parameters")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(status.HTTP_200_OK).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(status.HTTP_200_OK).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "components": {

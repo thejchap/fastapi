@@ -15,9 +15,9 @@ def say_hi(name: str):
         module.say_hi("FastAPI")
         module.say_hi()
 
-    expect(mock_print.call_count).to_equal(2)
+    expect(mock_print.call_count, "print call count").to_equal(2)
     call_args = [arg.args for arg in mock_print.call_args_list]
-    expect(call_args).to_equal(
+    expect(call_args, "captured print call args").to_equal(
         [
             ("Hey FastAPI!",),
             ("Hello World",),

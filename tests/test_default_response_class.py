@@ -124,113 +124,116 @@ html_type = "text/html; charset=utf-8"
 override_type = "application/x-override"
 
 
+@test("app root uses ORJSONResponse default")
 @test.skip_if(_NEEDS_ORJSON is not None, reason=_NEEDS_ORJSON or "")
 def app_test():
     with client:
         response = client.get("/")
-    expect(response.json()).to_equal({"msg": "Hello World"})
-    expect(response.headers["content-type"]).to_equal(orjson_type)
+    expect(response.json(), "response body").to_equal({"msg": "Hello World"})
+    expect(response.headers["content-type"], "content-type").to_equal(orjson_type)
 
 
-@test
+@test("app /override path uses PlainTextResponse")
 def app_override():
     with client:
         response = client.get("/override")
-    expect(response.content).to_equal(b"Hello World")
-    expect(response.headers["content-type"]).to_equal(text_type)
+    expect(response.content, "response content").to_equal(b"Hello World")
+    expect(response.headers["content-type"], "content-type").to_equal(text_type)
 
 
+@test("router_a inherits ORJSONResponse default")
 @test.skip_if(_NEEDS_ORJSON is not None, reason=_NEEDS_ORJSON or "")
 def router_a_test():
     with client:
         response = client.get("/a")
-    expect(response.json()).to_equal({"msg": "Hello A"})
-    expect(response.headers["content-type"]).to_equal(orjson_type)
+    expect(response.json(), "response body").to_equal({"msg": "Hello A"})
+    expect(response.headers["content-type"], "content-type").to_equal(orjson_type)
 
 
-@test
+@test("router_a /override path uses PlainTextResponse")
 def router_a_override():
     with client:
         response = client.get("/a/override")
-    expect(response.content).to_equal(b"Hello A")
-    expect(response.headers["content-type"]).to_equal(text_type)
+    expect(response.content, "response content").to_equal(b"Hello A")
+    expect(response.headers["content-type"], "content-type").to_equal(text_type)
 
 
+@test("router_a_a inherits ORJSONResponse default")
 @test.skip_if(_NEEDS_ORJSON is not None, reason=_NEEDS_ORJSON or "")
 def router_a_a_test():
     with client:
         response = client.get("/a/a")
-    expect(response.json()).to_equal({"msg": "Hello A A"})
-    expect(response.headers["content-type"]).to_equal(orjson_type)
+    expect(response.json(), "response body").to_equal({"msg": "Hello A A"})
+    expect(response.headers["content-type"], "content-type").to_equal(orjson_type)
 
 
-@test
+@test("router_a_a /override path uses PlainTextResponse")
 def router_a_a_override():
     with client:
         response = client.get("/a/a/override")
-    expect(response.content).to_equal(b"Hello A A")
-    expect(response.headers["content-type"]).to_equal(text_type)
+    expect(response.content, "response content").to_equal(b"Hello A A")
+    expect(response.headers["content-type"], "content-type").to_equal(text_type)
 
 
-@test
+@test("router_a_b uses include_router default PlainTextResponse")
 def router_a_b():
     with client:
         response = client.get("/a/b")
-    expect(response.content).to_equal(b"Hello A B")
-    expect(response.headers["content-type"]).to_equal(text_type)
+    expect(response.content, "response content").to_equal(b"Hello A B")
+    expect(response.headers["content-type"], "content-type").to_equal(text_type)
 
 
-@test
+@test("router_a_b /override path uses HTMLResponse from operation")
 def router_a_b_override():
     with client:
         response = client.get("/a/b/override")
-    expect(response.content).to_equal(b"Hello A B")
-    expect(response.headers["content-type"]).to_equal(html_type)
+    expect(response.content, "response content").to_equal(b"Hello A B")
+    expect(response.headers["content-type"], "content-type").to_equal(html_type)
 
 
-@test
+@test("router_b uses include_router default PlainTextResponse")
 def router_b():
     with client:
         response = client.get("/b")
-    expect(response.content).to_equal(b"Hello B")
-    expect(response.headers["content-type"]).to_equal(text_type)
+    expect(response.content, "response content").to_equal(b"Hello B")
+    expect(response.headers["content-type"], "content-type").to_equal(text_type)
 
 
-@test
+@test("router_b /override path uses HTMLResponse from operation")
 def router_b_override():
     with client:
         response = client.get("/b/override")
-    expect(response.content).to_equal(b"Hello B")
-    expect(response.headers["content-type"]).to_equal(html_type)
+    expect(response.content, "response content").to_equal(b"Hello B")
+    expect(response.headers["content-type"], "content-type").to_equal(html_type)
 
 
-@test
+@test("router_b_a inherits PlainTextResponse from parent include_router")
 def router_b_a():
     with client:
         response = client.get("/b/a")
-    expect(response.content).to_equal(b"Hello B A")
-    expect(response.headers["content-type"]).to_equal(text_type)
+    expect(response.content, "response content").to_equal(b"Hello B A")
+    expect(response.headers["content-type"], "content-type").to_equal(text_type)
 
 
-@test
+@test("router_b_a /override path uses HTMLResponse from operation")
 def router_b_a_override():
     with client:
         response = client.get("/b/a/override")
-    expect(response.content).to_equal(b"Hello B A")
-    expect(response.headers["content-type"]).to_equal(html_type)
+    expect(response.content, "response content").to_equal(b"Hello B A")
+    expect(response.headers["content-type"], "content-type").to_equal(html_type)
 
 
-@test
+@test("router_b_a_c uses HTMLResponse from include_router default")
 def router_b_a_c():
     with client:
         response = client.get("/b/a/c")
-    expect(response.content).to_equal(b"Hello B A C")
-    expect(response.headers["content-type"]).to_equal(html_type)
+    expect(response.content, "response content").to_equal(b"Hello B A C")
+    expect(response.headers["content-type"], "content-type").to_equal(html_type)
 
 
-@test
+@test("router_b_a_c /override uses OverrideResponse from operation")
 def router_b_a_c_override():
     with client:
         response = client.get("/b/a/c/override")
-    expect(response.json()).to_equal({"msg": "Hello B A C"})
-    expect(response.headers["content-type"]).to_equal(override_type)
+    expect(response.json(), "response body").to_equal({"msg": "Hello B A C"})
+    expect(response.headers["content-type"], "content-type").to_equal(override_type)

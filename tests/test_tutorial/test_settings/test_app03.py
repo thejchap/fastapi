@@ -20,9 +20,11 @@ def settings(name: str):
     with monkeypatch_ctx() as monkeypatch:
         monkeypatch.setenv("ADMIN_EMAIL", "admin@example.com")
         settings = main_mod.get_settings()
-        expect(settings.app_name).to_equal("Awesome API")
-        expect(settings.admin_email).to_equal("admin@example.com")
-        expect(settings.items_per_user).to_equal(50)
+        expect(settings.app_name, "settings.app_name").to_equal("Awesome API")
+        expect(settings.admin_email, "settings.admin_email").to_equal(
+            "admin@example.com"
+        )
+        expect(settings.items_per_user, "settings.items_per_user").to_equal(50)
 
 
 @test.cases(
@@ -35,8 +37,8 @@ def endpoint(name: str):
         monkeypatch.setenv("ADMIN_EMAIL", "admin@example.com")
         client = TestClient(main_mod.app)
         response = client.get("/info")
-        expect(response.status_code).to_equal(200)
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200)
+        expect(response.json(), "info response").to_equal(
             {
                 "app_name": "Awesome API",
                 "admin_email": "admin@example.com",

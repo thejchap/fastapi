@@ -16,37 +16,37 @@ def get_client() -> TestClient:
     return client
 
 
-@test
+@test("Empty OPENAPI_URL disables openapi.json, /docs, /redoc")
 def disable_openapi():
     with monkeypatch_ctx() as monkeypatch:
         monkeypatch.setenv("OPENAPI_URL", "")
         # Load the client after setting the env var.
         client = get_client()
         response = client.get("/openapi.json")
-        expect(response.status_code).to_equal(404)
+        expect(response.status_code, "status code").to_equal(404)
         response = client.get("/docs")
-        expect(response.status_code).to_equal(404)
+        expect(response.status_code, "status code").to_equal(404)
         response = client.get("/redoc")
-        expect(response.status_code).to_equal(404)
+        expect(response.status_code, "status code").to_equal(404)
 
 
-@test
+@test("GET / returns hello-world greeting")
 def root():
     client = get_client()
     response = client.get("/")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"message": "Hello World"})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"message": "Hello World"})
 
 
-@test
+@test("Default config exposes /docs, /redoc, openapi.json")
 def default_openapi():
     client = get_client()
     response = client.get("/docs")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     response = client.get("/redoc")
-    expect(response.status_code).to_equal(200)
+    expect(response.status_code, "status code").to_equal(200)
     response = client.get("/openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -15,7 +15,7 @@ from tryke import expect, test
 from ._shims import monkeypatch_ctx
 
 
-@test
+@test("list[bytes] File() preserves request order even when reads race")
 def list_bytes_file_preserves_order() -> None:
     app = FastAPI()
 
@@ -42,7 +42,7 @@ def list_bytes_file_preserves_order() -> None:
             ("files", ("fast.txt", b"B" * 10, "text/plain")),
         ]
         r = client.post("/upload", files=files)
-        expect(r.status_code).to_equal(200).fatal()
+        expect(r.status_code, "status code").to_equal(200).fatal()
 
         # Must preserve request order: slow first, fast second.
-        expect(r.json()).to_equal([ord("A"), ord("B")])
+        expect(r.json(), "response body").to_equal([ord("A"), ord("B")])

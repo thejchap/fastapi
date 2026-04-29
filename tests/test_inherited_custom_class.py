@@ -24,7 +24,7 @@ class MyUuid:
         raise TypeError("vars() argument must have __dict__ attribute")
 
 
-@test
+@test("UUID-spoofing custom classes are serialized correctly under pydantic v2")
 def pydanticv2():
     from pydantic import field_serializer
 
@@ -63,10 +63,10 @@ def pydanticv2():
         response_simple = client.get("/fast_uuid")
         response_pydantic = client.get("/get_custom_class")
 
-    expect(response_simple.json()).to_equal(
+    expect(response_simple.json(), "/fast_uuid response body").to_equal(
         {"fast_uuid": "a10ff360-3b1e-4984-a26f-d3ab460bdb51"}
     )
 
-    expect(response_pydantic.json()).to_equal(
+    expect(response_pydantic.json(), "/get_custom_class response body").to_equal(
         {"a_uuid": "b8799909-f914-42de-91bc-95c819218d01"}
     )

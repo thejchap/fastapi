@@ -35,6 +35,9 @@ openapi_schema = {
 client = TestClient(app)
 
 
-@test
+@test("OpenAPI generation raises on invalid additional response keys")
 def openapi_schema_raises():
-    expect(lambda: client.get("/openapi.json")).to_raise(ValueError)
+    expect(
+        lambda: client.get("/openapi.json"),
+        "fetching the openapi schema",
+    ).to_raise(ValueError)

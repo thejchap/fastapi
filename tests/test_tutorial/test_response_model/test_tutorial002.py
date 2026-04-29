@@ -10,7 +10,7 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("POST /user echoes UserIn including password")
 def post_user(client: TestClient = Depends(client)):
     user_data = {
         "username": "foo",
@@ -22,15 +22,15 @@ def post_user(client: TestClient = Depends(client)):
         "/user/",
         json=user_data,
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(user_data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(user_data)
 
 
-@test
+@test("OpenAPI schema for tutorial002")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

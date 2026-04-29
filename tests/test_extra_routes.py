@@ -53,64 +53,66 @@ def trace_item(item_id: str):
 client = TestClient(app)
 
 
-@test
+@test("@app.api_route registers a GET route")
 def get_api_route():
     response = client.get("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": "foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": "foo"})
 
 
-@test
+@test("app.add_api_route registers a GET route")
 def get_api_route_not_decorated():
     response = client.get("/items-not-decorated/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"item_id": "foo"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"item_id": "foo"})
 
 
-@test
+@test("@app.delete registers a DELETE route with a body")
 def delete():
     response = client.request("DELETE", "/items/foo", json={"name": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"item_id": "foo", "item": {"name": "Foo", "price": None}}
     )
 
 
-@test
+@test("@app.head registers a HEAD route")
 def head():
     response = client.head("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["x-fastapi-item-id"]).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["x-fastapi-item-id"], "response header").to_equal("foo")
 
 
-@test
+@test("@app.options registers an OPTIONS route")
 def options():
     response = client.options("/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["x-fastapi-item-id"]).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["x-fastapi-item-id"], "response header").to_equal("foo")
 
 
-@test
+@test("@app.patch registers a PATCH route with a body")
 def patch():
     response = client.patch("/items/foo", json={"name": "Foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"item_id": "foo", "item": {"name": "Foo", "price": None}}
     )
 
 
-@test
+@test("@app.trace registers a TRACE route")
 def trace():
     response = client.request("trace", "/items/foo")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.headers["content-type"]).to_equal("message/http")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.headers["content-type"], "content-type header").to_equal(
+        "message/http"
+    )
 
 
-@test
+@test("Extra HTTP method routes appear in the OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

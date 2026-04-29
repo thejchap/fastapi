@@ -19,7 +19,7 @@ def passthrough(f):
 # decorated with something that sets the __wrapped__ attribute (functools.wraps),
 # then the types are still processed correctly, including dereferencing of
 # forward references.
-@test
+@test("functools.wraps does not break forward-reference type inference")
 def wrapped_method_type_inference():
     app = FastAPI()
     client = TestClient(app)
@@ -28,5 +28,5 @@ def wrapped_method_type_inference():
     with client:
         response = client.post("/endpoint", json={"input": {"x": 0}})
         response2 = client.post("/endpoint2", json={"input": {"x": 0}})
-    expect(response.json()).to_equal({"x": 1})
-    expect(response2.json()).to_equal({"x": 1})
+    expect(response.json(), "single-wrap response body").to_equal({"x": 1})
+    expect(response2.json(), "double-wrap response body").to_equal({"x": 1})

@@ -30,7 +30,10 @@ def list_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p": {
@@ -56,8 +59,8 @@ def list_schema(path: str):
 def list_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -78,8 +81,8 @@ def list_missing(path: str):
 def list_(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello"), ("p", b"world")])
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal({"file_size": [5, 5]})
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal({"file_size": [5, 5]})
 
 
 # =====================================================================================
@@ -106,7 +109,10 @@ def list_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_alias": {
@@ -132,8 +138,8 @@ def list_alias_schema(path: str):
 def list_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -154,8 +160,8 @@ def list_alias_missing(path: str):
 def list_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello"), ("p", b"world")])
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -176,8 +182,8 @@ def list_alias_by_name(path: str):
 def list_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello"), ("p_alias", b"world")])
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": [5, 5]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": [5, 5]})
 
 
 # =====================================================================================
@@ -211,7 +217,10 @@ def list_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_val_alias": {
@@ -239,8 +248,8 @@ def list_validation_alias_schema(path: str):
 def list_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -263,9 +272,9 @@ def list_validation_alias_missing(path: str):
 def list_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", b"hello"), ("p", b"world")])
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -290,8 +299,8 @@ def list_validation_alias_by_validation_alias(path: str):
     response = client.post(
         path, files=[("p_val_alias", b"hello"), ("p_val_alias", b"world")]
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": [5, 5]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": [5, 5]})
 
 
 # =====================================================================================
@@ -334,7 +343,10 @@ def list_alias_and_validation_alias_schema(path: str):
     openapi = app.openapi()
     body_model_name = get_body_model_name(openapi, path)
 
-    expect(app.openapi()["components"]["schemas"][body_model_name]).to_equal(
+    expect(
+        app.openapi()["components"]["schemas"][body_model_name],
+        "request body schema",
+    ).to_equal(
         {
             "properties": {
                 "p_val_alias": {
@@ -366,8 +378,8 @@ def list_alias_and_validation_alias_schema(path: str):
 def list_alias_and_validation_alias_missing(path: str):
     client = TestClient(app)
     response = client.post(path)
-    expect(response.status_code).to_equal(422)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(422)
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -394,9 +406,9 @@ def list_alias_and_validation_alias_missing(path: str):
 def list_alias_and_validation_alias_by_name(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p", "hello"), ("p", "world")])
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -423,9 +435,9 @@ def list_alias_and_validation_alias_by_name(path: str):
 def list_alias_and_validation_alias_by_alias(path: str):
     client = TestClient(app)
     response = client.post(path, files=[("p_alias", b"hello"), ("p_alias", b"world")])
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
-    expect(response.json()).to_equal(
+    expect(response.json(), "response body").to_equal(
         {
             "detail": [
                 {
@@ -454,5 +466,5 @@ def list_alias_and_validation_alias_by_validation_alias(path: str):
     response = client.post(
         path, files=[("p_val_alias", b"hello"), ("p_val_alias", b"world")]
     )
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"file_size": [5, 5]})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"file_size": [5, 5]})

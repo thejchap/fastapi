@@ -29,16 +29,18 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-@test
+@test("Union of empty Enum and populated Enum serialises returned dict")
 def get(client: TestClient = Depends(client)):
     response = client.get("/users")
-    expect(response.json()).to_equal({"username": "alice", "role": "admin"})
+    expect(response.json(), "response body").to_equal(
+        {"username": "alice", "role": "admin"}
+    )
 
 
-@test
+@test("OpenAPI schema for Union of empty + populated Enum (Pydantic v2)")
 def openapi_schema(client: TestClient = Depends(client)):
     response = client.get("openapi.json")
-    expect(response.json()).to_equal(
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

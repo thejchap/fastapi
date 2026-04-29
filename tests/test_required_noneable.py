@@ -23,46 +23,46 @@ def send_body_embed(b: str | None = Body(embed=True)):
 client = TestClient(app)
 
 
-@test
+@test("required nullable query rejects missing param")
 def required_nonable_query_invalid():
     response = client.get("/query")
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
 
-@test
+@test("required nullable query accepts a value")
 def required_noneable_query_value():
     response = client.get("/query", params={"q": "foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo")
 
 
-@test
+@test("required nullable explicit Query() rejects missing param")
 def required_nonable_explicit_query_invalid():
     response = client.get("/explicit-query")
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
 
-@test
+@test("required nullable explicit Query() accepts a value")
 def required_nonable_explicit_query_value():
     response = client.get("/explicit-query", params={"q": "foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo")
 
 
-@test
+@test("required nullable embed body rejects no content")
 def required_nonable_body_embed_no_content():
     response = client.post("/body-embed")
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
 
-@test
+@test("required nullable embed body rejects unknown key")
 def required_nonable_body_embed_invalid():
     response = client.post("/body-embed", json={"invalid": "invalid"})
-    expect(response.status_code).to_equal(422).fatal()
+    expect(response.status_code, "status code").to_equal(422).fatal()
 
 
-@test
+@test("required nullable embed body accepts a value")
 def required_noneable_body_embed_value():
     response = client.post("/body-embed", json={"b": "foo"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal("foo")
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal("foo")

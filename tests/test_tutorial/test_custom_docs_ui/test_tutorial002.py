@@ -22,34 +22,34 @@ def _client() -> Iterator[TestClient]:
             yield client
 
 
-@test
+@test("Custom /docs serves Swagger UI HTML from /static")
 def swagger_ui_html():
     with _client() as client:
         response = client.get("/docs")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.text).to_contain("/static/swagger-ui-bundle.js")
-        expect(response.text).to_contain("/static/swagger-ui.css")
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.text, "response text").to_contain("/static/swagger-ui-bundle.js")
+        expect(response.text, "response text").to_contain("/static/swagger-ui.css")
 
 
-@test
+@test("Custom /docs/oauth2-redirect serves OAuth2 redirect HTML")
 def swagger_ui_oauth2_redirect_html():
     with _client() as client:
         response = client.get("/docs/oauth2-redirect")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.text).to_contain("window.opener.swaggerUIRedirectOauth2")
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.text, "response text").to_contain("window.opener.swaggerUIRedirectOauth2")
 
 
-@test
+@test("Custom /redoc serves ReDoc HTML from /static")
 def redoc_html():
     with _client() as client:
         response = client.get("/redoc")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.text).to_contain("/static/redoc.standalone.js")
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.text, "response text").to_contain("/static/redoc.standalone.js")
 
 
-@test
+@test("GET /users/john returns greeting")
 def api():
     with _client() as client:
         response = client.get("/users/john")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()["message"]).to_equal("Hello john")
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json()["message"], "message field").to_equal("Hello john")

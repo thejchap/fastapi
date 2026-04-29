@@ -26,24 +26,24 @@ async def post(
 client = TestClient(app)
 
 
-@test
+@test("posting an invalid extra property returns 422")
 def call_invalid():
     response = client.post("/", json={"foo": {"bar": "baz"}})
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("posting an empty body returns the empty Foo")
 def call_valid():
     response = client.post("/", json={})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({})
 
 
-@test
+@test("OpenAPI schema matches snapshot")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

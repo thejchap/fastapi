@@ -14,8 +14,8 @@ def settings(name: str):
         app = mod.app
         client = TestClient(app)
         response = client.get("/info")
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal(
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "info response").to_equal(
             {
                 "app_name": "Awesome API",
                 "admin_email": "admin@example.com",

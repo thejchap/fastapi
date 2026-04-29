@@ -7,25 +7,29 @@ from docs_src.sub_applications.tutorial001_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("main app endpoint responds")
 def main():
     response = client.get("/app")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello World from main app"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"message": "Hello World from main app"}
+    )
 
 
-@test
+@test("mounted sub-app endpoint responds")
 def sub():
     response = client.get("/subapi/sub")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"message": "Hello World from sub API"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"message": "Hello World from sub API"}
+    )
 
 
-@test
+@test("OpenAPI schema for main app")
 def openapi_schema_main():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",
@@ -49,11 +53,11 @@ def openapi_schema_main():
     )
 
 
-@test
+@test("OpenAPI schema for mounted sub-app")
 def openapi_schema_sub():
     response = client.get("/subapi/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "OpenAPI schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

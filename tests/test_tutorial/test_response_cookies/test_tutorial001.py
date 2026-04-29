@@ -6,11 +6,13 @@ from docs_src.response_cookies.tutorial001_py310 import app
 client = TestClient(app)
 
 
-@test
+@test("path operation sets a cookie via Response param")
 def path_operation():
     response = client.post("/cookie/")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
         {"message": "Come to the dark side, we have cookies"}
     )
-    expect(response.cookies["fakesession"]).to_equal("fake-cookie-session-value")
+    expect(response.cookies["fakesession"], "cookie value").to_equal(
+        "fake-cookie-session-value"
+    )

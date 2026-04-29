@@ -31,32 +31,34 @@ def read_current_user(current_user: User | None = Depends(get_current_user)):
 client = TestClient(app)
 
 
-@test
+@test("Optional OpenIdConnect reads Bearer authorization header")
 def security_oauth2():
     response = client.get("/users/me", headers={"Authorization": "Bearer footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Bearer footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Bearer footokenbar"})
 
 
-@test
+@test("Optional OpenIdConnect reads non-Bearer authorization header")
 def security_oauth2_password_other_header():
     response = client.get("/users/me", headers={"Authorization": "Other footokenbar"})
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"username": "Other footokenbar"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal({"username": "Other footokenbar"})
 
 
-@test
+@test("Optional OpenIdConnect allows missing authorization header")
 def security_oauth2_password_bearer_no_header():
     response = client.get("/users/me")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal({"msg": "Create an account first"})
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(
+        {"msg": "Create an account first"}
+    )
 
 
-@test
+@test("OpenAPI schema includes optional OpenIdConnect scheme")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

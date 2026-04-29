@@ -22,8 +22,8 @@ def post_file(name: str):
 
         with path.open("rb") as file:
             response = client.post("/files/", files={"file": file})
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"file_size": 14})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"file_size": 14})
 
 
 @test.cases(
@@ -38,8 +38,8 @@ def post_upload_file(name: str):
 
         with path.open("rb") as file:
             response = client.post("/uploadfile/", files={"file": file})
-        expect(response.status_code).to_equal(200).fatal()
-        expect(response.json()).to_equal({"filename": "test.txt"})
+        expect(response.status_code, "status code").to_equal(200).fatal()
+        expect(response.json(), "response body").to_equal({"filename": "test.txt"})
 
 
 @test.cases(
@@ -49,8 +49,8 @@ def post_upload_file(name: str):
 def openapi_schema(name: str):
     client = _client_for(name)
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

@@ -36,11 +36,11 @@ def get_scopes(
 client = TestClient(app)
 
 
-@test
+@test("Sibling Security dependencies do not see each other's scopes")
 def security_scopes_dont_propagate():
     response = client.get("/scopes")
-    expect(response.status_code).to_equal(200)
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200)
+    expect(response.json(), "response body").to_equal(
         {
             "dep1": ["scope3", "scope1"],
             "dep2": ["scope3", "scope2"],

@@ -27,8 +27,8 @@ def settings(name: str):
     with monkeypatch_ctx() as monkeypatch:
         monkeypatch.setenv("ADMIN_EMAIL", "admin@example.com")
         settings = main_mod.get_settings()
-        expect(settings.app_name).to_equal("Awesome API")
-        expect(settings.items_per_user).to_equal(50)
+        expect(settings.app_name, "settings.app_name").to_equal("Awesome API")
+        expect(settings.items_per_user, "settings.items_per_user").to_equal(50)
 
 
 @test.cases(

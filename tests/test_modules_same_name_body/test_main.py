@@ -16,8 +16,8 @@ client = TestClient(app)
 def post(path: str):
     data = {"a": 2, "b": "foo"}
     response = client.post(path, json=data)
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(data)
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "response body").to_equal(data)
 
 
 @test.cases(
@@ -29,14 +29,14 @@ def post(path: str):
 def post_invalid(path: str):
     data = {"a": "bar", "b": "foo"}
     response = client.post(path, json=data)
-    expect(response.status_code).to_equal(422)
+    expect(response.status_code, "status code").to_equal(422)
 
 
-@test
+@test("Same-named body modules produce a complete OpenAPI schema")
 def openapi_schema():
     response = client.get("/openapi.json")
-    expect(response.status_code).to_equal(200).fatal()
-    expect(response.json()).to_equal(
+    expect(response.status_code, "status code").to_equal(200).fatal()
+    expect(response.json(), "openapi schema").to_equal(
         snapshot(
             {
                 "openapi": "3.1.0",

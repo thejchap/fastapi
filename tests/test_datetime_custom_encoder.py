@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from tryke import expect, test
 
 
-@test
+@test("Pydantic v2 field_serializer normalises datetime output")
 def pydanticv2():
     from pydantic import field_serializer
 
@@ -27,4 +27,6 @@ def pydanticv2():
     client = TestClient(app)
     with client:
         response = client.get("/model")
-    expect(response.json()).to_equal({"dt_field": "2019-01-01T08:00:00+00:00"})
+    expect(response.json(), "response body").to_equal(
+        {"dt_field": "2019-01-01T08:00:00+00:00"}
+    )
